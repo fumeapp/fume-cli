@@ -5,7 +5,6 @@ fume command line interface
 
 [![oclif](https://img.shields.io/badge/cli-oclif-brightgreen.svg)](https://oclif.io)
 [![Version](https://img.shields.io/npm/v/fume-cli.svg)](https://npmjs.org/package/fume-cli)
-[![CircleCI](https://circleci.com/gh/fumeapp/fume-cli/tree/master.svg?style=shield)](https://circleci.com/gh/fumeapp/fume-cli/tree/master)
 [![Codecov](https://codecov.io/gh/fumeapp/fume-cli/branch/master/graph/badge.svg)](https://codecov.io/gh/fumeapp/fume-cli)
 [![Downloads/week](https://img.shields.io/npm/dw/fume-cli.svg)](https://npmjs.org/package/fume-cli)
 [![License](https://img.shields.io/npm/l/fume-cli.svg)](https://github.com/fumeapp/fume-cli/blob/master/package.json)
@@ -30,26 +29,8 @@ USAGE
 <!-- usagestop -->
 # Commands
 <!-- commands -->
-* [`fume init`](#fume-init)
 * [`fume help [COMMAND]`](#fume-help-command)
-
-## `fume init`
-
-Describe the command here
-
-```
-USAGE
-  $ fume init
-
-OPTIONS
-  -n, --name=name  name to print
-
-DESCRIPTION
-  ...
-  Extra documentation goes here
-```
-
-_See code: [src/commands/init.js](https://github.com/fumeapp/fume-cli/blob/v0.0.1/src/commands/init.js)_
+* [`fume init`](#fume-init)
 
 ## `fume help [COMMAND]`
 
@@ -67,4 +48,22 @@ OPTIONS
 ```
 
 _See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v3.0.1/src/commands/help.ts)_
+
+## `fume init`
+
+Initialize your project with fume
+
+```
+USAGE
+  $ fume init
+
+OPTIONS
+  -n, --name=name  name to print
+
+DESCRIPTION
+  ...
+  Creates your fume.yml
+```
+
+_See code: [src/commands/init.js](https://github.com/fumeapp/fume-cli/blob/v0.0.1/src/commands/init.js)_
 <!-- commandsstop -->
