@@ -1,31 +1,41 @@
-import {Command, flags} from '@oclif/command'
+import {Command} from '@oclif/command'
+import cli from 'cli-ux'
+import * as inquirer from 'inquirer'
+import yml = require('js-yaml')
+import fs = require('fs')
 
 export default class Init extends Command {
-  static description = 'describe the command here'
-
-  static examples = [
-    `$ fume hello
-hello world from ./src/hello.ts!
-`,
-  ]
-
-  static flags = {
-    help: flags.help({char: 'h'}),
-    // flag with a value (-n, --name=VALUE)
-    name: flags.string({char: 'n', description: 'name to print'}),
-    // flag with no value (-f, --force)
-    force: flags.boolean({char: 'f'}),
-  }
-
-  static args = [{name: 'file'}]
+  static description = 'Initialize your fume project'
 
   async run() {
-    const {args, flags} = this.parse(Init)
+    const project = await cli.prompt('What is your project name?')
+    const responses: any = await inquirer.prompt([{
+      name: 'environment',
+      message: 'choose environments',
+      type: 'checkbox',
+      choices: [{name: 'staging'}, {name: 'production'}],
+    }])
 
-    const name = flags.name ?? 'world'
-    this.log(`hello ${name} from ./src/commands/hello.ts`)
-    if (args.file && flags.force) {
-      this.log(`you input --force and --file: ${args.file}`)
+    this.log(`Project is  ${project}`)
+    this.log(`Stage: ${responses.environment}`)
+
+    interface Yaml {
+      name: string;
+      environments: Record<string, any>;
     }
+
+    const yaml: Yaml = {
+      name: project,
+      environments: {},
+    }
+
+    responses.environment.forEach((env: string) => {
+      yaml.environments[env] = {memory: 1024}
+    })
+    cli.action.start('Writing fume.yml')
+    fs.writeFileSync('fume.yml', yml.safeDump(yaml))
+    cli.action.stop()
   }
+
+
 }
