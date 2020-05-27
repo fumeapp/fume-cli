@@ -15,6 +15,6 @@ jobs:
       - name: Install dependencies
         run: yarn
       - name: Run tests
-        run: node_modules/.bin/nyc --reporter=clover node_modules/.bin/mocha --forbid-only "test/**/*.test.js"
+        run: node_modules/.bin/nyc --reporter=clover node_modules/.bin/mocha --forbid-only "test/**/*.test.ts"
       - name: Upload to CodeCov
         run: bash <(curl -s https://codecov.io/bash)
