@@ -10,8 +10,8 @@ describe('init', () => {
 
   test
   .stdout()
-  .command(['hello', '--name', 'jeff'])
-  .it('runs hello --name jeff', ctx => {
+  .command(['init', '--name', 'jeff'])
+  .it('runs init --name jeff', ctx => {
     expect(ctx.stdout).to.contain('hello jeff')
   })
 })
