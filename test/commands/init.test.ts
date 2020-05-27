@@ -1,10 +1,10 @@
-const {expect, test} = require('@oclif/test')
+import {expect, test} from '@oclif/test'
 
 describe('init', () => {
   test
   .stdout()
   .command(['init'])
-  .it('runs init', ctx => {
+  .it('runs hello', ctx => {
     expect(ctx.stdout).to.contain('hello world')
   })
 
