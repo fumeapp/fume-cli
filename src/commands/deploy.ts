@@ -1,31 +1,24 @@
-import {Command, flags} from '@oclif/command'
+import {Command} from '@oclif/command'
+import cli from 'cli-ux'
+import fs = require('fs')
 
 export default class Init extends Command {
-  static description = 'Initialize your fume project'
+  static description = 'Deploy an Environment'
 
   static examples = [
-    `$ fume hello
-hello world from ./src/hello.ts!
-`,
+    '$ fume deploy staging',
   ]
 
-  static flags = {
-    help: flags.help({char: 'h'}),
-    // flag with a value (-n, --name=VALUE)
-    name: flags.string({char: 'n', description: 'name to print'}),
-    // flag with no value (-f, --force)
-    force: flags.boolean({char: 'f'}),
-  }
-
-  static args = [{name: 'file'}]
+  static args = [{name: 'environment', required: true}]
 
   async run() {
-    const {args, flags} = this.parse(Init)
+    const {args} = this.parse(Init)
 
-    const name = flags.name ?? 'world'
-    this.log(`hello ${name} from ./src/commands/hello.ts`)
-    if (args.file && flags.force) {
-      this.log(`you input --force and --file: ${args.file}`)
-    }
+    if (!fs.existsSync('fume.yml'))
+      cli.error('No fume configuration found, please run fume init')
+
+    const environment = args.environment
+    this.log(`Deploying ${environment}`)
+
   }
 }

@@ -18,6 +18,8 @@ export default class Init extends Command {
     const {flags} = this.parse(Init)
     let name
     let environments
+    if (fs.existsSync('fume.yml'))
+      cli.error('A fume.yml already exists for this project')
     if (flags.name) {
       name = flags.name
       environments = ['staging', 'production']
