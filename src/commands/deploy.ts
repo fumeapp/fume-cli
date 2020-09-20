@@ -20,7 +20,6 @@ export default class Init extends Command {
     if (!fs.existsSync('fume.yml'))
       cli.error('No fume configuration found, please run fume init')
 
-
     if (!fs.existsSync('node_modules/.bin/nuxt'))
       cli.error('Nuxt.js binary not found in node_modules/.bin/nuxt')
 
@@ -60,5 +59,4 @@ export default class Init extends Command {
     archive.directory('.nuxt/', false)
     archive.finalize()
   }
-
 }
