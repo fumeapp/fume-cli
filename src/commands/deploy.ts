@@ -28,10 +28,7 @@ export default class Deploy extends Command {
 
   s3!: AWS.S3
 
-  yaml: Config = {
-    name: 'string',
-    environments: {memory: 1024},
-  }
+  yaml?: Config
 
   file!: string
 
