@@ -52,12 +52,10 @@ export default class Deploy extends Command {
     this.bucket = `fume-${this.config.name}-${environment}`
 
     const tasks = new Listr([
-      /*
       {
         title: 'Generating assets',
         task: () => execa('node_modules/.bin/nuxt', ['generate']), // .stdout.pipe(process.stdout),
       },
-      */
       {
         title: 'Zipping up generated assets',
         task: () => this.archive(),
@@ -69,6 +67,7 @@ export default class Deploy extends Command {
     ])
 
     tasks.run().catch((error: any) => {
+      this.error(error)
     })
   }
 
@@ -77,7 +76,7 @@ export default class Deploy extends Command {
       {
         title: `Checking for bucket ${this.bucket}`,
         task: (ctx, task) => {
-          this.s3.createBucket({Bucket: this.bucket}, (error, data) => {
+          this.s3.createBucket({Bucket: this.bucket}, error => {
             if (error && error.statusCode === 409)
               task.title = `Bucket already exists ${this.bucket}`
             else
