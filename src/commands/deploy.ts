@@ -30,6 +30,10 @@ export default class Deploy extends Command {
 
   config!: Config
 
+  file!: string
+
+  bucket!: string
+
   async run() {
     const {args: {environment}} = this.parse(Deploy)
 
@@ -44,74 +48,69 @@ export default class Deploy extends Command {
 
     this.log(`Deploying environment ${environment}`)
 
+    this.file = `deployment-${this.config.name}-${environment}.zip`
+    this.bucket = `fume-${this.config.name}-${environment}`
+
     const tasks = new Listr([
+      /*
       {
         title: 'Generating assets',
         task: () => execa('node_modules/.bin/nuxt', ['generate']), // .stdout.pipe(process.stdout),
       },
+      */
       {
         title: 'Zipping up generated assets',
-        task: () => this.archive(environment),
+        task: () => this.archive(),
       },
       {
         title: 'Uploading deployment package',
-        task: () => this.upload(environment),
+        task: () => this.upload(),
       },
     ])
 
     tasks.run().catch((error: any) => {
-      // eslint-disable-next-line no-console
-      console.error(error)
     })
   }
 
-  async upload(environment: string) {
-    const bucket = `fume-${this.config.name}-${environment}`
+  async upload() {
     return new Listr([
       {
-        title: `Checking for bucket ${bucket}`,
-        task: () => {
-          return new Observable(observer => {
-            if (this.exists(bucket)) {
-              observer.next('Bucket found')
-              observer.complete()
-            } else {
-              observer.next(`Creating bucket ${bucket}`)
-              this.s3.createBucket({Bucket: bucket}, (error, data) => {
-                if (error)
-                  this.error(error)
-                this.log(data)
-              })
-            }
+        title: `Checking for bucket ${this.bucket}`,
+        task: (ctx, task) => {
+          this.s3.createBucket({Bucket: this.bucket}, (error, data) => {
+            if (error && error.statusCode === 409)
+              task.title = `Bucket already exists ${this.bucket}`
+            else
+              task.title = `Bucket Created ${this.bucket}`
           })
         },
       },
       {
         title: 'Sending package to bucket',
-        task: () => this.sendFile(bucket),
+        task: () => this.sendFile(),
       },
     ])
   }
 
-  sendFile(bucket: string) {
+  sendFile() {
     return new Observable(observer => {
-      observer.next(`Sending file to ${bucket}`)
-      setTimeout(() => observer.complete(), 2000)
+      observer.next(`Sending file to ${this.bucket}`)
+      new AWS.S3.ManagedUpload({
+        params: {
+          Bucket: this.bucket,
+          Key: this.file,
+          Body: fs.createReadStream(this.file),
+        },
+      }).on('httpUploadProgress', event => {
+        observer.next(`${event.loaded * 100 / event.total}%`)
+        if (event.loaded === event.total) observer.complete()
+      }).send()
     })
   }
 
-  async exists(bucket: string) {
-    try {
-      await this.s3.headBucket({Bucket: bucket}).promise()
-      return true
-    } catch (error) {
-      return false
-    }
-  }
-
-  archive(environment: string) {
+  archive() {
     return new Observable(observer => {
-      const output = fs.createWriteStream(`deployment-${this.config.name}-${environment}.zip`)
+      const output = fs.createWriteStream(this.file)
       output.on('end', () => this.log('data has been drained'))
       const archive = archiver('zip', {zlib: {level: 9}})
       archive.on('error', error => this.error(error))
