@@ -28,7 +28,10 @@ export default class Deploy extends Command {
 
   s3!: AWS.S3
 
-  config!: Config
+  yaml: Config = {
+    name: 'string',
+    environments: {memory: 1024},
+  }
 
   file!: string
 
@@ -38,9 +41,9 @@ export default class Deploy extends Command {
     const {args: {environment}} = this.parse(Deploy)
 
     if (!fs.existsSync('fume.yml'))
-      cli.error('No fume configuration found, please run fume init')
+      cli.error('No fume configuration (fume.yml) found, please run fume init')
 
-    this.config = yml.load(fs.readFileSync('fume.yml').toString())
+    this.yaml = yml.load(fs.readFileSync('fume.yml').toString())
     this.s3 = new AWS.S3()
 
     if (!fs.existsSync('node_modules/.bin/nuxt'))
@@ -48,8 +51,8 @@ export default class Deploy extends Command {
 
     this.log(`Deploying environment ${environment}`)
 
-    this.file = `deployment-${this.config.name}-${environment}.zip`
-    this.bucket = `fume-${this.config.name}-${environment}`
+    this.file = `deployment-${this.yaml.name}-${environment}.zip`
+    this.bucket = `fume-${this.yaml.name}-${environment}`
 
     const tasks = new Listr([
       {
