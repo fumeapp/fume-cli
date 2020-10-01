@@ -14,6 +14,7 @@
     "@types/js-yaml": "^3.12.4",
     "archiver": "^5.0.2",
     "aws-sdk": "^2.756.0",
+    "axios": "^0.20.0",
     "execa": "^4.0.3",
     "inquirer": "^7.3.3",
     "js-yaml": "^3.14.0",

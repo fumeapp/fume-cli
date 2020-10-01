@@ -7,6 +7,7 @@ import archiver  = require('archiver')
 import Listr = require('listr')
 import yml = require('js-yaml')
 import AWS = require('aws-sdk')
+import axios from 'axios'
 
 interface Config {
   name: string;
@@ -37,6 +38,8 @@ export default class Deploy extends Command {
 
   bucket!: string
 
+  environment!: string
+
   async run() {
     const {args: {environment}} = this.parse(Deploy)
 
@@ -46,32 +49,53 @@ export default class Deploy extends Command {
     this.yaml = yml.load(fs.readFileSync('fume.yml').toString())
     this.s3 = new AWS.S3()
 
+    if (!Object.keys(this.yaml.environments).includes(environment)) {
+      cli.error(`Environment: ${environment} not found in configuration (fume.yml)`)
+    }
+
     if (!fs.existsSync('node_modules/.bin/nuxt'))
       cli.error('Nuxt.js binary not found in node_modules/.bin/nuxt')
 
     this.log(`Deploying environment ${environment}`)
 
-    this.file = `deployment-${this.yaml.name}-${environment}.zip`
+    this.file = `deploy-${this.yaml.name}-${environment}.zip`
     this.bucket = `fume-${this.yaml.name}-${environment}`
+    this.environment = environment
 
     const tasks = new Listr([
       {
-        title: 'Generating assets',
-        task: () => execa('node_modules/.bin/nuxt', ['generate']), // .stdout.pipe(process.stdout),
+        title: 'Building production',
+        task: () => execa('node_modules/.bin/nuxt', ['build']), // .stdout.pipe(process.stdout),
       },
       {
-        title: 'Zipping up generated assets',
+        title: 'Archiving build',
         task: () => this.archive(),
       },
       {
-        title: 'Uploading deployment package',
+        title: `Uploading deployment package: ${this.file}`,
         task: () => this.upload(),
+      },
+      {
+        title: 'Initiating function delivery',
+        task: () => this.deploy(),
       },
     ])
 
     tasks.run().catch((error: any) => {
       this.error(error)
     })
+  }
+
+  async deploy() {
+    const data = {
+      environment: this.environment,
+      bucket: this.bucket,
+      file: this.file,
+    }
+
+    axios.post('http://localhost:8000/deploy', data)
+    .then(response => console.log(response.data))
+    .catch(error => console.error(error.response))
   }
 
   async upload() {
@@ -96,7 +120,7 @@ export default class Deploy extends Command {
 
   sendFile() {
     return new Observable(observer => {
-      observer.next(`Sending file to ${this.bucket}`)
+      observer.next(`Sending ${this.file} to ${this.bucket}`)
       new AWS.S3.ManagedUpload({
         params: {
           Bucket: this.bucket,
@@ -105,8 +129,7 @@ export default class Deploy extends Command {
         },
       }).on('httpUploadProgress', event => {
         observer.next(`${event.loaded * 100 / event.total}%`)
-        if (event.loaded === event.total) observer.complete()
-      }).send()
+      }).send(() => observer.complete())
     })
   }
 
@@ -118,12 +141,11 @@ export default class Deploy extends Command {
       archive.on('error', error => this.error(error))
       archive.on('progress', progress => {
         observer.next(`${progress.entries.processed * 100 / progress.entries.total}%`)
-        if (progress.entries.total === progress.entries.processed)
-          observer.complete()
       })
       archive.pipe(output)
-      archive.directory('dist/', false)
+      archive.directory('./', false)
       archive.finalize()
+      archive.on('finish', () => observer.complete())
     })
   }
 }
