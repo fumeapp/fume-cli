@@ -93,7 +93,11 @@ export default class Deploy extends Command {
       file: this.file,
     }
 
-    axios.post('http://localhost:8000/deploy', data)
+    const options = {
+      headers: {'content-type': 'application/json'},
+    }
+
+    axios.post('http://localhost:8000/deploy', data, options)
     .then(response => console.log(response.data))
     .catch(error => console.error(error.response))
   }
