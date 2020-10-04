@@ -105,7 +105,7 @@ export default class Deploy extends Command {
     })
   }
 
-  async yarn(args: Array) {
+  async yarn(args: Array<string>) {
     return new Observable(observer => {
       observer.next('Running yarn')
       execa('yarn', args)

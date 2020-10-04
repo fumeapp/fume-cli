@@ -13,6 +13,7 @@
     "@oclif/plugin-help": "^3",
     "@types/fs-extra": "^9.0.1",
     "@types/js-yaml": "^3.12.4",
+    "@types/numeral": "^0.0.28",
     "archiver": "^5.0.2",
     "aws-sdk": "^2.756.0",
     "axios": "^0.20.0",
