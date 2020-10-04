@@ -20,7 +20,7 @@ $ npm install -g fume-cli
 $ fume COMMAND
 running command...
 $ fume (-v|--version|version)
-fume-cli/0.0.1 darwin-x64 node-v12.16.3
+fume-cli/0.0.1 darwin-x64 node-v12.18.0
 $ fume --help [COMMAND]
 USAGE
   $ fume COMMAND
@@ -29,8 +29,24 @@ USAGE
 <!-- usagestop -->
 # Commands
 <!-- commands -->
+* [`fume deploy ENVIRONMENT`](#fume-deploy-environment)
 * [`fume help [COMMAND]`](#fume-help-command)
 * [`fume init`](#fume-init)
+* [`fume purge [FILE]`](#fume-purge-file)
+
+## `fume deploy ENVIRONMENT`
+
+Deploy an Environment
+
+```
+USAGE
+  $ fume deploy ENVIRONMENT
+
+EXAMPLE
+  $ fume deploy staging
+```
+
+_See code: [src/commands/deploy.ts](https://github.com/fumeapp/fume-cli/blob/v0.0.1/src/commands/deploy.ts)_
 
 ## `fume help [COMMAND]`
 
@@ -47,23 +63,35 @@ OPTIONS
   --all  see all commands in CLI
 ```
 
-_See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v3.0.1/src/commands/help.ts)_
+_See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v3.2.0/src/commands/help.ts)_
 
 ## `fume init`
 
-Initialize your project with fume
+Initialize your fume project
 
 ```
 USAGE
   $ fume init
 
 OPTIONS
-  -n, --name=name  name to print
-
-DESCRIPTION
-  ...
-  Creates your fume.yml
+  --name=name  Project Name (sets default environments)
 ```
 
-_See code: [src/commands/init.js](https://github.com/fumeapp/fume-cli/blob/v0.0.1/src/commands/init.js)_
+_See code: [src/commands/init.ts](https://github.com/fumeapp/fume-cli/blob/v0.0.1/src/commands/init.ts)_
+
+## `fume purge [FILE]`
+
+describe the command here
+
+```
+USAGE
+  $ fume purge [FILE]
+
+OPTIONS
+  -f, --force
+  -h, --help       show CLI help
+  -n, --name=name  name to print
+```
+
+_See code: [src/commands/purge.ts](https://github.com/fumeapp/fume-cli/blob/v0.0.1/src/commands/purge.ts)_
 <!-- commandsstop -->

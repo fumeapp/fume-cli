@@ -3,6 +3,7 @@ import execa = require('execa')
 import {Observable} from 'rxjs'
 import cli from 'cli-ux'
 import fs = require('fs')
+import fse = require('fs-extra')
 import archiver  = require('archiver')
 import Listr = require('listr')
 import yml = require('js-yaml')
@@ -64,42 +65,43 @@ export default class Deploy extends Command {
 
     const tasks = new Listr([
       {
-        title: 'Building production',
+        title: 'Build production',
         task: () => execa('node_modules/.bin/nuxt', ['build']), // .stdout.pipe(process.stdout),
       },
       {
-        title: 'Archiving build',
+        title: 'Create deployment package',
         task: () => this.archive(),
       },
       {
-        title: `Uploading deployment package: ${this.file}`,
+        title: 'Upload deployment package',
         task: () => this.upload(),
       },
       {
-        title: 'Initiating function delivery',
-        task: () => this.deploy(),
+        title: 'Deploy package',
+        task: (ctx, task) => this.deploy(task),
       },
     ])
 
     tasks.run().catch((error: any) => {
-      this.error(error)
+      cli.error(error)
     })
   }
 
-  async deploy() {
-    const data = {
-      environment: this.environment,
-      bucket: this.bucket,
-      file: this.file,
-    }
-
-    const options = {
-      headers: {'content-type': 'application/json'},
-    }
-
-    axios.post('http://localhost:8000/deploy', data, options)
-    .then(response => console.log(response.data))
-    .catch(error => console.error(error.response))
+  async deploy(task: Listr.ListrTaskWrapper) {
+    return new Observable(observer => {
+      observer.next('Initiating deployment')
+      const data = {
+        environment: this.environment,
+        bucket: this.bucket,
+        file: this.file,
+      }
+      axios.post('http://localhost:8000/deploy', data)
+      .then(response => {
+        task.title = `Deploy complete: ${response.data.data.data.url}`
+        observer.complete()
+      })
+      .catch(error => console.error(error.response))
+    })
   }
 
   async upload() {
@@ -133,12 +135,17 @@ export default class Deploy extends Command {
         },
       }).on('httpUploadProgress', event => {
         observer.next(`${event.loaded * 100 / event.total}%`)
-      }).send(() => observer.complete())
+      }).send(() => {
+        fs.unlinkSync(this.file)
+        observer.complete()
+      })
     })
   }
 
   archive() {
     return new Observable(observer => {
+      fs.mkdirSync('./fume')
+      fse.copy(`${__dirname}/../assets/fume`, './fume')
       const output = fs.createWriteStream(this.file)
       output.on('end', () => this.log('data has been drained'))
       const archive = archiver('zip', {zlib: {level: 9}})
@@ -149,7 +156,10 @@ export default class Deploy extends Command {
       archive.pipe(output)
       archive.directory('./', false)
       archive.finalize()
-      archive.on('finish', () => observer.complete())
+      archive.on('finish', () => {
+        fse.removeSync('./fume')
+        observer.complete()
+      })
     })
   }
 }
