@@ -4,6 +4,7 @@ import {Observable} from 'rxjs'
 import cli from 'cli-ux'
 import fs = require('fs')
 import fse = require('fs-extra')
+import numeral = require('numeral')
 import archiver  = require('archiver')
 import Listr = require('listr')
 import yml = require('js-yaml')
@@ -59,14 +60,27 @@ export default class Deploy extends Command {
 
     this.log(`Deploying environment ${environment}`)
 
+    // this.file = `${this.yaml.name}-${environment}-${new Date().getTime()}.zip`
     this.file = `deploy-${this.yaml.name}-${environment}.zip`
     this.bucket = `fume-${this.yaml.name}-${environment}`
     this.environment = environment
 
     const tasks = new Listr([
       {
+        title: 'Install modules',
+        task: () => this.yarn([]),
+      },
+      {
+        title: 'Check config syntax',
+        task: (ctx, task) => this.verify(task),
+      },
+      {
         title: 'Build production',
-        task: () => execa('node_modules/.bin/nuxt', ['build']), // .stdout.pipe(process.stdout),
+        task: () => this.build(),
+      },
+      {
+        title: 'Install only production modules',
+        task: () => this.yarn(['--prod']),
       },
       {
         title: 'Create deployment package',
@@ -80,10 +94,76 @@ export default class Deploy extends Command {
         title: 'Deploy package',
         task: (ctx, task) => this.deploy(task),
       },
+      {
+        title: 'Cleanup deployment',
+        task: () => this.cleanup(),
+      },
     ])
 
     tasks.run().catch((error: any) => {
       cli.error(error)
+    })
+  }
+
+  async yarn(args: Array) {
+    return new Observable(observer => {
+      observer.next('Running yarn')
+      execa('yarn', args)
+      .then(() => observer.complete()) // .stdout.pipe(process.stdout),
+    })
+  }
+
+  async build() {
+    return new Observable(observer => {
+      observer.next('Running nuxt build')
+      execa('node_modules/.bin/nuxt', ['build'])
+      .then(() => observer.complete()) // .stdout.pipe(process.stdout),
+    })
+  }
+
+  verify(task: Listr.ListrTaskWrapper) {
+    return new Observable(observer => {
+      const config = fs.readFileSync('nuxt.config.js', 'utf8')
+      observer.next('Checking Syntax')
+      if (config.includes('export default {')) {
+        observer.next('ES6 detected, converting to CommonJS')
+        fs.writeFileSync(
+          'nuxt.config.js',
+          config.replace('export default {', 'module.exports = {'),
+          'utf8')
+        task.title = 'Check config syntax: converted ES6 to CommonJS'
+      } else {
+        observer.next('CommonJS detected, no change needed')
+      }
+      observer.complete()
+    })
+  }
+
+  archive() {
+    return new Observable(observer => {
+      fs.mkdirSync('./fume')
+      fse.copy(`${__dirname}/../assets/fume`, './fume')
+      const output = fs.createWriteStream(this.file)
+      const archive = archiver('zip', {zlib: {level: 9}})
+
+      output.on('end', () => this.log('data has been drained'))
+
+      output.on('close', () => {
+        console.log(archive.pointer() + ' total bytes')
+        console.log('archiver has been finalized and the output file descriptor has closed.')
+      })
+
+      archive.on('error', error => this.error(error))
+      archive.on('progress', progress => {
+        observer.next(`Compressing ${numeral(progress.fs.totalBytes).format('0.0 b')}`)
+      })
+      archive.pipe(output)
+      archive.directory('./', false)
+      archive.finalize()
+      archive.on('finish', () => {
+        fse.removeSync('./fume')
+        observer.complete()
+      })
     })
   }
 
@@ -142,22 +222,13 @@ export default class Deploy extends Command {
     })
   }
 
-  archive() {
+  cleanup() {
     return new Observable(observer => {
-      fs.mkdirSync('./fume')
-      fse.copy(`${__dirname}/../assets/fume`, './fume')
-      const output = fs.createWriteStream(this.file)
-      output.on('end', () => this.log('data has been drained'))
-      const archive = archiver('zip', {zlib: {level: 9}})
-      archive.on('error', error => this.error(error))
-      archive.on('progress', progress => {
-        observer.next(`${progress.entries.processed * 100 / progress.entries.total}%`)
-      })
-      archive.pipe(output)
-      archive.directory('./', false)
-      archive.finalize()
-      archive.on('finish', () => {
-        fse.removeSync('./fume')
+      observer.next('Requesting bucket cleanup')
+      new AWS.S3().deleteObject({
+        Bucket: this.bucket,
+        Key: this.file,
+      }, () => {
         observer.complete()
       })
     })
