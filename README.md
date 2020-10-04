@@ -20,7 +20,7 @@ $ npm install -g fume-cli
 $ fume COMMAND
 running command...
 $ fume (-v|--version|version)
-fume-cli/0.0.1 darwin-x64 node-v12.18.0
+fume-cli/0.0.2 darwin-x64 node-v12.18.0
 $ fume --help [COMMAND]
 USAGE
   $ fume COMMAND
@@ -32,7 +32,7 @@ USAGE
 * [`fume deploy ENVIRONMENT`](#fume-deploy-environment)
 * [`fume help [COMMAND]`](#fume-help-command)
 * [`fume init`](#fume-init)
-* [`fume purge [FILE]`](#fume-purge-file)
+* [`fume purge ENVIRONMENT`](#fume-purge-environment)
 
 ## `fume deploy ENVIRONMENT`
 
@@ -46,7 +46,7 @@ EXAMPLE
   $ fume deploy staging
 ```
 
-_See code: [src/commands/deploy.ts](https://github.com/fumeapp/fume-cli/blob/v0.0.1/src/commands/deploy.ts)_
+_See code: [src/commands/deploy.ts](https://github.com/fumeapp/fume-cli/blob/v0.0.2/src/commands/deploy.ts)_
 
 ## `fume help [COMMAND]`
 
@@ -77,21 +77,19 @@ OPTIONS
   --name=name  Project Name (sets default environments)
 ```
 
-_See code: [src/commands/init.ts](https://github.com/fumeapp/fume-cli/blob/v0.0.1/src/commands/init.ts)_
+_See code: [src/commands/init.ts](https://github.com/fumeapp/fume-cli/blob/v0.0.2/src/commands/init.ts)_
 
-## `fume purge [FILE]`
+## `fume purge ENVIRONMENT`
 
-describe the command here
+Purge an environment
 
 ```
 USAGE
-  $ fume purge [FILE]
+  $ fume purge ENVIRONMENT
 
-OPTIONS
-  -f, --force
-  -h, --help       show CLI help
-  -n, --name=name  name to print
+EXAMPLE
+  $ fume purge staging
 ```
 
-_See code: [src/commands/purge.ts](https://github.com/fumeapp/fume-cli/blob/v0.0.1/src/commands/purge.ts)_
+_See code: [src/commands/purge.ts](https://github.com/fumeapp/fume-cli/blob/v0.0.2/src/commands/purge.ts)_
 <!-- commandsstop -->
