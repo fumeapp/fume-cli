@@ -38,9 +38,15 @@ export default class Deploy extends Command {
 
   file!: string
 
+  path!: string
+
   bucket!: string
 
   environment!: string
+
+  name!: string
+
+  altered!: boolean
 
   async run() {
     const {args: {environment}} = this.parse(Deploy)
@@ -55,15 +61,13 @@ export default class Deploy extends Command {
       cli.error(`Environment: ${environment} not found in configuration (fume.yml)`)
     }
 
-    if (!fs.existsSync('node_modules/.bin/nuxt'))
-      cli.error('Nuxt.js binary not found in node_modules/.bin/nuxt')
-
-    this.log(`Deploying environment ${environment}`)
-
-    // this.file = `${this.yaml.name}-${environment}-${new Date().getTime()}.zip`
     this.file = `deploy-${this.yaml.name}-${environment}.zip`
-    this.bucket = `fume-${this.yaml.name}-${environment}`
+    this.path = `${__dirname}/${this.file}`
+    this.bucket = `fume-${this.yaml.name}`
     this.environment = environment
+    this.name = this.yaml.name
+
+    this.log(`Deploying project ${this.name} environment ${environment}`)
 
     const tasks = new Listr([
       {
@@ -123,10 +127,12 @@ export default class Deploy extends Command {
 
   verify(task: Listr.ListrTaskWrapper) {
     return new Observable(observer => {
+      this.altered = false
       const config = fs.readFileSync('nuxt.config.js', 'utf8')
       observer.next('Checking Syntax')
       if (config.includes('export default {')) {
         observer.next('ES6 detected, converting to CommonJS')
+        this.altered = true
         fs.writeFileSync(
           'nuxt.config.js',
           config.replace('export default {', 'module.exports = {'),
@@ -143,7 +149,7 @@ export default class Deploy extends Command {
     return new Observable(observer => {
       fs.mkdirSync('./fume')
       fse.copy(`${__dirname}/../assets/fume`, './fume')
-      const output = fs.createWriteStream(this.file)
+      const output = fs.createWriteStream(this.path)
       const archive = archiver('zip', {zlib: {level: 9}})
 
       output.on('end', () => this.log('data has been drained'))
@@ -153,6 +159,7 @@ export default class Deploy extends Command {
         console.log('archiver has been finalized and the output file descriptor has closed.')
       })
 
+      archive.on('warning', error => this.error(error))
       archive.on('error', error => this.error(error))
       archive.on('progress', progress => {
         observer.next(`Compressing ${numeral(progress.fs.totalBytes).format('0.0 b')}`)
@@ -171,6 +178,7 @@ export default class Deploy extends Command {
     return new Observable(observer => {
       observer.next('Initiating deployment')
       const data = {
+        name: this.name,
         environment: this.environment,
         bucket: this.bucket,
         file: this.file,
@@ -211,12 +219,12 @@ export default class Deploy extends Command {
         params: {
           Bucket: this.bucket,
           Key: this.file,
-          Body: fs.createReadStream(this.file),
+          Body: fs.createReadStream(this.path),
         },
       }).on('httpUploadProgress', event => {
         observer.next(`${event.loaded * 100 / event.total}%`)
       }).send(() => {
-        fs.unlinkSync(this.file)
+        fs.unlinkSync(this.path)
         observer.complete()
       })
     })
