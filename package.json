@@ -64,7 +64,10 @@
     "bin": "fume",
     "plugins": [
       "@oclif/plugin-help"
-    ]
+    ],
+    "topics": {
+      "auth": { "description":  "manage fume authentication" }
+    }
   },
   "repository": "fumeapp/fume-cli",
   "scripts": {

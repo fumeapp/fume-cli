@@ -29,10 +29,27 @@ USAGE
 <!-- usagestop -->
 # Commands
 <!-- commands -->
+* [`fume auth:init [FILE]`](#fume-authinit-file)
 * [`fume deploy ENVIRONMENT`](#fume-deploy-environment)
 * [`fume help [COMMAND]`](#fume-help-command)
 * [`fume init`](#fume-init)
 * [`fume purge ENVIRONMENT`](#fume-purge-environment)
+
+## `fume auth:init [FILE]`
+
+describe the command here
+
+```
+USAGE
+  $ fume auth:init [FILE]
+
+OPTIONS
+  -f, --force
+  -h, --help       show CLI help
+  -n, --name=name  name to print
+```
+
+_See code: [src/commands/auth/init.ts](https://github.com/fumeapp/fume-cli/blob/v0.0.2/src/commands/auth/init.ts)_
 
 ## `fume deploy ENVIRONMENT`
 
