@@ -22,6 +22,7 @@
     "inquirer": "^7.3.3",
     "js-yaml": "^3.14.0",
     "listr": "^0.14.3",
+    "listr2": "^3.1.1",
     "numeral": "^2.0.6",
     "tslib": "^2"
   },
@@ -66,7 +67,9 @@
       "@oclif/plugin-help"
     ],
     "topics": {
-      "auth": { "description":  "manage fume authentication" }
+      "auth": {
+        "description": "manage fume authentication"
+      }
     }
   },
   "repository": "fumeapp/fume-cli",
