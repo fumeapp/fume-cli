@@ -3,12 +3,25 @@ import yml = require('js-yaml')
 import fs = require('fs')
 import execa = require('execa')
 import os = require('os')
+import fse = require('fs-extra')
 
 export class Auth {
-  async test(token: string) {
+  config: Record<string, any>
+
+  constructor() {
+    if (!fs.existsSync(`${os.homedir()}/.config/fume/auth.yml`)) {
+      throw new Error('No authentication file found')
+    }
+    this.config = yml.load(fs.readFileSync(`${os.homedir()}/.config/fume/auth.yml`).toString())
+    axios.defaults.headers.common.Authorization = `Bearer ${this.config.token}`
+    axios.defaults.baseURL = 'http://localhost:8000'
+  }
+
+  static async test(token: string) {
+    axios.defaults.baseURL = 'http://localhost:8000'
     try {
       return (await axios.get(
-        'http://localhost:8000/me',
+        '/me',
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -20,24 +33,41 @@ export class Auth {
     }
   }
 
-  async name() {
+  static async getName() {
     return (await execa('scutil', ['--get', 'ComputerName'])).stdout
   }
 
-  async url() {
-    const name = await this.name()
-    return `http://localhost:3000/session/create?name=${name}`
+  static async url() {
+    return `http://localhost:3000/session/create?name=${await Auth.getName()}`
   }
 
-  save(token: string) {
+  static save(token: string) {
     const config = {
-      'http://localhost:8000/': {
-        token: token,
-      },
+      token: token,
     }
     if (!fs.existsSync(`${os.homedir()}/.config`)) fs.mkdirSync(`${os.homedir()}/.config`)
     if (!fs.existsSync(`${os.homedir()}/.config/fume`)) fs.mkdirSync(`${os.homedir()}/.config/fume`)
-    fs.writeFileSync(`${os.homedir()}/.config/fume/hosts.yml`, yml.safeDump(config))
+    fs.writeFileSync(`${os.homedir()}/.config/fume/auth.yml`, yml.safeDump(config))
     return true
+  }
+
+  async load() {
+    if (!fs.existsSync(`${os.homedir()}/.config/fume/auth.yml`)) {
+      throw new Error('No authentication file found')
+    }
+    this.config = yml.load(fs.readFileSync(`${os.homedir()}/.config/fume/auth.yml`).toString())
+  }
+
+  async me() {
+    return (await axios.get('/me')).data.data
+  }
+
+  async logout() {
+    try {
+      await axios.get('/logout')
+      fse.unlinkSync(`${os.homedir()}/.config/fume/auth.yml`)
+    } catch (error) {
+      throw new Error(error)
+    }
   }
 }

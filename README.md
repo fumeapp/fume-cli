@@ -29,19 +29,32 @@ USAGE
 <!-- usagestop -->
 # Commands
 <!-- commands -->
-* [`fume auth:init [FILE]`](#fume-authinit-file)
+* [`fume auth:login`](#fume-authlogin)
+* [`fume auth:logout [FILE]`](#fume-authlogout-file)
+* [`fume auth:status`](#fume-authstatus)
 * [`fume deploy ENVIRONMENT`](#fume-deploy-environment)
 * [`fume help [COMMAND]`](#fume-help-command)
 * [`fume init`](#fume-init)
 * [`fume purge ENVIRONMENT`](#fume-purge-environment)
 
-## `fume auth:init [FILE]`
+## `fume auth:login`
+
+Login to fume
+
+```
+USAGE
+  $ fume auth:login
+```
+
+_See code: [src/commands/auth/login.ts](https://github.com/fumeapp/fume-cli/blob/v0.0.2/src/commands/auth/login.ts)_
+
+## `fume auth:logout [FILE]`
 
 describe the command here
 
 ```
 USAGE
-  $ fume auth:init [FILE]
+  $ fume auth:logout [FILE]
 
 OPTIONS
   -f, --force
@@ -49,7 +62,18 @@ OPTIONS
   -n, --name=name  name to print
 ```
 
-_See code: [src/commands/auth/init.ts](https://github.com/fumeapp/fume-cli/blob/v0.0.2/src/commands/auth/init.ts)_
+_See code: [src/commands/auth/logout.ts](https://github.com/fumeapp/fume-cli/blob/v0.0.2/src/commands/auth/logout.ts)_
+
+## `fume auth:status`
+
+View authentication status
+
+```
+USAGE
+  $ fume auth:status
+```
+
+_See code: [src/commands/auth/status.ts](https://github.com/fumeapp/fume-cli/blob/v0.0.2/src/commands/auth/status.ts)_
 
 ## `fume deploy ENVIRONMENT`
 
