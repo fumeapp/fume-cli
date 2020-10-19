@@ -41,8 +41,12 @@ export class Auth {
     return (await execa('scutil', ['--get', 'ComputerName'])).stdout
   }
 
-  static async url() {
+  static async tokenUrl() {
     return `http://localhost:3000/session/create?name=${await Auth.getName()}`
+  }
+
+  static async projectUrl() {
+    return 'http://localhost:3000/project/create'
   }
 
   static save(token: string) {

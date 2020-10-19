@@ -9,18 +9,20 @@ export default class AuthStatus extends Command {
   auth!: Auth
 
   async run() {
-    const tasks = new Listr([
+    this.tasks(false, false).run().catch(() => false)
+  }
+
+  tasks(pctx: any, ptask: any) {
+    return new Listr([
       {
-        title: 'Initialize authentication',
+        title: 'Initializing',
         task: () => this.init(),
       },
       {
-        title: 'Test Credentials',
-        task: (ctx, task) => this.status(ctx, task),
+        title: 'Testing Credentials',
+        task: (ctx, task) => this.status(ctx, task, ptask),
       },
     ])
-
-    tasks.run().catch(() => false)
   }
 
   async init() {
@@ -35,10 +37,11 @@ export default class AuthStatus extends Command {
     }
   }
 
-  async status(ctx: any, task: any) {
+  async status(ctx: any, task: any, ptask: any) {
     try {
       const me = await this.auth.me()
-      task.title = 'Authenticated as ' + chalk(me.email)
+      task.title = 'Authenticated as ' + chalk.bold(me.email)
+      if (ptask) ptask.title = 'Authenticated as ' + chalk.bold(me.email)
     } catch (error) {
       throw new Error('Authentication error, token is invalid, run ' + chalk.bold('fume auth:login'))
     }

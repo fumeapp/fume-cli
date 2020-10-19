@@ -1,4 +1,5 @@
 import Command from '@oclif/command'
+import AuthStatus from './auth/status'
 import execa = require('execa')
 import {Observable} from 'rxjs'
 import cli from 'cli-ux'
@@ -6,18 +7,22 @@ import fs = require('fs')
 import fse = require('fs-extra')
 import numeral = require('numeral')
 import archiver  = require('archiver')
-import Listr = require('listr')
+import {Listr} from 'listr2'
 import yml = require('js-yaml')
 import AWS = require('aws-sdk')
 import axios from 'axios'
+import chalk from 'chalk'
+import Deployment from '../lib/deployment'
 
-interface Config {
+export interface YamlConfig {
+  id: number;
   name: string;
   environments: Environment;
 }
 
 interface Environment {
   memory: number;
+  domain: string | boolean;
 }
 
 export default class Deploy extends Command {
@@ -31,10 +36,7 @@ export default class Deploy extends Command {
 
   s3!: AWS.S3
 
-  yaml: Config = {
-    name: 'string',
-    environments: {memory: 1024},
-  }
+  fumeConfig!: YamlConfig
 
   file!: string
 
@@ -48,28 +50,39 @@ export default class Deploy extends Command {
 
   altered!: boolean
 
+  private deployment!: Deployment;
+
   async run() {
     const {args: {environment}} = this.parse(Deploy)
 
     if (!fs.existsSync('fume.yml'))
-      cli.error('No fume configuration (fume.yml) found, please run fume init')
+      cli.error('No fume configuration (fume.yml) found, please run ' + chalk.bold('fume config'))
 
-    this.yaml = yml.load(fs.readFileSync('fume.yml').toString())
+    this.fumeConfig = yml.load(fs.readFileSync('fume.yml').toString())
     this.s3 = new AWS.S3()
 
-    if (!Object.keys(this.yaml.environments).includes(environment)) {
+    if (!Object.keys(this.fumeConfig.environments).includes(environment)) {
       cli.error(`Environment: ${environment} not found in configuration (fume.yml)`)
     }
 
-    this.file = `deploy-${this.yaml.name}-${environment}.zip`
+    this.file = `deploy-${this.fumeConfig.name}-${environment}.zip`
     this.path = `${__dirname}/${this.file}`
-    this.bucket = `fume-${this.yaml.name}`
+    this.bucket = `fume-${this.fumeConfig.name}`
     this.environment = environment
-    this.name = this.yaml.name
+    this.name = this.fumeConfig.name
 
     this.log(`Deploying project ${this.name} environment ${environment}`)
 
     const tasks = new Listr([
+      {
+        title: 'Verify authentication',
+        task: async (ctx, task) =>
+          (new AuthStatus([], this.config)).tasks(ctx, task),
+      },
+      {
+        title: 'Initialize deployment',
+        task: () => this.deployInit(),
+      },
       {
         title: 'Install modules',
         task: () => this.yarn([]),
@@ -104,9 +117,14 @@ export default class Deploy extends Command {
       },
     ])
 
-    tasks.run().catch((error: any) => {
-      cli.error(error)
-    })
+    tasks.run().catch(() =>  false)
+  }
+
+  async deployInit() {
+    this.deployment = new Deployment(this.fumeConfig)
+    const result = await this.deployment.initialize()
+    this.log(result)
+    throw new Error('lets stop here')
   }
 
   async yarn(args: Array<string>) {

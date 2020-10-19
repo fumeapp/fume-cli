@@ -36,6 +36,7 @@ USAGE
 * [`fume help [COMMAND]`](#fume-help-command)
 * [`fume init`](#fume-init)
 * [`fume purge ENVIRONMENT`](#fume-purge-environment)
+* [`fume testy [FILE]`](#fume-testy-file)
 
 ## `fume auth:login`
 
@@ -72,7 +73,7 @@ _See code: [src/commands/auth/status.ts](https://github.com/fumeapp/fume-cli/blo
 
 ## `fume deploy ENVIRONMENT`
 
-Deploy an Environment
+Deployment an Environment
 
 ```
 USAGE
@@ -82,7 +83,7 @@ EXAMPLE
   $ fume deploy staging
 ```
 
-_See code: [src/commands/deploy.ts](https://github.com/fumeapp/fume-cli/blob/v0.0.3/src/commands/deploy.ts)_
+_See code: [src/commands/deployment.ts](https://github.com/fumeapp/fume-cli/blob/v0.0.3/src/commands/deploy.ts)_
 
 ## `fume help [COMMAND]`
 
@@ -128,4 +129,20 @@ EXAMPLE
 ```
 
 _See code: [src/commands/purge.ts](https://github.com/fumeapp/fume-cli/blob/v0.0.3/src/commands/purge.ts)_
+
+## `fume testy [FILE]`
+
+describe the command here
+
+```
+USAGE
+  $ fume testy [FILE]
+
+OPTIONS
+  -f, --force
+  -h, --help       show CLI help
+  -n, --name=name  name to print
+```
+
+_See code: [src/commands/testy.ts](https://github.com/fumeapp/fume-cli/blob/v0.0.3/src/commands/testy.ts)_
 <!-- commandsstop -->

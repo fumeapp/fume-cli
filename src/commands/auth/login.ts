@@ -38,7 +38,7 @@ export default class AuthLogin extends Command {
       message: 'Launch fume.app in your browser?',
       initial: 'yes',
     })
-    if (ctx.input) await cli.open(await Auth.url())
+    if (ctx.input) await cli.open(await Auth.tokenUrl())
   }
 
   async gather(ctx: any, task: any) {
