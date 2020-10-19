@@ -10,7 +10,7 @@ export class Auth {
 
   constructor() {
     if (!fs.existsSync(`${os.homedir()}/.config/fume/auth.yml`)) {
-      throw new Error('No authentication file found')
+      throw new Error('no-file')
     }
     this.config = yml.load(fs.readFileSync(`${os.homedir()}/.config/fume/auth.yml`).toString())
     axios.defaults.headers.common.Authorization = `Bearer ${this.config.token}`

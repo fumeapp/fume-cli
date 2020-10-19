@@ -70,6 +70,9 @@
       "auth": {
         "description": "manage fume authentication"
       }
+    },
+    "hooks": {
+      "init": "./lib/hooks/init/init"
     }
   },
   "repository": "fumeapp/fume-cli",

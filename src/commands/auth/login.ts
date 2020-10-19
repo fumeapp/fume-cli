@@ -2,6 +2,7 @@ import {Command} from '@oclif/command'
 import cli from 'cli-ux'
 import {Auth} from '../../lib/auth'
 import {Listr} from 'listr2'
+import chalk from 'chalk'
 
 export default class AuthLogin extends Command {
   static description = 'Login to fume'
@@ -23,7 +24,7 @@ export default class AuthLogin extends Command {
         task: (ctx, task) => this.test(ctx, task),
       },
       {
-        title: 'Save generated token',
+        title: 'Save our valid token',
         task: (ctx, task) => this.save(ctx, task),
       },
     ], {concurrent: false})
@@ -32,19 +33,26 @@ export default class AuthLogin extends Command {
   }
 
   async launch(ctx: any, task: any) {
-    ctx.input = await task.prompt({type: 'Confirm', message: 'Press Y to launch fume.app in your browser'})
+    ctx.input = await task.prompt({
+      type: 'Toggle',
+      message: 'Launch fume.app in your browser?',
+      initial: 'yes',
+    })
     if (ctx.input) await cli.open(await Auth.url())
   }
 
   async gather(ctx: any, task: any) {
     ctx.input = await task.prompt({type: 'Password', message: 'Paste generated token'})
-    if (ctx.input.length !== 64) throw new Error('Invalid token')
     this.token = ctx.input
   }
 
   async test(ctx: any, task: any) {
-    if (await Auth.test(this.token)) {
-      task.title = 'Token validated'
+    if (ctx.input.length !== 64) throw new Error('Invalid token')
+    try {
+      const me = (await Auth.test(this.token))
+      task.title = 'Token validated: authenticated as ' + chalk.bold(me.name)
+    } catch (error) {
+      throw new Error('Invalid token')
     }
   }
 
