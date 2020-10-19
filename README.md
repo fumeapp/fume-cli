@@ -20,7 +20,7 @@ $ npm install -g fume-cli
 $ fume COMMAND
 running command...
 $ fume (-v|--version|version)
-fume-cli/0.0.2 darwin-x64 node-v12.18.0
+fume-cli/0.0.3 darwin-x64 node-v12.18.0
 $ fume --help [COMMAND]
 USAGE
   $ fume COMMAND
@@ -30,7 +30,7 @@ USAGE
 # Commands
 <!-- commands -->
 * [`fume auth:login`](#fume-authlogin)
-* [`fume auth:logout [FILE]`](#fume-authlogout-file)
+* [`fume auth:logout`](#fume-authlogout)
 * [`fume auth:status`](#fume-authstatus)
 * [`fume deploy ENVIRONMENT`](#fume-deploy-environment)
 * [`fume help [COMMAND]`](#fume-help-command)
@@ -46,23 +46,18 @@ USAGE
   $ fume auth:login
 ```
 
-_See code: [src/commands/auth/login.ts](https://github.com/fumeapp/fume-cli/blob/v0.0.2/src/commands/auth/login.ts)_
+_See code: [src/commands/auth/login.ts](https://github.com/fumeapp/fume-cli/blob/v0.0.3/src/commands/auth/login.ts)_
 
-## `fume auth:logout [FILE]`
+## `fume auth:logout`
 
-describe the command here
+Invalidate token and remove credentials
 
 ```
 USAGE
-  $ fume auth:logout [FILE]
-
-OPTIONS
-  -f, --force
-  -h, --help       show CLI help
-  -n, --name=name  name to print
+  $ fume auth:logout
 ```
 
-_See code: [src/commands/auth/logout.ts](https://github.com/fumeapp/fume-cli/blob/v0.0.2/src/commands/auth/logout.ts)_
+_See code: [src/commands/auth/logout.ts](https://github.com/fumeapp/fume-cli/blob/v0.0.3/src/commands/auth/logout.ts)_
 
 ## `fume auth:status`
 
@@ -73,7 +68,7 @@ USAGE
   $ fume auth:status
 ```
 
-_See code: [src/commands/auth/status.ts](https://github.com/fumeapp/fume-cli/blob/v0.0.2/src/commands/auth/status.ts)_
+_See code: [src/commands/auth/status.ts](https://github.com/fumeapp/fume-cli/blob/v0.0.3/src/commands/auth/status.ts)_
 
 ## `fume deploy ENVIRONMENT`
 
@@ -87,7 +82,7 @@ EXAMPLE
   $ fume deploy staging
 ```
 
-_See code: [src/commands/deploy.ts](https://github.com/fumeapp/fume-cli/blob/v0.0.2/src/commands/deploy.ts)_
+_See code: [src/commands/deploy.ts](https://github.com/fumeapp/fume-cli/blob/v0.0.3/src/commands/deploy.ts)_
 
 ## `fume help [COMMAND]`
 
@@ -118,7 +113,7 @@ OPTIONS
   --name=name  Project Name (sets default environments)
 ```
 
-_See code: [src/commands/init.ts](https://github.com/fumeapp/fume-cli/blob/v0.0.2/src/commands/init.ts)_
+_See code: [src/commands/init.ts](https://github.com/fumeapp/fume-cli/blob/v0.0.3/src/commands/init.ts)_
 
 ## `fume purge ENVIRONMENT`
 
@@ -132,5 +127,5 @@ EXAMPLE
   $ fume purge staging
 ```
 
-_See code: [src/commands/purge.ts](https://github.com/fumeapp/fume-cli/blob/v0.0.2/src/commands/purge.ts)_
+_See code: [src/commands/purge.ts](https://github.com/fumeapp/fume-cli/blob/v0.0.3/src/commands/purge.ts)_
 <!-- commandsstop -->
