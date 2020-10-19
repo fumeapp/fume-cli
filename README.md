@@ -32,11 +32,10 @@ USAGE
 * [`fume auth:login`](#fume-authlogin)
 * [`fume auth:logout`](#fume-authlogout)
 * [`fume auth:status`](#fume-authstatus)
+* [`fume config`](#fume-config)
 * [`fume deploy ENVIRONMENT`](#fume-deploy-environment)
 * [`fume help [COMMAND]`](#fume-help-command)
-* [`fume init`](#fume-init)
 * [`fume purge ENVIRONMENT`](#fume-purge-environment)
-* [`fume testy [FILE]`](#fume-testy-file)
 
 ## `fume auth:login`
 
@@ -71,9 +70,20 @@ USAGE
 
 _See code: [src/commands/auth/status.ts](https://github.com/fumeapp/fume-cli/blob/v0.0.3/src/commands/auth/status.ts)_
 
+## `fume config`
+
+Generate a fume.yml config
+
+```
+USAGE
+  $ fume config
+```
+
+_See code: [src/commands/config.ts](https://github.com/fumeapp/fume-cli/blob/v0.0.3/src/commands/config.ts)_
+
 ## `fume deploy ENVIRONMENT`
 
-Deployment an Environment
+Deploy an Environment
 
 ```
 USAGE
@@ -83,7 +93,7 @@ EXAMPLE
   $ fume deploy staging
 ```
 
-_See code: [src/commands/deployment.ts](https://github.com/fumeapp/fume-cli/blob/v0.0.3/src/commands/deploy.ts)_
+_See code: [src/commands/deploy.ts](https://github.com/fumeapp/fume-cli/blob/v0.0.3/src/commands/deploy.ts)_
 
 ## `fume help [COMMAND]`
 
@@ -102,20 +112,6 @@ OPTIONS
 
 _See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v3.2.0/src/commands/help.ts)_
 
-## `fume init`
-
-Initialize your fume project
-
-```
-USAGE
-  $ fume init
-
-OPTIONS
-  --name=name  Project Name (sets default environments)
-```
-
-_See code: [src/commands/init.ts](https://github.com/fumeapp/fume-cli/blob/v0.0.3/src/commands/init.ts)_
-
 ## `fume purge ENVIRONMENT`
 
 Purge an environment
@@ -129,20 +125,4 @@ EXAMPLE
 ```
 
 _See code: [src/commands/purge.ts](https://github.com/fumeapp/fume-cli/blob/v0.0.3/src/commands/purge.ts)_
-
-## `fume testy [FILE]`
-
-describe the command here
-
-```
-USAGE
-  $ fume testy [FILE]
-
-OPTIONS
-  -f, --force
-  -h, --help       show CLI help
-  -n, --name=name  name to print
-```
-
-_See code: [src/commands/testy.ts](https://github.com/fumeapp/fume-cli/blob/v0.0.3/src/commands/testy.ts)_
 <!-- commandsstop -->
