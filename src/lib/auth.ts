@@ -1,4 +1,4 @@
-import axios from 'axios'
+import axios, {AxiosInstance} from 'axios'
 import yml = require('js-yaml')
 import fs = require('fs')
 import execa = require('execa')
@@ -8,13 +8,17 @@ import fse = require('fs-extra')
 export class Auth {
   config: Record<string, any>
 
+  axios: AxiosInstance
+
   constructor() {
     if (!fs.existsSync(`${os.homedir()}/.config/fume/auth.yml`)) {
       throw new Error('no-file')
     }
     this.config = yml.load(fs.readFileSync(`${os.homedir()}/.config/fume/auth.yml`).toString())
-    axios.defaults.headers.common.Authorization = `Bearer ${this.config.token}`
-    axios.defaults.baseURL = 'http://localhost:8000'
+    this.axios = axios.create({
+      baseURL: 'http://localhost:8000',
+    })
+    this.axios.defaults.headers.common.Authorization = `Bearer ${this.config.token}`
   }
 
   static async test(token: string) {
@@ -59,12 +63,12 @@ export class Auth {
   }
 
   async me() {
-    return (await axios.get('/me')).data.data
+    return (await this.axios.get('/me')).data.data
   }
 
   async logout() {
     try {
-      await axios.get('/logout')
+      await this.axios.get('/logout')
       fse.unlinkSync(`${os.homedir()}/.config/fume/auth.yml`)
     } catch (error) {
       throw new Error(error)
