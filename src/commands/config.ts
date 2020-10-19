@@ -1,4 +1,4 @@
-import Command from '@oclif/command'
+import {Command, flags} from '@oclif/command'
 import {Listr, ListrTaskWrapper} from 'listr2'
 import cli from 'cli-ux'
 import yml = require('js-yaml')
@@ -10,6 +10,10 @@ import chalk from 'chalk'
 export default class Config extends Command {
   static description = 'Generate a fume.yml config'
 
+  static flags = {
+    help: flags.help({char: 'h'}),
+  }
+
   private auth!: Auth
 
   private projects!: Record<any, any>;
@@ -19,6 +23,8 @@ export default class Config extends Command {
   private environments!: Array<string>;
 
   async run() {
+    const {flags} = this.parse(Config)
+
     this.auth = new Auth()
     const tasks = new Listr([
       {
@@ -105,6 +111,7 @@ export default class Config extends Command {
       environments: {},
     }
     this.environments.forEach((env: string) => {
+      // @ts-ignore
       config.environments[env] = {memory: 1024, domain: false}
     })
     fs.writeFileSync('fume.yml', yml.safeDump(config))

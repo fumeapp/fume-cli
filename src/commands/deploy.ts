@@ -143,7 +143,7 @@ export default class Deploy extends Command {
     })
   }
 
-  verify(task: Listr.ListrTaskWrapper) {
+  verify(task: any) {
     return new Observable(observer => {
       this.altered = false
       const config = fs.readFileSync('nuxt.config.js', 'utf8')
@@ -192,7 +192,7 @@ export default class Deploy extends Command {
     })
   }
 
-  async deploy(task: Listr.ListrTaskWrapper) {
+  async deploy(task: any) {
     return new Observable(observer => {
       observer.next('Initiating deployment')
       const data = {

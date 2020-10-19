@@ -36,6 +36,7 @@ USAGE
 * [`fume deploy ENVIRONMENT`](#fume-deploy-environment)
 * [`fume help [COMMAND]`](#fume-help-command)
 * [`fume purge ENVIRONMENT`](#fume-purge-environment)
+* [`fume testy [FILE]`](#fume-testy-file)
 
 ## `fume auth:login`
 
@@ -77,6 +78,9 @@ Generate a fume.yml config
 ```
 USAGE
   $ fume config
+
+OPTIONS
+  -h, --help  show CLI help
 ```
 
 _See code: [src/commands/config.ts](https://github.com/fumeapp/fume-cli/blob/v0.0.3/src/commands/config.ts)_
@@ -125,4 +129,20 @@ EXAMPLE
 ```
 
 _See code: [src/commands/purge.ts](https://github.com/fumeapp/fume-cli/blob/v0.0.3/src/commands/purge.ts)_
+
+## `fume testy [FILE]`
+
+describe the command here
+
+```
+USAGE
+  $ fume testy [FILE]
+
+OPTIONS
+  -f, --force
+  -h, --help       show CLI help
+  -n, --name=name  name to print
+```
+
+_See code: [src/commands/testy.ts](https://github.com/fumeapp/fume-cli/blob/v0.0.3/src/commands/testy.ts)_
 <!-- commandsstop -->
