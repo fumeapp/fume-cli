@@ -107,6 +107,7 @@ export default class Config extends Command {
   async writeConfig(ctx: any, task: ListrTaskWrapper<any, any>) {
     const config = {
       id: this.project.id,
+      team_id: this.project.team_id,
       name: this.project.name,
       environments: {},
     }

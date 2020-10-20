@@ -9,21 +9,11 @@ import numeral = require('numeral')
 import archiver  = require('archiver')
 import {Listr} from 'listr2'
 import yml = require('js-yaml')
-import AWS = require('aws-sdk')
+import * as S3 from 'aws-sdk/clients/s3'
 import axios from 'axios'
 import chalk from 'chalk'
 import Deployment from '../lib/deployment'
-
-export interface YamlConfig {
-  id: number;
-  name: string;
-  environments: Environment;
-}
-
-interface Environment {
-  memory: number;
-  domain: string | boolean;
-}
+import {AwsClientConfig, YamlConfig} from '../lib/types'
 
 export default class Deploy extends Command {
   static description = 'Deploy an Environment'
@@ -33,8 +23,6 @@ export default class Deploy extends Command {
   ]
 
   static args = [{name: 'environment', required: true}]
-
-  s3!: AWS.S3
 
   fumeConfig!: YamlConfig
 
@@ -59,19 +47,16 @@ export default class Deploy extends Command {
       cli.error('No fume configuration (fume.yml) found, please run ' + chalk.bold('fume config'))
 
     this.fumeConfig = yml.load(fs.readFileSync('fume.yml').toString())
-    this.s3 = new AWS.S3()
 
     if (!Object.keys(this.fumeConfig.environments).includes(environment)) {
       cli.error(`Environment: ${environment} not found in configuration (fume.yml)`)
     }
 
-    this.file = `deploy-${this.fumeConfig.name}-${environment}.zip`
+    this.file = `deploy-${this.fumeConfig.id}-${environment}.zip`
     this.path = `${__dirname}/${this.file}`
-    this.bucket = `fume-${this.fumeConfig.name}`
+    this.bucket = `fume-deployment-${this.fumeConfig.id}`
     this.environment = environment
     this.name = this.fumeConfig.name
-
-    this.log(`Deploying project ${this.name} environment ${environment}`)
 
     const tasks = new Listr([
       {
@@ -83,6 +68,7 @@ export default class Deploy extends Command {
         title: 'Initialize deployment',
         task: () => this.deployInit(),
       },
+      /*
       {
         title: 'Install modules',
         task: () => this.yarn([]),
@@ -99,6 +85,7 @@ export default class Deploy extends Command {
         title: 'Install only production modules',
         task: () => this.yarn(['--prod']),
       },
+      */
       {
         title: 'Create deployment package',
         task: () => this.archive(),
@@ -107,6 +94,7 @@ export default class Deploy extends Command {
         title: 'Upload deployment package',
         task: () => this.upload(),
       },
+      /*
       {
         title: 'Deploy package',
         task: (ctx, task) => this.deploy(task),
@@ -115,6 +103,7 @@ export default class Deploy extends Command {
         title: 'Cleanup deployment',
         task: () => this.cleanup(),
       },
+      */
     ])
 
     tasks.run().catch(() =>  false)
@@ -122,12 +111,12 @@ export default class Deploy extends Command {
 
   async deployInit() {
     this.deployment = new Deployment(this.fumeConfig)
-    const result = await this.deployment.initialize()
-    this.log(result)
-    throw new Error('lets stop here')
+    await this.deployment.initialize()
+    return true
   }
 
   async yarn(args: Array<string>) {
+    await this.deployment.update('YARN_INSTALL')
     return new Observable(observer => {
       observer.next('Running yarn')
       execa('yarn', args)
@@ -136,6 +125,7 @@ export default class Deploy extends Command {
   }
 
   async build() {
+    await this.deployment.update('NUXT_BUILD')
     return new Observable(observer => {
       observer.next('Running nuxt build')
       execa('node_modules/.bin/nuxt', ['build'])
@@ -163,7 +153,8 @@ export default class Deploy extends Command {
     })
   }
 
-  archive() {
+  async archive() {
+    await this.deployment.update('MAKE_ZIP')
     return new Observable(observer => {
       fs.mkdirSync('./fume')
       fse.copy(`${__dirname}/../assets/fume`, './fume')
@@ -211,11 +202,13 @@ export default class Deploy extends Command {
   }
 
   async upload() {
+    const sts = await this.deployment.sts()
+    const s3 = new S3(sts)
     return new Listr([
       {
         title: `Checking for bucket ${this.bucket}`,
         task: (ctx, task) => {
-          this.s3.createBucket({Bucket: this.bucket}, error => {
+          s3.createBucket({Bucket: this.bucket}, error => {
             if (error && error.statusCode === 409)
               task.title = `Bucket already exists ${this.bucket}`
             else
@@ -225,15 +218,16 @@ export default class Deploy extends Command {
       },
       {
         title: 'Sending package to bucket',
-        task: () => this.sendFile(),
+        task: () => this.sendFile(sts),
       },
     ])
   }
 
-  sendFile() {
+  async sendFile(sts: AwsClientConfig) {
     return new Observable(observer => {
       observer.next(`Sending ${this.file} to ${this.bucket}`)
-      new AWS.S3.ManagedUpload({
+      new S3.ManagedUpload({
+        service: new S3(sts),
         params: {
           Bucket: this.bucket,
           Key: this.file,
@@ -248,10 +242,12 @@ export default class Deploy extends Command {
     })
   }
 
-  cleanup() {
+  async cleanup() {
+    const sts = await this.deployment.sts()
+    const s3 = new S3(sts)
     return new Observable(observer => {
       observer.next('Requesting bucket cleanup')
-      new AWS.S3().deleteObject({
+      s3.deleteObject({
         Bucket: this.bucket,
         Key: this.file,
       }, () => {
