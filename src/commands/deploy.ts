@@ -12,7 +12,7 @@ import yml = require('js-yaml')
 import * as S3 from 'aws-sdk/clients/s3'
 import chalk from 'chalk'
 import Deployment from '../lib/deployment'
-import {AwsClientConfig, YamlConfig} from '../lib/types'
+import {AwsClientConfig, S3Config, YamlConfig} from '../lib/types'
 
 export default class Deploy extends Command {
   static description = 'Deploy an Environment'
@@ -25,11 +25,7 @@ export default class Deploy extends Command {
 
   fumeConfig!: YamlConfig
 
-  file!: string
-
-  path!: string
-
-  bucket!: string
+  s3Config!: S3Config
 
   environment!: string
 
@@ -51,7 +47,6 @@ export default class Deploy extends Command {
       cli.error(`Environment: ${environment} not found in configuration (fume.yml)`)
     }
 
-
     this.environment = environment
     this.name = this.fumeConfig.name
 
@@ -65,7 +60,6 @@ export default class Deploy extends Command {
         title: 'Initialize deployment',
         task: (ctx, task) => this.create(ctx, task),
       },
-      /*
       {
         title: 'Install modules',
         task: () => this.yarn([]),
@@ -90,7 +84,6 @@ export default class Deploy extends Command {
         title: 'Upload deployment package',
         task: () => this.upload(),
       },
-      */
       {
         title: 'Deploy package',
         task: (ctx, task) => this.deploy(task),
@@ -109,10 +102,6 @@ export default class Deploy extends Command {
   async create(ctx: any, task: any) {
     this.deployment = new Deployment(this.fumeConfig, this.env)
 
-    this.file = `fume-deployment-${this.deployment.entry.id}.zip`
-    this.path = `${__dirname}/${this.file}`
-    this.bucket = `fume-deployments-${this.deployment.entry.team_id}`
-
     try {
       await this.deployment.initialize(this.environment)
     } catch (error) {
@@ -124,6 +113,12 @@ export default class Deploy extends Command {
       })
       if (ctx.input) await cli.open(`${this.env.web_url}/team/${this.deployment.entry.team_id}/#cloud`)
       throw new Error(error.response.data.errors[0].detail)
+    }
+
+    this.s3Config = {
+      file: `fume-deployment-${this.deployment.entry.id}.zip`,
+      path: `${__dirname}/fume-deployment-${this.deployment.entry.id}.zip`,
+      bucket: `fume-deployments-${this.deployment.entry.team_id}`,
     }
     return true
   }
@@ -171,15 +166,16 @@ export default class Deploy extends Command {
     return new Observable(observer => {
       fs.mkdirSync('./fume')
       fse.copy(`${__dirname}/../assets/fume`, './fume')
-      const output = fs.createWriteStream(this.path)
+      const output = fs.createWriteStream(this.s3Config.path)
       const archive = archiver('zip', {zlib: {level: 9}})
 
+      /*
       output.on('end', () => this.log('data has been drained'))
-
       output.on('close', () => {
         console.log(archive.pointer() + ' total bytes')
         console.log('archiver has been finalized and the output file descriptor has closed.')
       })
+       */
 
       archive.on('warning', error => this.error(error))
       archive.on('error', error => this.error(error))
@@ -199,17 +195,15 @@ export default class Deploy extends Command {
   async deploy(task: any) {
     return new Observable(observer => {
       observer.next('Initiating deployment')
-      const data = {
-        name: this.name,
-        environment: this.environment,
-        bucket: this.bucket,
-        file: this.file,
-      }
-      const response = this.deployment.update('INITIATE_DEPLOY')
-      console.log(response)
-      console.log(response)
-      console.log(response)
-      task.title = 'We need to find that deployment URL'
+      this.deployment.update('INITIATE_DEPLOY')
+      .then(response =>  {
+        task.title = 'Deployment Successful: ' + chalk.bold(response.data.data.data)
+        observer.complete()
+      })
+      .catch(error => {
+        this.error(error.response.data.errors[0].detail)
+        observer.complete()
+      })
     })
   }
 
@@ -218,13 +212,13 @@ export default class Deploy extends Command {
     const s3 = new S3(sts)
     return new Listr([
       {
-        title: `Checking for bucket ${this.bucket}`,
+        title: `Checking for bucket ${this.s3Config.bucket}`,
         task: (ctx, task) => {
-          s3.createBucket({Bucket: this.bucket}, error => {
+          s3.createBucket({Bucket: this.s3Config.bucket}, error => {
             if (error && error.statusCode === 409)
-              task.title = `Bucket already exists ${this.bucket}`
+              task.title = `Bucket already exists ${this.s3Config.bucket}`
             else
-              task.title = `Bucket Created ${this.bucket}`
+              task.title = `Bucket Created ${this.s3Config.bucket}`
           })
         },
       },
@@ -237,18 +231,18 @@ export default class Deploy extends Command {
 
   async sendFile(sts: AwsClientConfig) {
     return new Observable(observer => {
-      observer.next(`Sending ${this.file} to ${this.bucket}`)
+      observer.next(`Sending ${this.s3Config.file} to ${this.s3Config.bucket}`)
       new S3.ManagedUpload({
         service: new S3(sts),
         params: {
-          Bucket: this.bucket,
-          Key: this.file,
-          Body: fs.createReadStream(this.path),
+          Bucket: this.s3Config.bucket,
+          Key: this.s3Config.file,
+          Body: fs.createReadStream(this.s3Config.path),
         },
       }).on('httpUploadProgress', event => {
         observer.next(`${event.loaded * 100 / event.total}%`)
       }).send(() => {
-        fs.unlinkSync(this.path)
+        fs.unlinkSync(this.s3Config.path)
         observer.complete()
       })
     })
@@ -260,8 +254,8 @@ export default class Deploy extends Command {
     return new Observable(observer => {
       observer.next('Requesting bucket cleanup')
       s3.deleteObject({
-        Bucket: this.bucket,
-        Key: this.file,
+        Bucket: this.s3Config.bucket,
+        Key: this.s3Config.file,
       }, () => {
         observer.complete()
       })

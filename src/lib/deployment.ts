@@ -1,12 +1,10 @@
 import {Auth} from './auth'
-import {YamlConfig, Entry, Project, AwsClientConfig, FumeEnvironment} from './types'
+import {YamlConfig, Entry, AwsClientConfig, FumeEnvironment} from './types'
 
 export default class Deployment {
   auth: Auth
 
   config: YamlConfig
-
-  project!: Project
 
   entry!: Entry
 
@@ -16,13 +14,12 @@ export default class Deployment {
   }
 
   async initialize(environment: string) {
-    this.project = (await this.auth.axios.get(`/team/${this.config.team_id}/project/${this.config.id}`)).data.data
     this.entry = (await this.auth.axios.post(`/project/${this.config.id}/deployment`, {environment})).data.data.data
     return this.entry
   }
 
   async update(status: string) {
-    await this.auth.axios.put(`/project/${this.config.id}/deployment/${this.entry.id}`, {status: status})
+    return this.auth.axios.put(`/project/${this.config.id}/deployment/${this.entry.id}`, {status: status})
   }
 
   async sts(): Promise<AwsClientConfig> {
@@ -32,7 +29,7 @@ export default class Deployment {
       secretAccessKey: result.SecretAccessKey,
       sessionToken: result.SessionToken,
       expiration: result.Expiration,
-      region: this.project.region,
+      region: this.entry.project.region,
     }
   }
 }

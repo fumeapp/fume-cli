@@ -13,10 +13,18 @@ export interface YamlConfig {
   environments: Environment;
 }
 
-export interface Entry {
-  status: string;
-  id: number;
-  team_id: number;
+export interface AwsClientConfig {
+  accessKeyId: string;
+  secretAccessKey: string;
+  sessionToken: string;
+  expiration: string;
+  region: string;
+}
+
+export interface S3Config {
+  file: string;
+  path: string;
+  bucket: string;
 }
 
 export interface Environment {
@@ -29,10 +37,9 @@ export interface Project {
   region: string;
 }
 
-export interface AwsClientConfig {
-  accessKeyId: string;
-  secretAccessKey: string;
-  sessionToken: string;
-  expiration: string;
-  region: string;
+export interface Entry {
+  status: string;
+  id: number;
+  team_id: number;
+  project: Project;
 }
