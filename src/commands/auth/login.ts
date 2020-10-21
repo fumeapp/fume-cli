@@ -1,4 +1,4 @@
-import {Command} from '@oclif/command'
+import Command from '../../base'
 import cli from 'cli-ux'
 import {Auth} from '../../lib/auth'
 import {Listr} from 'listr2'

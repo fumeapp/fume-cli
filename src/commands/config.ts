@@ -1,11 +1,13 @@
-import {Command, flags} from '@oclif/command'
+import {flags} from '@oclif/command'
 import {Listr, ListrTaskWrapper} from 'listr2'
 import cli from 'cli-ux'
 import yml = require('js-yaml')
 import fs = require('fs')
+import Command from '../base'
 import AuthStatus from './auth/status'
 import {Auth} from '../lib/auth'
 import chalk from 'chalk'
+import {YamlConfig} from '../lib/types'
 
 export default class Config extends Command {
   static description = 'Generate a fume.yml config'
@@ -23,14 +25,12 @@ export default class Config extends Command {
   private environments!: Array<string>;
 
   async run() {
-    const {flags} = this.parse(Config)
-
-    this.auth = new Auth()
+    this.auth = new Auth(this.env)
     const tasks = new Listr([
       {
         title: 'Verify authentication',
         task: async (ctx, task) =>
-          (new AuthStatus([], this.config)).tasks(ctx, task),
+          (new AuthStatus([], this.config)).tasks(ctx, task, true),
       },
       {
         title: 'Check no existing fume.yml exists',
@@ -71,7 +71,7 @@ export default class Config extends Command {
         initial: 'yes',
       })
       if (response) {
-        cli.open(await Auth.projectUrl())
+        cli.open(await Auth.projectUrl(this.env))
         this.error('Run ' + chalk.bold('fume config') + ' again after a project has been created')
       } else {
         this.error('Visit fume.app to create a project.')
@@ -105,11 +105,11 @@ export default class Config extends Command {
   }
 
   async writeConfig(ctx: any, task: ListrTaskWrapper<any, any>) {
-    const config = {
+    const config: YamlConfig = {
       id: this.project.id,
       team_id: this.project.team_id,
       name: this.project.name,
-      environments: {},
+      environments: {memory: 1024, domain: false},
     }
     this.environments.forEach((env: string) => {
       // @ts-ignore

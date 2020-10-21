@@ -4,10 +4,10 @@ import fs = require('fs')
 import execa = require('execa')
 import os = require('os')
 import fse = require('fs-extra')
-import {FumeEnvironment} from './types'
+import {FumeEnvironment, FumeAuth} from './types'
 
 export class Auth {
-  config: Record<string, any>
+  auth: FumeAuth
 
   axios: AxiosInstance
 
@@ -19,12 +19,25 @@ export class Auth {
     if (!fs.existsSync(`${os.homedir()}/.config/fume/auth.yml`)) {
       throw new Error('no-file')
     }
-    this.config = yml.load(fs.readFileSync(`${os.homedir()}/.config/fume/auth.yml`).toString())
+    this.auth = yml.load(fs.readFileSync(`${os.homedir()}/.config/fume/auth.yml`).toString())
 
     this.axios = axios.create({
       baseURL: this.env.api_url,
     })
-    this.axios.defaults.headers.common.Authorization = `Bearer ${this.config.token}`
+    this.axios.defaults.headers.common.Authorization = `Bearer ${this.auth.token}`
+  }
+
+  async me() {
+    return (await this.axios.get('/me')).data.data
+  }
+
+  async logout() {
+    try {
+      await this.axios.get('/logout')
+      fse.unlinkSync(`${os.homedir()}/.config/fume/auth.yml`)
+    } catch (error) {
+      throw new Error(error)
+    }
   }
 
   static async test(env: FumeEnvironment, token: string) {
@@ -55,26 +68,13 @@ export class Auth {
     return `${env.web_url}/project/create`
   }
 
-  static save(token: string) {
-    const config = {
+  static save(env: FumeEnvironment, token: string) {
+    const config: FumeAuth = {
       token: token,
     }
     if (!fs.existsSync(`${os.homedir()}/.config`)) fs.mkdirSync(`${os.homedir()}/.config`)
     if (!fs.existsSync(`${os.homedir()}/.config/fume`)) fs.mkdirSync(`${os.homedir()}/.config/fume`)
     fs.writeFileSync(`${os.homedir()}/.config/fume/auth.yml`, yml.safeDump(config))
     return true
-  }
-
-  async me() {
-    return (await this.axios.get('/me')).data.data
-  }
-
-  async logout() {
-    try {
-      await this.axios.get('/logout')
-      fse.unlinkSync(`${os.homedir()}/.config/fume/auth.yml`)
-    } catch (error) {
-      throw new Error(error)
-    }
   }
 }

@@ -10,7 +10,6 @@ import archiver  = require('archiver')
 import {Listr} from 'listr2'
 import yml = require('js-yaml')
 import * as S3 from 'aws-sdk/clients/s3'
-import axios from 'axios'
 import chalk from 'chalk'
 import Deployment from '../lib/deployment'
 import {AwsClientConfig, YamlConfig} from '../lib/types'
@@ -52,9 +51,7 @@ export default class Deploy extends Command {
       cli.error(`Environment: ${environment} not found in configuration (fume.yml)`)
     }
 
-    this.file = `deploy-${this.fumeConfig.id}-${environment}.zip`
-    this.path = `${__dirname}/${this.file}`
-    this.bucket = `fume-deployment-${this.fumeConfig.id}`
+
     this.environment = environment
     this.name = this.fumeConfig.name
 
@@ -62,11 +59,11 @@ export default class Deploy extends Command {
       {
         title: 'Verify authentication',
         task: async (ctx, task) =>
-          (new AuthStatus([], this.config)).tasks(ctx, task),
+          (new AuthStatus([], this.config)).tasks(ctx, task, true),
       },
       {
         title: 'Initialize deployment',
-        task: (ctx, task) => this.deployInit(ctx, task),
+        task: (ctx, task) => this.create(ctx, task),
       },
       /*
       {
@@ -85,7 +82,6 @@ export default class Deploy extends Command {
         title: 'Install only production modules',
         task: () => this.yarn(['--prod']),
       },
-      */
       {
         title: 'Create deployment package',
         task: () => this.archive(),
@@ -94,11 +90,12 @@ export default class Deploy extends Command {
         title: 'Upload deployment package',
         task: () => this.upload(),
       },
-      /*
+      */
       {
         title: 'Deploy package',
         task: (ctx, task) => this.deploy(task),
       },
+      /*
       {
         title: 'Cleanup deployment',
         task: () => this.cleanup(),
@@ -109,8 +106,13 @@ export default class Deploy extends Command {
     tasks.run().catch(() =>  false)
   }
 
-  async deployInit(ctx: any, task: any) {
-    this.deployment = new Deployment(this.fumeConfig)
+  async create(ctx: any, task: any) {
+    this.deployment = new Deployment(this.fumeConfig, this.env)
+
+    this.file = `fume-deployment-${this.deployment.entry.id}.zip`
+    this.path = `${__dirname}/${this.file}`
+    this.bucket = `fume-deployments-${this.deployment.entry.team_id}`
+
     try {
       await this.deployment.initialize(this.environment)
     } catch (error) {
@@ -120,7 +122,7 @@ export default class Deploy extends Command {
         message: 'Launch fume.app in your browser?',
         initial: 'yes',
       })
-      if (ctx.input) await cli.open(`${this.env.web_url}/team/${this.fumeConfig.team_id}/#cloud`)
+      if (ctx.input) await cli.open(`${this.env.web_url}/team/${this.deployment.entry.team_id}/#cloud`)
       throw new Error(error.response.data.errors[0].detail)
     }
     return true
@@ -203,12 +205,11 @@ export default class Deploy extends Command {
         bucket: this.bucket,
         file: this.file,
       }
-      axios.post(`${this.env.api_url}/deploy`, data)
-      .then(response => {
-        task.title = `Deploy complete: ${response.data.data.data.url}`
-        observer.complete()
-      })
-      .catch(error => console.error(error.response))
+      const response = this.deployment.update('INITIATE_DEPLOY')
+      console.log(response)
+      console.log(response)
+      console.log(response)
+      task.title = 'We need to find that deployment URL'
     })
   }
 

@@ -1,5 +1,5 @@
 import {Auth} from './auth'
-import {YamlConfig, Entry, Project, AwsClientConfig} from './types'
+import {YamlConfig, Entry, Project, AwsClientConfig, FumeEnvironment} from './types'
 
 export default class Deployment {
   auth: Auth
@@ -10,8 +10,8 @@ export default class Deployment {
 
   entry!: Entry
 
-  constructor(config: YamlConfig) {
-    this.auth = new Auth()
+  constructor(config: YamlConfig, env: FumeEnvironment) {
+    this.auth = new Auth(env)
     this.config = config
   }
 

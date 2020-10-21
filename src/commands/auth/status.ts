@@ -1,4 +1,4 @@
-import {Command} from '@oclif/command'
+import Command from '../../base'
 import {Listr} from 'listr2'
 import {Auth} from '../../lib/auth'
 import chalk from 'chalk'
@@ -9,27 +9,27 @@ export default class AuthStatus extends Command {
   auth!: Auth
 
   async run() {
-    this.tasks(false, false).run().catch(() => false)
+    this.tasks(false, false, false).run().catch(() => false)
   }
 
-  tasks(pctx: any, ptask: any) {
+  tasks(ParentCtx: any, parentTask: any, init: boolean) {
+    if (init) this.init()
     return new Listr([
       {
         title: 'Initializing',
-        task: () => this.init(),
+        task: () => this.initialize(),
       },
       {
         title: 'Testing Credentials',
-        task: (ctx, task) => this.status(ctx, task, ptask),
+        task: (ctx, task) => this.status(ctx, task, parentTask),
       },
     ])
   }
 
-  async init() {
+  async initialize() {
     try {
-      this.auth = new Auth()
+      this.auth = new Auth(this.env)
     } catch (error) {
-      // console.log(error.message)
       if (error.message === 'no-file')
         this.error('No authentication file found, try running ' + chalk.bold('fume auth:login'))
       else
@@ -37,12 +37,13 @@ export default class AuthStatus extends Command {
     }
   }
 
-  async status(ctx: any, task: any, ptask: any) {
+  async status(ctx: any, task: any, parentTask: any) {
     try {
       const me = await this.auth.me()
       task.title = 'Authenticated as ' + chalk.bold(me.email)
-      if (ptask) ptask.title = 'Authenticated as ' + chalk.bold(me.name) + ' (' + chalk.bold(me.email) + ')'
+      if (parentTask) parentTask.title = 'Authenticated as ' + chalk.bold(me.name) + ' (' + chalk.bold(me.email) + ')'
     } catch (error) {
+      console.log(error.response)
       throw new Error('Authentication error, token is invalid, run ' + chalk.bold('fume auth:login'))
     }
   }

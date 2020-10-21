@@ -1,4 +1,6 @@
-
+export interface FumeAuth {
+  token: string;
+}
 export interface FumeEnvironment {
   web_url: string;
   api_url: string;
