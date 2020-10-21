@@ -5,7 +5,7 @@ import {Listr} from 'listr2'
 export default class AuthLogout extends Command {
   static description = 'Invalidate token and remove credentials'
 
-  auth: Auth
+  auth!: Auth
 
   async run() {
     const tasks = new Listr([

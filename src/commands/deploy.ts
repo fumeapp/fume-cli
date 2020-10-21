@@ -9,7 +9,7 @@ import numeral = require('numeral')
 import archiver  = require('archiver')
 import {Listr} from 'listr2'
 import yml = require('js-yaml')
-import * as S3 from 'aws-sdk/clients/s3'
+import S3 from 'aws-sdk/clients/s3'
 import chalk from 'chalk'
 import Deployment from '../lib/deployment'
 import {AwsClientConfig, S3Config, YamlConfig} from '../lib/types'
