@@ -31,8 +31,6 @@ export default class Deploy extends Command {
 
   name!: string
 
-  altered!: boolean
-
   private deployment!: Deployment;
 
   async run() {
@@ -88,12 +86,10 @@ export default class Deploy extends Command {
         title: 'Deploy package',
         task: (ctx, task) => this.deploy(task),
       },
-      /*
       {
         title: 'Cleanup deployment',
         task: () => this.cleanup(),
       },
-      */
     ])
 
     tasks.run().catch(() =>  false)
@@ -143,17 +139,16 @@ export default class Deploy extends Command {
 
   verify(task: any) {
     return new Observable(observer => {
-      this.altered = false
       const config = fs.readFileSync('nuxt.config.js', 'utf8')
       observer.next('Checking Syntax')
       if (config.includes('export default {')) {
         observer.next('ES6 detected, converting to CommonJS')
-        this.altered = true
+        fs.copyFileSync('nuxt.config.js', 'nuxt.config.fume')
         fs.writeFileSync(
           'nuxt.config.js',
           config.replace('export default {', 'module.exports = {'),
           'utf8')
-        task.title = 'Check config syntax: converted ES6 to CommonJS'
+        task.title = 'Check config syntax: converted'
       } else {
         observer.next('CommonJS detected, no change needed')
       }
@@ -195,7 +190,7 @@ export default class Deploy extends Command {
   async deploy(task: any) {
     return new Observable(observer => {
       observer.next('Initiating deployment')
-      this.deployment.update('INITIATE_DEPLOY')
+      this.deployment.update('INITIATE')
       .then(response =>  {
         task.title = 'Deployment Successful: ' + chalk.bold(response.data.data.data)
         observer.complete()
@@ -208,6 +203,7 @@ export default class Deploy extends Command {
   }
 
   async upload() {
+    await this.deployment.update('UPLOAD_ZIP')
     const sts = await this.deployment.sts()
     const s3 = new S3(sts)
     return new Listr([
@@ -252,6 +248,7 @@ export default class Deploy extends Command {
     const sts = await this.deployment.sts()
     const s3 = new S3(sts)
     return new Observable(observer => {
+      if (fs.existsSync('nuxt.config.fume')) fse.moveSync('nuxt.config.fume', 'nuxt.config.js', {overwrite: true})
       observer.next('Requesting bucket cleanup')
       s3.deleteObject({
         Bucket: this.s3Config.bucket,
