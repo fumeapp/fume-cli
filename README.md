@@ -33,10 +33,10 @@ USAGE
 * [`fume auth:logout`](#fume-authlogout)
 * [`fume auth:status`](#fume-authstatus)
 * [`fume config`](#fume-config)
+* [`fume delete [FILE]`](#fume-delete-file)
 * [`fume deploy ENVIRONMENT`](#fume-deploy-environment)
 * [`fume help [COMMAND]`](#fume-help-command)
 * [`fume purge ENVIRONMENT`](#fume-purge-environment)
-* [`fume testy [FILE]`](#fume-testy-file)
 
 ## `fume auth:login`
 
@@ -85,6 +85,22 @@ OPTIONS
 
 _See code: [src/commands/config.ts](https://github.com/fumeapp/fume-cli/blob/v0.0.3/src/commands/config.ts)_
 
+## `fume delete [FILE]`
+
+describe the command here
+
+```
+USAGE
+  $ fume delete [FILE]
+
+OPTIONS
+  -f, --force
+  -h, --help       show CLI help
+  -n, --name=name  name to print
+```
+
+_See code: [src/commands/delete.ts](https://github.com/fumeapp/fume-cli/blob/v0.0.3/src/commands/delete.ts)_
+
 ## `fume deploy ENVIRONMENT`
 
 Deploy an Environment
@@ -129,20 +145,4 @@ EXAMPLE
 ```
 
 _See code: [src/commands/purge.ts](https://github.com/fumeapp/fume-cli/blob/v0.0.3/src/commands/purge.ts)_
-
-## `fume testy [FILE]`
-
-describe the command here
-
-```
-USAGE
-  $ fume testy [FILE]
-
-OPTIONS
-  -f, --force
-  -h, --help       show CLI help
-  -n, --name=name  name to print
-```
-
-_See code: [src/commands/testy.ts](https://github.com/fumeapp/fume-cli/blob/v0.0.3/src/commands/testy.ts)_
 <!-- commandsstop -->

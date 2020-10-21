@@ -25,6 +25,7 @@ export default class Config extends Command {
   private environments!: Array<string>;
 
   async run() {
+    this.parse(Config)
     this.auth = new Auth(this.env)
     const tasks = new Listr([
       {
