@@ -20,7 +20,7 @@ $ npm install -g fume-cli
 $ fume COMMAND
 running command...
 $ fume (-v|--version|version)
-fume-cli/0.0.3 darwin-x64 node-v12.18.0
+fume-cli/0.0.4 darwin-x64 node-v12.18.0
 $ fume --help [COMMAND]
 USAGE
   $ fume COMMAND
@@ -33,7 +33,6 @@ USAGE
 * [`fume auth:logout`](#fume-authlogout)
 * [`fume auth:status`](#fume-authstatus)
 * [`fume config`](#fume-config)
-* [`fume delete [FILE]`](#fume-delete-file)
 * [`fume deploy ENVIRONMENT`](#fume-deploy-environment)
 * [`fume help [COMMAND]`](#fume-help-command)
 * [`fume purge ENVIRONMENT`](#fume-purge-environment)
@@ -47,7 +46,7 @@ USAGE
   $ fume auth:login
 ```
 
-_See code: [src/commands/auth/login.ts](https://github.com/fumeapp/fume-cli/blob/v0.0.3/src/commands/auth/login.ts)_
+_See code: [src/commands/auth/login.ts](https://github.com/fumeapp/fume-cli/blob/v0.0.4/src/commands/auth/login.ts)_
 
 ## `fume auth:logout`
 
@@ -58,7 +57,7 @@ USAGE
   $ fume auth:logout
 ```
 
-_See code: [src/commands/auth/logout.ts](https://github.com/fumeapp/fume-cli/blob/v0.0.3/src/commands/auth/logout.ts)_
+_See code: [src/commands/auth/logout.ts](https://github.com/fumeapp/fume-cli/blob/v0.0.4/src/commands/auth/logout.ts)_
 
 ## `fume auth:status`
 
@@ -69,7 +68,7 @@ USAGE
   $ fume auth:status
 ```
 
-_See code: [src/commands/auth/status.ts](https://github.com/fumeapp/fume-cli/blob/v0.0.3/src/commands/auth/status.ts)_
+_See code: [src/commands/auth/status.ts](https://github.com/fumeapp/fume-cli/blob/v0.0.4/src/commands/auth/status.ts)_
 
 ## `fume config`
 
@@ -83,23 +82,7 @@ OPTIONS
   -h, --help  show CLI help
 ```
 
-_See code: [src/commands/config.ts](https://github.com/fumeapp/fume-cli/blob/v0.0.3/src/commands/config.ts)_
-
-## `fume delete [FILE]`
-
-describe the command here
-
-```
-USAGE
-  $ fume delete [FILE]
-
-OPTIONS
-  -f, --force
-  -h, --help       show CLI help
-  -n, --name=name  name to print
-```
-
-_See code: [src/commands/delete.ts](https://github.com/fumeapp/fume-cli/blob/v0.0.3/src/commands/delete.ts)_
+_See code: [src/commands/config.ts](https://github.com/fumeapp/fume-cli/blob/v0.0.4/src/commands/config.ts)_
 
 ## `fume deploy ENVIRONMENT`
 
@@ -113,7 +96,7 @@ EXAMPLE
   $ fume deploy staging
 ```
 
-_See code: [src/commands/deploy.ts](https://github.com/fumeapp/fume-cli/blob/v0.0.3/src/commands/deploy.ts)_
+_See code: [src/commands/deploy.ts](https://github.com/fumeapp/fume-cli/blob/v0.0.4/src/commands/deploy.ts)_
 
 ## `fume help [COMMAND]`
 
@@ -144,5 +127,5 @@ EXAMPLE
   $ fume purge staging
 ```
 
-_See code: [src/commands/purge.ts](https://github.com/fumeapp/fume-cli/blob/v0.0.3/src/commands/purge.ts)_
+_See code: [src/commands/purge.ts](https://github.com/fumeapp/fume-cli/blob/v0.0.4/src/commands/purge.ts)_
 <!-- commandsstop -->
