@@ -41,7 +41,7 @@ export default class AuthStatus extends Command {
     try {
       const me = await this.auth.me()
       task.title = 'Authenticated as ' + chalk.bold(me.email)
-      if (ptask) ptask.title = 'Authenticated as ' + chalk.bold(me.email)
+      if (ptask) ptask.title = 'Authenticated as ' + chalk.bold(me.name) + ' (' + chalk.bold(me.email) + ')'
     } catch (error) {
       throw new Error('Authentication error, token is invalid, run ' + chalk.bold('fume auth:login'))
     }

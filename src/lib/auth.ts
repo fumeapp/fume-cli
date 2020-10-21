@@ -4,25 +4,31 @@ import fs = require('fs')
 import execa = require('execa')
 import os = require('os')
 import fse = require('fs-extra')
+import {FumeEnvironment} from './types'
 
 export class Auth {
   config: Record<string, any>
 
   axios: AxiosInstance
 
-  constructor() {
+  env: FumeEnvironment
+
+  constructor(env: FumeEnvironment) {
+    this.env = env
+
     if (!fs.existsSync(`${os.homedir()}/.config/fume/auth.yml`)) {
       throw new Error('no-file')
     }
     this.config = yml.load(fs.readFileSync(`${os.homedir()}/.config/fume/auth.yml`).toString())
+
     this.axios = axios.create({
-      baseURL: 'http://localhost:8000',
+      baseURL: this.env.api_url,
     })
     this.axios.defaults.headers.common.Authorization = `Bearer ${this.config.token}`
   }
 
-  static async test(token: string) {
-    axios.defaults.baseURL = 'http://localhost:8000'
+  static async test(env: FumeEnvironment, token: string) {
+    axios.defaults.baseURL = env.api_url
     try {
       return (await axios.get(
         '/me',
@@ -41,12 +47,12 @@ export class Auth {
     return (await execa('scutil', ['--get', 'ComputerName'])).stdout
   }
 
-  static async tokenUrl() {
-    return `http://localhost:3000/session/create?name=${await Auth.getName()}`
+  static async tokenUrl(env: FumeEnvironment) {
+    return `${env.web_url}/session/create?name=${await Auth.getName()}`
   }
 
-  static async projectUrl() {
-    return 'http://localhost:3000/project/create'
+  static async projectUrl(env: FumeEnvironment) {
+    return `${env.web_url}/project/create`
   }
 
   static save(token: string) {
@@ -57,13 +63,6 @@ export class Auth {
     if (!fs.existsSync(`${os.homedir()}/.config/fume`)) fs.mkdirSync(`${os.homedir()}/.config/fume`)
     fs.writeFileSync(`${os.homedir()}/.config/fume/auth.yml`, yml.safeDump(config))
     return true
-  }
-
-  async load() {
-    if (!fs.existsSync(`${os.homedir()}/.config/fume/auth.yml`)) {
-      throw new Error('No authentication file found')
-    }
-    this.config = yml.load(fs.readFileSync(`${os.homedir()}/.config/fume/auth.yml`).toString())
   }
 
   async me() {

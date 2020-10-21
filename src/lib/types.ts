@@ -1,3 +1,9 @@
+
+export interface FumeEnvironment {
+  web_url: string;
+  api_url: string;
+}
+
 export interface YamlConfig {
   id: number;
   team_id: number;
@@ -8,6 +14,7 @@ export interface YamlConfig {
 export interface Entry {
   status: string;
   id: number;
+  team_id: number;
 }
 
 export interface Environment {

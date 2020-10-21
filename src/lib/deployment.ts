@@ -15,9 +15,9 @@ export default class Deployment {
     this.config = config
   }
 
-  async initialize() {
+  async initialize(environment: string) {
     this.project = (await this.auth.axios.get(`/team/${this.config.team_id}/project/${this.config.id}`)).data.data
-    this.entry = (await this.auth.axios.post(`/project/${this.config.id}/deployment`)).data.data.data
+    this.entry = (await this.auth.axios.post(`/project/${this.config.id}/deployment`, {environment})).data.data.data
     return this.entry
   }
 

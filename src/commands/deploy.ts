@@ -1,4 +1,4 @@
-import Command from '@oclif/command'
+import Command from '../base'
 import AuthStatus from './auth/status'
 import execa = require('execa')
 import {Observable} from 'rxjs'
@@ -66,7 +66,7 @@ export default class Deploy extends Command {
       },
       {
         title: 'Initialize deployment',
-        task: () => this.deployInit(),
+        task: (ctx, task) => this.deployInit(ctx, task),
       },
       /*
       {
@@ -109,9 +109,20 @@ export default class Deploy extends Command {
     tasks.run().catch(() =>  false)
   }
 
-  async deployInit() {
+  async deployInit(ctx: any, task: any) {
     this.deployment = new Deployment(this.fumeConfig)
-    await this.deployment.initialize()
+    try {
+      await this.deployment.initialize(this.environment)
+    } catch (error) {
+      task.title = error.response.data.errors[0].detail
+      ctx.input = await task.prompt({
+        type: 'Toggle',
+        message: 'Launch fume.app in your browser?',
+        initial: 'yes',
+      })
+      if (ctx.input) await cli.open(`${this.env.web_url}/team/${this.fumeConfig.team_id}/#cloud`)
+      throw new Error(error.response.data.errors[0].detail)
+    }
     return true
   }
 
@@ -192,7 +203,7 @@ export default class Deploy extends Command {
         bucket: this.bucket,
         file: this.file,
       }
-      axios.post('http://localhost:8000/deploy', data)
+      axios.post(`${this.env.api_url}/deploy`, data)
       .then(response => {
         task.title = `Deploy complete: ${response.data.data.data.url}`
         observer.complete()

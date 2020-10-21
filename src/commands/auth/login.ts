@@ -38,7 +38,7 @@ export default class AuthLogin extends Command {
       message: 'Launch fume.app in your browser?',
       initial: 'yes',
     })
-    if (ctx.input) await cli.open(await Auth.tokenUrl())
+    if (ctx.input) await cli.open(await Auth.tokenUrl(this.env))
   }
 
   async gather(ctx: any, task: any) {
@@ -49,15 +49,15 @@ export default class AuthLogin extends Command {
   async test(ctx: any, task: any) {
     if (ctx.input.length !== 64) throw new Error('Invalid token')
     try {
-      const me = (await Auth.test(this.token))
-      task.title = 'Token validated: authenticated as ' + chalk.bold(me.name)
+      const me = (await Auth.test(this.env, this.token))
+      task.title = 'Authenticated as ' + chalk.bold(me.name) + ' (' + chalk.bold(me.email) + ')'
     } catch (error) {
       throw new Error('Invalid token')
     }
   }
 
   async save(ctx: any, task: any) {
-    if (Auth.save(this.token)) {
+    if (Auth.save(this.env, this.token)) {
       task.title = 'Token Saved'
     }
   }
