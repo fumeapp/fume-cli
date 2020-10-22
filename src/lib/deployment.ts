@@ -1,5 +1,6 @@
 import {Auth} from './auth'
 import {YamlConfig, Entry, AwsClientConfig, FumeEnvironment} from './types'
+import execa from 'execa'
 
 export default class Deployment {
   auth: Auth
@@ -13,8 +14,26 @@ export default class Deployment {
     this.config = config
   }
 
+  async get(type: string) {
+    let args
+    if (type === 'commit') args = ['rev-parse', 'HEAD']
+    if (type === 'branch') args = ['rev-parse', '--abbrev-ref', 'HEAD']
+    if (type === 'message') args = ['log', '--format=%B', '-n 1']
+    try {
+      return (await execa('git', args)).stdout
+    } catch (error) {
+      return null
+    }
+  }
+
   async initialize(environment: string) {
-    this.entry = (await this.auth.axios.post(`/project/${this.config.id}/deployment`, {environment})).data.data.data
+    const data = {
+      environment: environment,
+      commit: await this.get('commit'),
+      branch: await this.get('branch'),
+      message: await this.get('message'),
+    }
+    this.entry = (await this.auth.axios.post(`/project/${this.config.id}/deployment`, data)).data.data.data
     return this.entry
   }
 
