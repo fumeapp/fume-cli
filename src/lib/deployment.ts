@@ -42,7 +42,7 @@ export default class Deployment {
   }
 
   async sts(): Promise<AwsClientConfig> {
-    const result = (await this.auth.axios.get('/sts')).data.data
+    const result = (await this.auth.axios.get(`/project/${this.config.id}/sts`)).data.data
     return {
       accessKeyId: result.AccessKeyId,
       secretAccessKey: result.SecretAccessKey,

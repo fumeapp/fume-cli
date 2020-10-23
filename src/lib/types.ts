@@ -2,8 +2,9 @@ export interface FumeAuth {
   token: string;
 }
 export interface FumeEnvironment {
-  web_url: string;
-  api_url: string;
+  env: string;
+  web: string;
+  api: string;
 }
 
 export interface YamlConfig {

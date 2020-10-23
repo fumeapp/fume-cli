@@ -107,7 +107,7 @@ export default class Deploy extends Command {
         message: 'Launch fume.app in your browser?',
         initial: 'yes',
       })
-      if (ctx.input) await cli.open(`${this.env.web_url}/team/${this.deployment.entry.team_id}/#cloud`)
+      if (ctx.input) await cli.open(`${this.env.web}/team/${this.deployment.entry.team_id}/#cloud`)
       throw new Error(error.response.data.errors[0].detail)
     }
 

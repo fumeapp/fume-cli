@@ -22,7 +22,7 @@ export class Auth {
     this.auth = yml.load(fs.readFileSync(`${os.homedir()}/.config/fume/auth.yml`).toString())
 
     this.axios = axios.create({
-      baseURL: this.env.api_url,
+      baseURL: this.env.api,
     })
     this.axios.defaults.headers.common.Authorization = `Bearer ${this.auth.token}`
   }
@@ -41,7 +41,7 @@ export class Auth {
   }
 
   static async test(env: FumeEnvironment, token: string) {
-    axios.defaults.baseURL = env.api_url
+    axios.defaults.baseURL = env.api
     try {
       return (await axios.get(
         '/me',
@@ -61,11 +61,11 @@ export class Auth {
   }
 
   static async tokenUrl(env: FumeEnvironment) {
-    return `${env.web_url}/session/create?name=${await Auth.getName()}`
+    return `${env.web}/session/create?name=${await Auth.getName()}`
   }
 
   static async projectUrl(env: FumeEnvironment) {
-    return `${env.web_url}/project/create`
+    return `${env.web}/project/create`
   }
 
   static save(env: FumeEnvironment, token: string) {

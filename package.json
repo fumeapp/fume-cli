@@ -64,10 +64,7 @@
   "oclif": {
     "commands": "./lib/commands",
     "bin": "fume",
-    "env": {
-      "web_url": "http://localhost:3000",
-      "api_url": "http://localhost:8000"
-    },
+    "env": "local",
     "plugins": [
       "@oclif/plugin-help"
     ],
