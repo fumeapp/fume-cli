@@ -1,5 +1,5 @@
 import {Auth} from './auth'
-import {YamlConfig, Entry, AwsClientConfig, FumeEnvironment} from './types'
+import {YamlConfig, Entry, AwsClientConfig, FumeEnvironment, S3Config} from './types'
 import execa from 'execa'
 
 export default class Deployment {
@@ -8,6 +8,8 @@ export default class Deployment {
   config: YamlConfig
 
   entry!: Entry
+
+  s3!: S3Config
 
   constructor(config: YamlConfig, env: FumeEnvironment) {
     this.auth = new Auth(env)
@@ -34,6 +36,8 @@ export default class Deployment {
       message: await this.get('message'),
     }
     this.entry = (await this.auth.axios.post(`/project/${this.config.id}/deployment`, data)).data.data.data
+    this.s3 = (await this.auth.axios.get(`/project/${this.config.id}/deployment/${this.entry.id}/s3`)).data.data
+    this.s3.path = `${__dirname}/${this.s3.file}`
     return this.entry
   }
 

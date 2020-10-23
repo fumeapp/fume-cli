@@ -7,7 +7,7 @@ import Command from '../base'
 import AuthStatus from './auth/status'
 import {Auth} from '../lib/auth'
 import chalk from 'chalk'
-import {YamlConfig} from '../lib/types'
+import {Environment, YamlConfig} from '../lib/types'
 
 export default class Config extends Command {
   static description = 'Generate a fume.yml config'
@@ -105,17 +105,18 @@ export default class Config extends Command {
     task.title = chalk.bold(len.toString()) + ' Environments chosen'
   }
 
-  async writeConfig(ctx: any, task: ListrTaskWrapper<any, any>) {
+  writeConfig(ctx: any, task: ListrTaskWrapper<any, any>) {
     const config: YamlConfig = {
       id: this.project.id,
       team_id: this.project.team_id,
       name: this.project.name,
-      environments: {memory: 1024, domain: false},
+      environments: {staging: {memory: 1024, domain: false}},
     }
     this.environments.forEach((env: string) => {
-      // @ts-ignore
+      if (env !== 'staging' && env !== 'production') throw new Error('Invalid environment')
       config.environments[env] = {memory: 1024, domain: false}
     })
+
     fs.writeFileSync('fume.yml', yml.safeDump(config))
     task.title = 'Configuration file generated, ready to deploy!'
   }

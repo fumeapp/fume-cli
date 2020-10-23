@@ -12,7 +12,7 @@ import yml = require('js-yaml')
 import S3 from 'aws-sdk/clients/s3'
 import chalk from 'chalk'
 import Deployment from '../lib/deployment'
-import {AwsClientConfig, S3Config, YamlConfig} from '../lib/types'
+import {AwsClientConfig, YamlConfig} from '../lib/types'
 
 export default class Deploy extends Command {
   static description = 'Deploy an Environment'
@@ -24,8 +24,6 @@ export default class Deploy extends Command {
   static args = [{name: 'environment', required: true}]
 
   fumeConfig!: YamlConfig
-
-  s3Config!: S3Config
 
   environment!: string
 
@@ -111,11 +109,6 @@ export default class Deploy extends Command {
       throw new Error(error.response.data.errors[0].detail)
     }
 
-    this.s3Config = {
-      file: `fume-deployment-${this.deployment.entry.id}.zip`,
-      path: `${__dirname}/fume-deployment-${this.deployment.entry.id}.zip`,
-      bucket: `fume-deployments-${this.deployment.entry.team_id}`,
-    }
     return true
   }
 
@@ -161,16 +154,8 @@ export default class Deploy extends Command {
     return new Observable(observer => {
       fs.mkdirSync('./fume')
       fse.copy(`${__dirname}/../assets/fume`, './fume')
-      const output = fs.createWriteStream(this.s3Config.path)
+      const output = fs.createWriteStream(this.deployment.s3.path)
       const archive = archiver('zip', {zlib: {level: 9}})
-
-      /*
-      output.on('end', () => this.log('data has been drained'))
-      output.on('close', () => {
-        console.log(archive.pointer() + ' total bytes')
-        console.log('archiver has been finalized and the output file descriptor has closed.')
-      })
-       */
 
       archive.on('warning', error => this.error(error))
       archive.on('error', error => this.error(error))
@@ -182,6 +167,27 @@ export default class Deploy extends Command {
       archive.finalize()
       archive.on('finish', () => {
         fse.removeSync('./fume')
+        observer.complete()
+      })
+    })
+  }
+
+  async upload() {
+    await this.deployment.update('UPLOAD_ZIP')
+    const sts = await this.deployment.sts()
+    return new Observable(observer => {
+      observer.next(`Sending ${this.deployment.s3.file} to ${this.deployment.s3.bucket}`)
+      new S3.ManagedUpload({
+        service: new S3(sts),
+        params: {
+          Bucket: this.deployment.s3.bucket,
+          Key: this.deployment.s3.file,
+          Body: fs.createReadStream(this.deployment.s3.path),
+        },
+      }).on('httpUploadProgress', event => {
+        observer.next(`${event.loaded * 100 / event.total}%`)
+      }).send(() => {
+        fs.unlinkSync(this.deployment.s3.path)
         observer.complete()
       })
     })
@@ -202,60 +208,10 @@ export default class Deploy extends Command {
     })
   }
 
-  async upload() {
-    await this.deployment.update('UPLOAD_ZIP')
-    const sts = await this.deployment.sts()
-    const s3 = new S3(sts)
-    return new Listr([
-      {
-        title: `Checking for bucket ${this.s3Config.bucket}`,
-        task: (ctx, task) => {
-          s3.createBucket({Bucket: this.s3Config.bucket}, error => {
-            if (error && error.statusCode === 409)
-              task.title = `Bucket already exists ${this.s3Config.bucket}`
-            else
-              task.title = `Bucket Created ${this.s3Config.bucket}`
-          })
-        },
-      },
-      {
-        title: 'Sending package to bucket',
-        task: () => this.sendFile(sts),
-      },
-    ])
-  }
-
-  async sendFile(sts: AwsClientConfig) {
-    return new Observable(observer => {
-      observer.next(`Sending ${this.s3Config.file} to ${this.s3Config.bucket}`)
-      new S3.ManagedUpload({
-        service: new S3(sts),
-        params: {
-          Bucket: this.s3Config.bucket,
-          Key: this.s3Config.file,
-          Body: fs.createReadStream(this.s3Config.path),
-        },
-      }).on('httpUploadProgress', event => {
-        observer.next(`${event.loaded * 100 / event.total}%`)
-      }).send(() => {
-        fs.unlinkSync(this.s3Config.path)
-        observer.complete()
-      })
-    })
-  }
-
   async cleanup() {
-    const sts = await this.deployment.sts()
-    const s3 = new S3(sts)
     return new Observable(observer => {
       if (fs.existsSync('nuxt.config.fume')) fse.moveSync('nuxt.config.fume', 'nuxt.config.js', {overwrite: true})
-      observer.next('Requesting bucket cleanup')
-      s3.deleteObject({
-        Bucket: this.s3Config.bucket,
-        Key: this.s3Config.file,
-      }, () => {
-        observer.complete()
-      })
+      observer.complete()
     })
   }
 }

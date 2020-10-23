@@ -1,6 +1,7 @@
 export interface FumeAuth {
   token: string;
 }
+
 export interface FumeEnvironment {
   env: string;
   web: string;
@@ -11,7 +12,12 @@ export interface YamlConfig {
   id: number;
   team_id: number;
   name: string;
-  environments: Environment;
+  environments: Partial<Record<'staging' | 'production', Environment>>;
+}
+
+export interface Environment {
+  memory: number;
+  domain: string | boolean;
 }
 
 export interface AwsClientConfig {
@@ -28,11 +34,6 @@ export interface S3Config {
   bucket: string;
 }
 
-export interface Environment {
-  memory: number;
-  domain: string | boolean;
-}
-
 export interface Project {
   id: number;
   region: string;
@@ -44,3 +45,12 @@ export interface Entry {
   team_id: number;
   project: Project;
 }
+
+
+
+
+
+
+
+
+
