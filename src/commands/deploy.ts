@@ -12,7 +12,7 @@ import yml = require('js-yaml')
 import S3 from 'aws-sdk/clients/s3'
 import chalk from 'chalk'
 import Deployment from '../lib/deployment'
-import {AwsClientConfig, YamlConfig} from '../lib/types'
+import {YamlConfig} from '../lib/types'
 
 export default class Deploy extends Command {
   static description = 'Deploy an Environment'

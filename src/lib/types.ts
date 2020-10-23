@@ -45,12 +45,3 @@ export interface Entry {
   team_id: number;
   project: Project;
 }
-
-
-
-
-
-
-
-
-

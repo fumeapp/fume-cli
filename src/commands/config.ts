@@ -7,7 +7,7 @@ import Command from '../base'
 import AuthStatus from './auth/status'
 import {Auth} from '../lib/auth'
 import chalk from 'chalk'
-import {Environment, YamlConfig} from '../lib/types'
+import {YamlConfig} from '../lib/types'
 
 export default class Config extends Command {
   static description = 'Generate a fume.yml config'
