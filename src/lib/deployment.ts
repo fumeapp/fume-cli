@@ -41,8 +41,8 @@ export default class Deployment {
     return this.entry
   }
 
-  async update(status: string) {
-    return this.auth.axios.put(`/project/${this.config.id}/deployment/${this.entry.id}`, {status: status})
+  async update(status: string, go = false) {
+    return this.auth.axios.put(`/project/${this.config.id}/deployment/${this.entry.id}`, {status: status, go: go})
   }
 
   async sts(): Promise<AwsClientConfig> {

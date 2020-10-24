@@ -113,7 +113,10 @@ export default class Deploy extends Command {
   }
 
   async yarn(args: Array<string>) {
-    await this.deployment.update('YARN_INSTALL')
+    if (args.length > 0)
+      await this.deployment.update('YARN_PROD')
+    else
+      await this.deployment.update('YARN_ALL')
     return new Observable(observer => {
       observer.next('Running yarn')
       execa('yarn', args)
@@ -176,7 +179,7 @@ export default class Deploy extends Command {
     await this.deployment.update('UPLOAD_ZIP')
     const sts = await this.deployment.sts()
     return new Observable(observer => {
-      observer.next(`Sending ${this.deployment.s3.file} to ${this.deployment.s3.bucket}`)
+      observer.next('Sending deployment..')
       new S3.ManagedUpload({
         service: new S3(sts),
         params: {
@@ -194,9 +197,10 @@ export default class Deploy extends Command {
   }
 
   async deploy(task: any) {
+    await this.deployment.update('FUNCTION')
     return new Observable(observer => {
       observer.next('Initiating deployment')
-      this.deployment.update('INITIATE')
+      this.deployment.update('FUNCTION', true)
       .then(response =>  {
         task.title = 'Deployment Successful: ' + chalk.bold(response.data.data.data)
         observer.complete()
