@@ -197,10 +197,9 @@ export default class Deploy extends Command {
   }
 
   async deploy(task: any) {
-    await this.deployment.update('FUNCTION')
     return new Observable(observer => {
       observer.next('Initiating deployment')
-      this.deployment.update('FUNCTION', true)
+      this.deployment.update('FUNCTION_DELIVER')
       .then(response =>  {
         task.title = 'Deployment Successful: ' + chalk.bold(response.data.data.data)
         observer.complete()
