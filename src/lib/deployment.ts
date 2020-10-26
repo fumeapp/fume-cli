@@ -42,17 +42,25 @@ export default class Deployment {
   }
 
   async update(status: string) {
-    return this.auth.axios.put(`/project/${this.config.id}/deployment/${this.entry.id}`, {status})
+    try {
+      return this.auth.axios.put(`/project/${this.config.id}/deployment/${this.entry.id}`, {status})
+    } catch (error) {
+      throw new Error(error.response)
+    }
   }
 
   async sts(): Promise<AwsClientConfig> {
-    const result = (await this.auth.axios.get(`/project/${this.config.id}/sts`)).data.data
-    return {
-      accessKeyId: result.AccessKeyId,
-      secretAccessKey: result.SecretAccessKey,
-      sessionToken: result.SessionToken,
-      expiration: result.Expiration,
-      region: this.entry.project.region,
+    try {
+      const result = (await this.auth.axios.get(`/project/${this.config.id}/sts`)).data.data
+      return {
+        accessKeyId: result.AccessKeyId,
+        secretAccessKey: result.SecretAccessKey,
+        sessionToken: result.SessionToken,
+        expiration: result.Expiration,
+        region: this.entry.project.region,
+      }
+    } catch (error) {
+      throw new Error(error.response)
     }
   }
 }

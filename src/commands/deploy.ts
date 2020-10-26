@@ -189,7 +189,8 @@ export default class Deploy extends Command {
         },
       }).on('httpUploadProgress', event => {
         observer.next(`${event.loaded * 100 / event.total}%`)
-      }).send(() => {
+      }).send((error: Error) => {
+        if (error) this.error(error)
         fs.unlinkSync(this.deployment.s3.path)
         observer.complete()
       })
