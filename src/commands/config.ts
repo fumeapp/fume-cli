@@ -45,10 +45,12 @@ export default class Config extends Command {
         title: 'Choose a project to configure',
         task: (ctx, task) => this.projectChoose(ctx, task),
       },
+      /*
       {
         title: 'Select some initial environments',
         task: (ctx, task) => this.environmentChoose(ctx, task),
       },
+      */
       {
         title: 'Write configuration file',
         task: (ctx, task) => this.writeConfig(ctx, task),
@@ -108,14 +110,14 @@ export default class Config extends Command {
   writeConfig(ctx: any, task: ListrTaskWrapper<any, any>) {
     const config: YamlConfig = {
       id: this.project.id,
-      team_id: this.project.team_id,
-      name: this.project.name,
-      environments: {staging: {memory: 1024, domain: false}},
+      // environments: {staging: {memory: 1024, domain: false}},
     }
+    /*
     this.environments.forEach((env: string) => {
       if (env !== 'staging' && env !== 'production') throw new Error('Invalid environment')
       config.environments[env] = {memory: 1024, domain: false}
     })
+   */
 
     fs.writeFileSync('fume.yml', yml.safeDump(config))
     task.title = 'Configuration file generated, ready to deploy!'

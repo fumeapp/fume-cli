@@ -10,9 +10,11 @@ export interface FumeEnvironment {
 
 export interface YamlConfig {
   id: number;
+  /*
   team_id: number;
   name: string;
   environments: Partial<Record<'staging' | 'production', Environment>>;
+ */
 }
 
 export interface Environment {

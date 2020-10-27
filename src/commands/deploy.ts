@@ -39,13 +39,6 @@ export default class Deploy extends Command {
 
     this.fumeConfig = yml.load(fs.readFileSync('fume.yml').toString())
 
-    if (!Object.keys(this.fumeConfig.environments).includes(environment)) {
-      cli.error(`Environment: ${environment} not found in configuration (fume.yml)`)
-    }
-
-    this.environment = environment
-    this.name = this.fumeConfig.name
-
     const tasks = new Listr([
       {
         title: 'Verify authentication',
@@ -54,7 +47,7 @@ export default class Deploy extends Command {
       },
       {
         title: 'Initialize deployment',
-        task: (ctx, task) => this.create(ctx, task),
+        task: (ctx, task) => this.create(ctx, task, environment),
       },
       {
         title: 'Install modules',
@@ -93,12 +86,13 @@ export default class Deploy extends Command {
     tasks.run().catch(() =>  false)
   }
 
-  async create(ctx: any, task: any) {
+  async create(ctx: any, task: any, environment: string) {
     this.deployment = new Deployment(this.fumeConfig, this.env)
 
     try {
-      await this.deployment.initialize(this.environment)
+      await this.deployment.initialize(environment)
     } catch (error) {
+      console.log(error.response.data)
       task.title = error.response.data.errors[0].detail
       ctx.input = await task.prompt({
         type: 'Toggle',
