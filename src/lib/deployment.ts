@@ -30,7 +30,7 @@ export default class Deployment {
 
   async initialize(environment: string) {
     const data = {
-      environment: environment,
+      env: environment,
       commit: await this.get('commit'),
       branch: await this.get('branch'),
       message: await this.get('message'),
