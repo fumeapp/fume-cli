@@ -65,7 +65,7 @@
   "oclif": {
     "commands": "./lib/commands",
     "bin": "fume",
-    "env": "staging",
+    "env": "local",
     "plugins": [
       "@oclif/plugin-help"
     ],
