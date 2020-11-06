@@ -20,12 +20,17 @@
     "cli-ux": "^5.5.0",
     "enquirer": "^2.3.6",
     "execa": "^4.0.3",
+    "fd-slicer": "^1.1.0",
+    "findit2": "^2.2.3",
     "fs-extra": "^9.0.1",
     "inquirer": "^7.3.3",
     "js-yaml": "^3.14.0",
     "listr": "^0.14.3",
     "listr2": "^3.1.1",
+    "mime": "^2.4.6",
     "numeral": "^2.0.6",
+    "pend": "^1.2.0",
+    "streamsink": "^1.2.0",
     "tslib": "^2"
   },
   "devDependencies": {

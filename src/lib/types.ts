@@ -34,11 +34,13 @@ export interface S3Config {
   file: string;
   path: string;
   bucket: string;
+  headless: string;
 }
 
 export interface Project {
   id: number;
   region: string;
+  structure: string;
 }
 
 export interface Entry {

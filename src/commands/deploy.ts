@@ -29,6 +29,8 @@ export default class Deploy extends Command {
 
   name!: string
 
+  structure!: string
+
   private deployment!: Deployment;
 
   async run() {
@@ -39,7 +41,7 @@ export default class Deploy extends Command {
 
     this.fumeConfig = yml.load(fs.readFileSync('fume.yml').toString())
 
-    const tasks = new Listr([
+    const initial = new Listr([
       {
         title: 'Verify authentication',
         task: async (ctx, task) =>
@@ -49,6 +51,9 @@ export default class Deploy extends Command {
         title: 'Initialize deployment',
         task: (ctx, task) => this.create(ctx, task, environment),
       },
+    ])
+
+    const ssr = new Listr([
       {
         title: 'Install modules',
         task: () => this.yarn([]),
@@ -75,7 +80,7 @@ export default class Deploy extends Command {
       },
       {
         title: 'Deploy package',
-        task: (ctx, task) => this.deploy(task),
+        task: (ctx, task) => this.deploy('DEPLOY_FUNCTION', task),
       },
       {
         title: 'Cleanup deployment',
@@ -83,7 +88,24 @@ export default class Deploy extends Command {
       },
     ])
 
-    tasks.run().catch(() =>  false)
+    const headless = new Listr([
+      {
+        title: 'Generating distribution files',
+        task: () => this.generate(),
+      },
+      {
+        title: 'Syncing distribution to the cloud',
+        task: () => this.sync(),
+      },
+      {
+        title: 'Deploy package',
+        task: (ctx, task) => this.deploy('DEPLOY_S3', task),
+      },
+    ])
+
+    await initial.run().catch(() =>  false)
+    if (this.structure === 'ssr') ssr.run().catch(() => false)
+    if (this.structure === 'headless') headless.run().catch(() => false)
   }
 
   async create(ctx: any, task: any, environment: string) {
@@ -102,7 +124,7 @@ export default class Deploy extends Command {
       if (ctx.input) await cli.open(`${this.env.web}/team/${this.deployment.entry.team_id}/#cloud`)
       throw new Error(error.response.data.errors[0].detail)
     }
-
+    this.structure = this.deployment.entry.project.structure
     return true
   }
 
@@ -123,6 +145,15 @@ export default class Deploy extends Command {
     return new Observable(observer => {
       observer.next('Running nuxt build')
       execa('node_modules/.bin/nuxt', ['build'])
+      .then(() => observer.complete()) // .stdout.pipe(process.stdout),
+    })
+  }
+
+  async generate() {
+    await this.deployment.update('NUXT_GENERATE')
+    return new Observable(observer => {
+      observer.next('Running nuxt generate')
+      execa('node_modules/.bin/nuxt', ['generate'])
       .then(() => observer.complete()) // .stdout.pipe(process.stdout),
     })
   }
@@ -169,6 +200,29 @@ export default class Deploy extends Command {
     })
   }
 
+  async sync() {
+    await this.deployment.update('SYNC_FILES')
+    const sts = await this.deployment.sts()
+    return new Observable(observer => {
+      observer.next('Syncing distribution..')
+      const client = require('../lib/s3/index.js').createClient({s3Client: new S3(sts)})
+      const uploader = client.uploadDir({
+        localDir: './dist',
+        deleteRemoved: true,
+        s3Params: {
+          Bucket: this.deployment.s3.headless,
+          ACL: 'public-read',
+        },
+      })
+      uploader.on('progress', () => {
+        if (!isNaN(uploader.pgoressAmount / uploader.progressTotal))
+          observer.next(`${(uploader.progressAmount / uploader.progressTotal * 100).toFixed(2)} complete`)
+      })
+
+      uploader.on('end', () => observer.complete())
+    })
+  }
+
   async upload() {
     await this.deployment.update('UPLOAD_ZIP')
     const sts = await this.deployment.sts()
@@ -191,10 +245,10 @@ export default class Deploy extends Command {
     })
   }
 
-  async deploy(task: any) {
+  async deploy(status: string, task: any) {
     return new Observable(observer => {
       observer.next('Initiating deployment')
-      this.deployment.update('FUNCTION_DELIVER')
+      this.deployment.update(status)
       .then(response =>  {
         task.title = 'Deployment Successful: ' + chalk.bold(response.data.data.data)
         observer.complete()
