@@ -114,14 +114,15 @@ export default class Deploy extends Command {
     try {
       await this.deployment.initialize(environment)
     } catch (error) {
-      console.log(error.response.data)
       task.title = error.response.data.errors[0].detail
+      /*
       ctx.input = await task.prompt({
         type: 'Toggle',
         message: 'Launch fume.app in your browser?',
         initial: 'yes',
       })
       if (ctx.input) await cli.open(`${this.env.web}/team/${this.deployment.entry.team_id}/#cloud`)
+      */
       throw new Error(error.response.data.errors[0].detail)
     }
     this.structure = this.deployment.entry.project.structure
@@ -236,7 +237,7 @@ export default class Deploy extends Command {
           Body: fs.createReadStream(this.deployment.s3.path),
         },
       }).on('httpUploadProgress', event => {
-        observer.next(`${event.loaded * 100 / event.total}%`)
+        observer.next(`${(event.loaded * 100 / event.total).toFixed(2)}%`)
       }).send((error: Error) => {
         if (error) this.error(error)
         fs.unlinkSync(this.deployment.s3.path)

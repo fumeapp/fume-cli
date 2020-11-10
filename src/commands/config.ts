@@ -34,8 +34,8 @@ export default class Config extends Command {
           (new AuthStatus([], this.config)).tasks(ctx, task, true),
       },
       {
-        title: 'Check no existing fume.yml exists',
-        task: () => this.check(),
+        title: 'Check for an existing configuration',
+        task: (ctx, task) => this.check(ctx, task),
       },
       {
         title: 'Retrieve a list of projects to choose from',
@@ -59,9 +59,15 @@ export default class Config extends Command {
     tasks.run().catch(() => false)
   }
 
-  check() {
+  async check(ctx, task) {
     if (fs.existsSync('fume.yml'))
-      throw new Error('A ' + chalk.bold('fume.yml') + ' already exists for this project')
+      ctx.input = await task.prompt({
+        type: 'Toggle',
+        message: 'An existing fume.yml already exists, did you want to overwrite this?',
+        initial: 'yes',
+      })
+
+    if (!ctx.input) throw new Error('A ' + chalk.bold('fume.yml') + ' already exists for this project')
   }
 
   async projectList(ctx: any, task: ListrTaskWrapper<any, any>) {
