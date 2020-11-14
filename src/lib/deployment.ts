@@ -35,15 +35,15 @@ export default class Deployment {
       branch: await this.get('branch'),
       message: await this.get('message'),
     }
-    this.entry = (await this.auth.axios.post(`/project/${this.config.id}/deployment`, data)).data.data.data
-    this.s3 = (await this.auth.axios.get(`/project/${this.config.id}/deployment/${this.entry.id}/s3`)).data.data
+    this.entry = (await this.auth.axios.post(`/project/${this.config.id}/dep`, data)).data.data.data
+    this.s3 = (await this.auth.axios.get(`/project/${this.config.id}/dep/${this.entry.id}/s3`)).data.data
     this.s3.path = `${__dirname}/${this.s3.file}`
     return this.entry
   }
 
   async update(status: string) {
     try {
-      return this.auth.axios.put(`/project/${this.config.id}/deployment/${this.entry.id}`, {status})
+      return this.auth.axios.put(`/project/${this.config.id}/dep/${this.entry.id}`, {status})
     } catch (error) {
       throw new Error(error.response)
     }
