@@ -59,15 +59,15 @@ export default class Config extends Command {
     tasks.run().catch(() => false)
   }
 
-  async check(ctx, task) {
-    if (fs.existsSync('fume.yml'))
+  async check(ctx: any, task: ListrTaskWrapper<any, any>) {
+    if (fs.existsSync('fume.yml')) {
       ctx.input = await task.prompt({
         type: 'Toggle',
         message: 'An existing fume.yml already exists, did you want to overwrite this?',
         initial: 'yes',
       })
-
-    if (!ctx.input) throw new Error('A ' + chalk.bold('fume.yml') + ' already exists for this project')
+      if (!ctx.input) throw new Error('A ' + chalk.bold('fume.yml') + ' already exists for this project')
+    }
   }
 
   async projectList(ctx: any, task: ListrTaskWrapper<any, any>) {
