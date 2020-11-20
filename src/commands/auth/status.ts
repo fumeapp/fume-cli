@@ -40,7 +40,11 @@ export default class AuthStatus extends Command {
   async status(ctx: any, task: any, parentTask: any) {
     try {
       const me = await this.auth.me()
-      task.title = 'Authenticated as ' + chalk.bold(me.email)
+      if (this.auth.foundEnv)
+        task.title = 'Authenticated as ' + chalk.bold(me.email) + ' from FUME_TOKEN'
+      else
+        task.title = 'Authenticated as ' + chalk.bold(me.email) + ' from fume.yml'
+
       if (parentTask) parentTask.title = 'Authenticated as ' + chalk.bold(me.email)
     } catch (error) {
       throw new Error('Authentication error, token is invalid, run ' + chalk.bold('fume auth:login'))

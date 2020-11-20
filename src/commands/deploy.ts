@@ -115,14 +115,6 @@ export default class Deploy extends Command {
       await this.deployment.initialize(environment)
     } catch (error) {
       task.title = error.response.data.errors[0].detail
-      /*
-      ctx.input = await task.prompt({
-        type: 'Toggle',
-        message: 'Launch fume.app in your browser?',
-        initial: 'yes',
-      })
-      if (ctx.input) await cli.open(`${this.env.web}/team/${this.deployment.entry.team_id}/#cloud`)
-      */
       throw new Error(error.response.data.errors[0].detail)
     }
     this.structure = this.deployment.entry.project.structure
@@ -182,7 +174,7 @@ export default class Deploy extends Command {
     await this.deployment.update('MAKE_ZIP')
     return new Observable(observer => {
       fs.mkdirSync('./fume')
-      fse.copy(`${__dirname}/../assets/fume`, './fume')
+      fse.copy(`${__dirname}/../assets/nuxt`, './fume')
       const output = fs.createWriteStream(this.deployment.s3.path)
       const archive = archiver('zip', {zlib: {level: 9}})
 

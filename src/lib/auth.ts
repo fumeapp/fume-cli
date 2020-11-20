@@ -11,15 +11,24 @@ export class Auth {
 
   axios: AxiosInstance
 
+  foundEnv: boolean | undefined
+
   env: FumeEnvironment
 
   constructor(env: FumeEnvironment) {
     this.env = env
 
-    if (!fs.existsSync(`${os.homedir()}/.config/fume/auth.yml`)) {
-      throw new Error('no-file')
+    if (process.env.FUME_TOKEN && process.env.FUME_TOKEN.length === 64) {
+      this.foundEnv = true
+      this.auth = {
+        token: process.env.FUME_TOKEN,
+      }
+    } else {
+      if (!fs.existsSync(`${os.homedir()}/.config/fume/auth.yml`)) {
+        throw new Error('no-file')
+      }
+      this.auth = yml.load(fs.readFileSync(`${os.homedir()}/.config/fume/auth.yml`).toString())
     }
-    this.auth = yml.load(fs.readFileSync(`${os.homedir()}/.config/fume/auth.yml`).toString())
 
     this.axios = axios.create({
       baseURL: this.env.api,
