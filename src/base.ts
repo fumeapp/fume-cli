@@ -24,7 +24,15 @@ export default abstract class extends Command {
   env: FumeEnvironment = this.envs[0]
 
   async init() {
-    const env = this.envs.find(e => e.env === oclif.env)
+    let env
+    if (
+      process.env.FUME_ENV &&
+      (env = this.envs.find(e => e.env === process.env.FUME_ENV))
+    ) {
+      this.env = env
+      return
+    }
+    env = this.envs.find(e => e.env === oclif.env)
     if (env !== undefined) this.env = env
   }
 }

@@ -17,7 +17,7 @@ export default class AuthStatus extends Command {
     return new Listr([
       {
         title: 'Initializing',
-        task: () => this.initialize(),
+        task: (ctx, task) => this.initialize(ctx, task),
       },
       {
         title: 'Testing Credentials',
@@ -26,9 +26,10 @@ export default class AuthStatus extends Command {
     ])
   }
 
-  async initialize() {
+  async initialize(ctx: any, task: any) {
     try {
       this.auth = new Auth(this.env)
+      task.title = `Initialized for ${this.env.env} environment`
     } catch (error) {
       if (error.message === 'no-file')
         this.error('No authentication file found, try running ' + chalk.bold('fume auth:login'))
