@@ -174,7 +174,7 @@ export default class Deploy extends Command {
     await this.deployment.update('MAKE_ZIP')
     return new Observable(observer => {
       fs.mkdirSync('./fume')
-      fse.copySync(`${__dirname}/../assets/nuxt`, './fume')
+      fse.copySync(`${__dirname}/../../src/assets/nuxt`, './fume')
       const output = fs.createWriteStream(this.deployment.s3.path)
       const archive = archiver('zip', {zlib: {level: 9}})
 
