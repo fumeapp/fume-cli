@@ -59,6 +59,7 @@
     "/bin",
     "/lib",
     "/src/assets",
+    "/src/lib/s3",
     "/npm-shrinkwrap.json",
     "/oclif.manifest.json"
   ],
