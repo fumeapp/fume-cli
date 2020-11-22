@@ -198,7 +198,7 @@ export default class Deploy extends Command {
     const sts = await this.deployment.sts()
     return new Observable(observer => {
       observer.next('Syncing distribution..')
-      const client = require('../lib/s3/index.js').createClient({s3Client: new S3(sts)})
+      const client = require(`${__dirname}/../../src/lib/s3`).createClient({s3Client: new S3(sts)})
       const uploader = client.uploadDir({
         localDir: './dist',
         deleteRemoved: true,
