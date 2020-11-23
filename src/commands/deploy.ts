@@ -90,6 +90,10 @@ export default class Deploy extends Command {
 
     const headless = new Listr([
       {
+        title: 'Install modules',
+        task: () => this.yarn([]),
+      },
+      {
         title: 'Generating distribution files',
         task: () => this.generate(),
       },
