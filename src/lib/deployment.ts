@@ -18,9 +18,7 @@ export default class Deployment {
 
   async get(type: string) {
     let args
-    if (type === 'commit') args = ['rev-parse', 'HEAD']
-    if (type === 'branch') args = ['rev-parse', '--abbrev-ref', 'HEAD']
-    if (type === 'message') args = ['log', '--format=%B', '-n 1']
+    if (type === 'all') args = ['log', '--decorate=short', '-n 1']
     try {
       return (await execa('git', args)).stdout
     } catch (error) {
@@ -31,9 +29,7 @@ export default class Deployment {
   async initialize(environment: string) {
     const data = {
       env: environment,
-      commit: await this.get('commit'),
-      branch: await this.get('branch'),
-      message: await this.get('message'),
+      commit: await this.get('all'),
     }
     this.entry = (await this.auth.axios.post(`/project/${this.config.id}/dep`, data)).data.data.data
     this.s3 = (await this.auth.axios.get(`/project/${this.config.id}/dep/${this.entry.id}/s3`)).data.data
