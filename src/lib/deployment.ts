@@ -1,6 +1,7 @@
 import {Auth} from './auth'
 import {YamlConfig, Entry, AwsClientConfig, FumeEnvironment, S3Config} from './types'
 import execa from 'execa'
+import { execSync } from 'child_process'
 
 export default class Deployment {
   auth: Auth
@@ -16,20 +17,10 @@ export default class Deployment {
     this.config = config
   }
 
-  async get(type: string) {
-    let args
-    if (type === 'all') args = ['log', '--decorate=short', '-n 1']
-    try {
-      return (await execa('git', args)).stdout
-    } catch (error) {
-      return null
-    }
-  }
-
   async initialize(environment: string) {
     const data = {
       env: environment,
-      commit: await this.get('all'),
+      commit: execSync('git log --decorate=short -n 1'),
     }
     this.entry = (await this.auth.axios.post(`/project/${this.config.id}/dep`, data)).data.data.data
     this.s3 = (await this.auth.axios.get(`/project/${this.config.id}/dep/${this.entry.id}/s3`)).data.data
