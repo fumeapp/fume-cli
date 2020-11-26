@@ -1,7 +1,7 @@
 {
   "name": "fume-cli",
   "description": "fume command line interface",
-  "version": "0.0.24",
+  "version": "0.0.25",
   "author": "acidjazz @acidjazz",
   "bin": {
     "fume": "./bin/run"
