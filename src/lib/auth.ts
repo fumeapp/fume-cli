@@ -66,7 +66,11 @@ export class Auth {
   }
 
   static async getName() {
-    return (await execa('scutil', ['--get', 'ComputerName'])).stdout
+    if (['win32', 'linux', 'openbsd'].includes(process.platform))
+      return (await execa('hostname')).stdout
+    if (process.platform === 'darwin')
+      return (await execa('scutil', ['--get', 'ComputerName'])).stdout
+    return ''
   }
 
   static async tokenUrl(env: FumeEnvironment) {

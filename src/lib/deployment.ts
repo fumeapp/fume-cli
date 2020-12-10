@@ -1,8 +1,6 @@
 import {Auth} from './auth'
 import {YamlConfig, Entry, AwsClientConfig, FumeEnvironment, S3Config} from './types'
 import execa from 'execa'
-import { execSync } from 'child_process'
-import * as fs from "fs";
 
 export default class Deployment {
   auth: Auth
@@ -19,12 +17,10 @@ export default class Deployment {
   }
 
   async initialize(environment: string) {
-    execSync('git log --decorate=short -n 1 > git_log_fume_cli.txt')
     const data = {
       env: environment,
-      commit: fs.readFileSync('git_log_fume_cli.txt', 'utf8'),
+      commit: (await execa('git', ['log',  '--decorate=short',  '-n 1'])).stdout,
     }
-    fs.unlinkSync('git_log_fume_cli.txt')
     this.entry = (await this.auth.axios.post(`/project/${this.config.id}/dep`, data)).data.data.data
     this.s3 = (await this.auth.axios.get(`/project/${this.config.id}/dep/${this.entry.id}/s3`)).data.data
     this.s3.path = `${__dirname}/${this.s3.file}`
