@@ -63,11 +63,11 @@ export default class Deploy extends Command {
         task: (ctx, task) => this.verify(task),
       },
       {
-        title: 'Build production',
+        title: 'Bundle for server and client',
         task: () => this.build(),
       },
       {
-        title: 'Install only production modules',
+        title: 'Install production modules',
         task: () => this.yarn(['--prod']),
       },
       {
