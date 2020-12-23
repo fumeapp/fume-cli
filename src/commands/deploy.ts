@@ -21,7 +21,13 @@ export default class Deploy extends Command {
     '$ fume deploy staging',
   ]
 
-  static args = [{name: 'environment', required: true}]
+  static args = [
+    {
+      name: 'environment',
+      required: true,
+      description: 'environment to deploy to (ex: staging)',
+    },
+  ]
 
   fumeConfig!: YamlConfig
 
@@ -114,7 +120,6 @@ export default class Deploy extends Command {
 
   async create(ctx: any, task: any, environment: string) {
     this.deployment = new Deployment(this.fumeConfig, this.env)
-
     try {
       await this.deployment.initialize(environment)
     } catch (error) {

@@ -73,21 +73,19 @@ export default class Config extends Command {
   async projectList(ctx: any, task: ListrTaskWrapper<any, any>) {
     this.projects = (await this.auth.axios.get('/project?team=true')).data
     if (this.projects.data.length === 0) {
-      this.warn('No projects found')
-      const response = await task.prompt({
+      const url = await Auth.projectUrl(this.env)
+      task.title = 'No projects found'
+      ctx.input = await task.prompt({
         type: 'Toggle',
-        message: 'Launch fume.app in your browser to create one?',
+        message: 'Launch fume.app to create a project?',
         initial: 'yes',
       })
-      if (response) {
-        cli.open(await Auth.projectUrl(this.env))
-        this.error('Run ' + chalk.bold('fume config') + ' again after a project has been created')
+      if (ctx.input) {
+        await cli.open(url)
+        throw new Error('Run ' + chalk.bold('fume config') + ' again after a project has been created')
       } else {
-        this.error('Visit fume.app to create a project.')
+        throw new Error('Please visit ' + chalk.bold(url)  + ' and create a project, then run ' + chalk.bold('fume config') + ' again')
       }
-    } else {
-      task.title = `${this.projects.data.length} project(s) found`
-      return true
     }
   }
 
