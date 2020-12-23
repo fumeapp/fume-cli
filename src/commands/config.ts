@@ -22,10 +22,6 @@ export default class Config extends Command {
 
   private project!: Record<any, any>;
 
-  private environments!: Array<string>;
-
-  private authed!: boolean;
-
   async run() {
     this.parse(Config)
     const checkAuth = new Listr([

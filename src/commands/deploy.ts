@@ -12,7 +12,7 @@ import yml = require('js-yaml')
 import S3 from 'aws-sdk/clients/s3'
 import chalk from 'chalk'
 import Deployment from '../lib/deployment'
-import {YamlConfig} from '../lib/types'
+import {YamlConfig, Variable} from '../lib/types'
 
 export default class Deploy extends Command {
   static description = 'Deploy an Environment'
@@ -36,6 +36,8 @@ export default class Deploy extends Command {
   name!: string
 
   structure!: string
+
+  variables!: Array<Variable>
 
   private deployment!: Deployment;
 
@@ -100,8 +102,18 @@ export default class Deploy extends Command {
         task: () => this.yarn([]),
       },
       {
+        title: 'Prepare environment variables',
+        task: () => this.envPrepare(),
+        skip: () => this.variables.length < 1,
+      },
+      {
         title: 'Generating distribution files',
         task: () => this.generate(),
+      },
+      {
+        title: 'Restore environment variables',
+        task: () => this.envRestore(),
+        skip: () => this.variables.length < 1,
       },
       {
         title: 'Syncing distribution to the cloud',
@@ -126,7 +138,9 @@ export default class Deploy extends Command {
       task.title = error.response.data.errors[0].detail
       throw new Error(error.response.data.errors[0].detail)
     }
+    this.environment = environment
     this.structure = this.deployment.entry.project.structure
+    this.variables = this.deployment.entry.env.variables
     return true
   }
 
@@ -157,6 +171,31 @@ export default class Deploy extends Command {
       observer.next('Running nuxt generate')
       execa('node_modules/.bin/nuxt', ['generate'])
       .then(() => observer.complete()) // .stdout.pipe(process.stdout),
+    })
+  }
+
+  async envPrepare() {
+    await this.deployment.update('ENV_PREPARE')
+    return new Observable(observer => {
+      observer.next(`Compiling .env for ${this.environment}`)
+      if (fs.existsSync('.env')) {
+        fs.copyFileSync('.env', '.env.fume')
+      }
+      const cfg = this.variables.map(v => `${v.name}=${v.value}`).join('\n')
+      fs.writeFileSync('.env', cfg, 'utf8')
+      observer.complete()
+    })
+  }
+
+  async envRestore() {
+    await this.deployment.update('ENV_RESTORE')
+    return new Observable(observer => {
+      observer.next(`Compiling .env for ${this.environment}`)
+      if (fs.existsSync('.env.fume')) {
+        fs.copyFileSync('.env.fume', '.env')
+      }
+      fs.unlinkSync('.env.fume')
+      observer.complete()
     })
   }
 

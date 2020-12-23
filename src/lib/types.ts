@@ -43,9 +43,26 @@ export interface Project {
   structure: string;
 }
 
+export interface Env {
+  id: number;
+  team_id: number;
+  name: string;
+  variables: Array<Variable>;
+}
+
+export interface Variable {
+  id: number;
+  env_id: number;
+  name: string;
+  value: string;
+  private: boolean;
+  is_synced: boolean;
+}
+
 export interface Entry {
   status: string;
   id: number;
   team_id: number;
   project: Project;
+  env: Env;
 }
