@@ -71,12 +71,22 @@ export default class Deploy extends Command {
         task: (ctx, task) => this.verify(task),
       },
       {
+        title: 'Prepare environment variables',
+        task: () => this.envPrepare(),
+        skip: () => this.variables.length < 1,
+      },
+      {
         title: 'Bundle for server and client',
         task: () => this.build(),
       },
       {
         title: 'Install production modules',
         task: () => this.yarn(['--prod']),
+      },
+      {
+        title: 'Restore environment variables',
+        task: () => this.envRestore(),
+        skip: () => this.variables.length < 1,
       },
       {
         title: 'Create deployment package',
