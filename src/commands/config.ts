@@ -24,14 +24,19 @@ export default class Config extends Command {
 
   private environments!: Array<string>;
 
+  private authed!: boolean;
+
   async run() {
     this.parse(Config)
-    const tasks = new Listr([
+    const checkAuth = new Listr([
       {
         title: 'Verify authentication',
         task: async (ctx, task) =>
           (new AuthStatus([], this.config)).tasks(ctx, task, true),
       },
+    ])
+
+    const tasks = new Listr([
       {
         title: 'Check for an existing configuration',
         task: (ctx, task) => this.check(ctx, task),
@@ -44,18 +49,14 @@ export default class Config extends Command {
         title: 'Choose a project to configure',
         task: (ctx, task) => this.projectChoose(ctx, task),
       },
-      /*
-      {
-        title: 'Select some initial environments',
-        task: (ctx, task) => this.environmentChoose(ctx, task),
-      },
-      */
       {
         title: 'Write configuration file',
         task: (ctx, task) => this.writeConfig(ctx, task),
       },
     ])
-    tasks.run().catch(() => false)
+
+    await checkAuth.run()
+    .then(() => tasks.run().catch(() => false)).catch(() => false)
   }
 
   async check(ctx: any, task: ListrTaskWrapper<any, any>) {
@@ -100,28 +101,10 @@ export default class Config extends Command {
     task.title = 'Project chosen: ' + chalk.bold(response)
   }
 
-  async environmentChoose(ctx: any, task: ListrTaskWrapper<any, any>) {
-    this.environments = await task.prompt({
-      type: 'MultiSelect',
-      message: 'Choose environments (a = all)',
-      choices: ['staging', 'production'],
-    })
-    const len: number = this.environments.length
-    if (len === 0) this.error('We need at least one environment to deploy')
-    task.title = chalk.bold(len.toString()) + ' Environments chosen'
-  }
-
   writeConfig(ctx: any, task: ListrTaskWrapper<any, any>) {
     const config: YamlConfig = {
       id: this.project.id,
-      // environments: {staging: {memory: 1024, domain: false}},
     }
-    /*
-    this.environments.forEach((env: string) => {
-      if (env !== 'staging' && env !== 'production') throw new Error('Invalid environment')
-      config.environments[env] = {memory: 1024, domain: false}
-    })
-   */
 
     fs.writeFileSync('fume.yml', yml.safeDump(config))
     task.title = 'Configuration file generated, ready to deploy!'

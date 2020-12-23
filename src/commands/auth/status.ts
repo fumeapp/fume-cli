@@ -8,6 +8,8 @@ export default class AuthStatus extends Command {
 
   auth!: Auth
 
+  private authed!: boolean;
+
   async run() {
     this.tasks(false, false, false).run().catch(() => false)
   }
@@ -22,6 +24,7 @@ export default class AuthStatus extends Command {
       {
         title: 'Testing Credentials',
         task: (ctx, task) => this.status(ctx, task, parentTask),
+        enabled: () => this.authed,
       },
     ])
   }
@@ -30,9 +33,10 @@ export default class AuthStatus extends Command {
     try {
       this.auth = new Auth(this.env)
       task.title = `Initialized for ${this.env.env} environment`
+      this.authed = true
     } catch (error) {
       if (error.message === 'no-auth')
-        this.error('No authentication file or env found, try running ' + chalk.bold('fume auth:login'))
+        this.error('No authentication file or FUME_TOKEN found, try running ' + chalk.bold('fume auth:login'))
       else
         throw new Error(error.message)
     }
