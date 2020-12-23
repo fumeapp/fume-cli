@@ -203,8 +203,8 @@ export default class Deploy extends Command {
       observer.next(`Compiling .env for ${this.environment}`)
       if (fs.existsSync('.env.fume')) {
         fs.copyFileSync('.env.fume', '.env')
+        fs.unlinkSync('.env.fume')
       }
-      fs.unlinkSync('.env.fume')
       observer.complete()
     })
   }
