@@ -25,7 +25,7 @@ export class Auth {
       }
     } else {
       if (!fs.existsSync(`${os.homedir()}/.config/fume/auth.yml`)) {
-        throw new Error('no-file')
+        throw new Error('no-auth')
       }
       this.auth = yml.load(fs.readFileSync(`${os.homedir()}/.config/fume/auth.yml`).toString())
     }
@@ -74,7 +74,7 @@ export class Auth {
   }
 
   static async tokenUrl(env: FumeEnvironment) {
-    return `${env.web}/session/create?name=${await Auth.getName()}`
+    return `${env.web}/session/create?name=${(await Auth.getName()).replace(/ /g, '+')}`
   }
 
   static async projectUrl(env: FumeEnvironment) {

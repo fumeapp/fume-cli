@@ -26,7 +26,6 @@ export default class Config extends Command {
 
   async run() {
     this.parse(Config)
-    this.auth = new Auth(this.env)
     const tasks = new Listr([
       {
         title: 'Verify authentication',
@@ -60,6 +59,7 @@ export default class Config extends Command {
   }
 
   async check(ctx: any, task: ListrTaskWrapper<any, any>) {
+    this.auth = new Auth(this.env)
     if (fs.existsSync('fume.yml')) {
       ctx.input = await task.prompt({
         type: 'Toggle',

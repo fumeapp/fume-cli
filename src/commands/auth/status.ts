@@ -31,8 +31,8 @@ export default class AuthStatus extends Command {
       this.auth = new Auth(this.env)
       task.title = `Initialized for ${this.env.env} environment`
     } catch (error) {
-      if (error.message === 'no-file')
-        this.error('No authentication file found, try running ' + chalk.bold('fume auth:login'))
+      if (error.message === 'no-auth')
+        this.error('No authentication file or env found, try running ' + chalk.bold('fume auth:login'))
       else
         throw new Error(error.message)
     }
