@@ -145,8 +145,12 @@ export default class Deploy extends Command {
     try {
       await this.deployment.initialize(environment)
     } catch (error) {
-      task.title = error.response.data.errors[0].detail
-      throw new Error(error.response.data.errors[0].detail)
+      if (error.response) {
+        task.title = error.response.data.errors[0].detail
+        throw new Error(error.response.data.errors[0].detail)
+      } else {
+        throw new Error(error)
+      }
     }
     this.environment = environment
     this.structure = this.deployment.entry.project.structure
