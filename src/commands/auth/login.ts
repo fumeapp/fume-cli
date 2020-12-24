@@ -33,14 +33,20 @@ export default class AuthLogin extends Command {
   }
 
   async launch(ctx: any, task: any) {
-    const url = await Auth.tokenUrl(this.env)
+    const url = encodeURI(await Auth.tokenUrl(this.env))
     ctx.input = await task.prompt({
       type: 'Toggle',
       message: 'Launch fume.app in your browser?',
       initial: 'yes',
     })
-    if (ctx.input) await cli.open(url)
-    else task.title = 'Please visit ' + chalk.bold(url)  + ' and paste the provided token'
+    if (ctx.input) {
+      await cli.open(url).catch(e => {
+        task.title = 'Could not open the browser, please visit ' + chalk.bold(url) + ' and paste the provided token'
+      });
+    }
+    else {
+      task.title = 'Please visit ' + chalk.bold(url)  + ' and paste the provided token'
+    }
   }
 
   async gather(ctx: any, task: any) {
