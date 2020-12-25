@@ -2,13 +2,14 @@ import Command from '../../base'
 import {Listr} from 'listr2'
 import {Auth} from '../../lib/auth'
 import chalk from 'chalk'
+import LoginTasks from '../../lib/logintasks'
 
 export default class AuthStatus extends Command {
   static description = 'View authentication status'
 
   auth!: Auth
 
-  private authed!: boolean;
+  private authed: any = null;
 
   async run() {
     this.tasks(false, false, false).run().catch(() => false)
@@ -18,13 +19,18 @@ export default class AuthStatus extends Command {
     if (init) this.init()
     return new Listr([
       {
-        title: 'Initializing',
+        title: 'Initialize environment',
         task: (ctx, task) => this.initialize(ctx, task),
       },
       {
-        title: 'Testing Credentials',
+        title: 'Authenticate with fume',
+        task: (ctx, task): Listr =>
+          task.newListr((new LoginTasks(this.env)).tasks(), {concurrent: false}),
+        enabled: () => this.authed === false,
+      },
+      {
+        title: 'Test Credentials',
         task: (ctx, task) => this.status(ctx, task, parentTask),
-        enabled: () => this.authed,
       },
     ])
   }
@@ -35,14 +41,23 @@ export default class AuthStatus extends Command {
       task.title = `Initialized for ${this.env.env} environment`
       this.authed = true
     } catch (error) {
-      if (error.message === 'no-auth')
-        this.error('No authentication file or FUME_TOKEN found, try running ' + chalk.bold('fume auth:login'))
-      else
+      if (error.message === 'no-auth') {
+        ctx.input = await task.prompt({
+          type: 'Toggle',
+          message: 'No config file or FUME_TOKEN exists, run ' + chalk.bold('fume auth:login') + '?',
+          initial: 'yes',
+        })
+        if (ctx.input) {
+          this.authed = false
+        } else this.error('No authentication file or FUME_TOKEN found, try running ' + chalk.bold('fume auth:login'))
+      } else
         throw new Error(error.message)
     }
   }
 
   async status(ctx: any, task: any, parentTask: any) {
+    if (this.authed === false)
+      await this.initialize(ctx, task)
     try {
       const me = await this.auth.me()
       if (this.auth.foundEnv)
