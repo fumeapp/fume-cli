@@ -20,7 +20,7 @@ $ npm install -g fume-cli
 $ fume COMMAND
 running command...
 $ fume (-v|--version|version)
-fume-cli/0.0.35 darwin-x64 node-v14.15.1
+fume-cli/0.0.36 darwin-x64 node-v14.15.1
 $ fume --help [COMMAND]
 USAGE
   $ fume COMMAND
@@ -44,9 +44,12 @@ Login to fume
 ```
 USAGE
   $ fume auth:login
+
+ALIASES
+  $ fume login
 ```
 
-_See code: [src/commands/auth/login.ts](https://github.com/fumeapp/fume-cli/blob/v0.0.35/src/commands/auth/login.ts)_
+_See code: [src/commands/auth/login.ts](https://github.com/fumeapp/fume-cli/blob/v0.0.36/src/commands/auth/login.ts)_
 
 ## `fume auth:logout`
 
@@ -55,9 +58,12 @@ Invalidate token and remove credentials
 ```
 USAGE
   $ fume auth:logout
+
+ALIASES
+  $ fume logout
 ```
 
-_See code: [src/commands/auth/logout.ts](https://github.com/fumeapp/fume-cli/blob/v0.0.35/src/commands/auth/logout.ts)_
+_See code: [src/commands/auth/logout.ts](https://github.com/fumeapp/fume-cli/blob/v0.0.36/src/commands/auth/logout.ts)_
 
 ## `fume auth:status`
 
@@ -68,7 +74,7 @@ USAGE
   $ fume auth:status
 ```
 
-_See code: [src/commands/auth/status.ts](https://github.com/fumeapp/fume-cli/blob/v0.0.35/src/commands/auth/status.ts)_
+_See code: [src/commands/auth/status.ts](https://github.com/fumeapp/fume-cli/blob/v0.0.36/src/commands/auth/status.ts)_
 
 ## `fume config`
 
@@ -82,7 +88,7 @@ OPTIONS
   -h, --help  show CLI help
 ```
 
-_See code: [src/commands/config.ts](https://github.com/fumeapp/fume-cli/blob/v0.0.35/src/commands/config.ts)_
+_See code: [src/commands/config.ts](https://github.com/fumeapp/fume-cli/blob/v0.0.36/src/commands/config.ts)_
 
 ## `fume deploy ENVIRONMENT`
 
@@ -99,7 +105,7 @@ EXAMPLE
   $ fume deploy staging
 ```
 
-_See code: [src/commands/deploy.ts](https://github.com/fumeapp/fume-cli/blob/v0.0.35/src/commands/deploy.ts)_
+_See code: [src/commands/deploy.ts](https://github.com/fumeapp/fume-cli/blob/v0.0.36/src/commands/deploy.ts)_
 
 ## `fume help [COMMAND]`
 
@@ -130,5 +136,5 @@ EXAMPLE
   $ fume purge staging
 ```
 
-_See code: [src/commands/purge.ts](https://github.com/fumeapp/fume-cli/blob/v0.0.35/src/commands/purge.ts)_
+_See code: [src/commands/purge.ts](https://github.com/fumeapp/fume-cli/blob/v0.0.36/src/commands/purge.ts)_
 <!-- commandsstop -->
