@@ -44,12 +44,12 @@ export default class AuthStatus extends Command {
       if (error.message === 'no-auth') {
         ctx.input = await task.prompt({
           type: 'Toggle',
-          message: 'No config file or FUME_TOKEN exists, run ' + chalk.bold('fume auth:login') + '?',
+          message: 'No config file or FUME_TOKEN exists, ' + chalk.bold('Log in') + '?',
           initial: 'yes',
         })
         if (ctx.input) {
           this.authed = false
-        } else this.error('No authentication file or FUME_TOKEN found, try running ' + chalk.bold('fume auth:login'))
+        } else this.error('No config file or FUME_TOKEN found, please run ' + chalk.bold('fume auth:login'))
       } else
         throw new Error(error.message)
     }

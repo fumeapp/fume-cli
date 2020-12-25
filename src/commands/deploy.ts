@@ -24,7 +24,7 @@ export default class Deploy extends Command {
   static args = [
     {
       name: 'environment',
-      required: true,
+      required: false,
       description: 'environment to deploy to (ex: staging)',
     },
   ]
@@ -49,6 +49,8 @@ export default class Deploy extends Command {
 
     this.fumeConfig = yml.load(fs.readFileSync('fume.yml').toString())
 
+    this.environment = environment
+
     const initial = new Listr([
       {
         title: 'Verify authentication',
@@ -56,8 +58,13 @@ export default class Deploy extends Command {
           (new AuthStatus([], this.config)).tasks(ctx, task, true),
       },
       {
+        title: 'Choose an environment',
+        task: (ctx, task) => this.choose(ctx, task),
+        enabled: () => this.environment === undefined,
+      },
+      {
         title: 'Initialize deployment',
-        task: (ctx, task) => this.create(ctx, task, environment),
+        task: (ctx, task) => this.create(ctx, task),
       },
     ])
 
@@ -73,7 +80,7 @@ export default class Deploy extends Command {
       {
         title: 'Prepare environment variables',
         task: () => this.envPrepare(),
-        skip: () => this.variables.length < 1,
+        enabled: () => this.variables.length > 0,
       },
       {
         title: 'Bundle for server and client',
@@ -86,7 +93,7 @@ export default class Deploy extends Command {
       {
         title: 'Restore environment variables',
         task: () => this.envRestore(),
-        skip: () => this.variables.length < 1,
+        enabled: () => this.variables.length > 0,
       },
       {
         title: 'Create deployment package',
@@ -140,10 +147,11 @@ export default class Deploy extends Command {
     if (this.structure === 'headless') headless.run().catch(() => false)
   }
 
-  async create(ctx: any, task: any, environment: string) {
+  async choose(ctx: any, task: any) {
     this.deployment = new Deployment(this.fumeConfig, this.env)
+    let environments
     try {
-      await this.deployment.initialize(environment)
+      environments = await this.deployment.environments()
     } catch (error) {
       if (error.response) {
         task.title = error.response.data.errors[0].detail
@@ -152,7 +160,29 @@ export default class Deploy extends Command {
         throw new Error(error)
       }
     }
-    this.environment = environment
+    const choices = environments.map((e: any) => e.name)
+    const response = await task.prompt({
+      type: 'AutoComplete',
+      message: 'Choose an environment',
+      choices: choices,
+    })
+    this.environment = response
+    task.title = `Environment chosen: ${chalk.bold(response)}`
+  }
+
+  async create(ctx: any, task: any) {
+    if (!this.deployment)
+      this.deployment = new Deployment(this.fumeConfig, this.env)
+    try {
+      await this.deployment.initialize(this.environment)
+    } catch (error) {
+      if (error.response) {
+        task.title = error.response.data.errors[0].detail
+        throw new Error(error.response.data.errors[0].detail)
+      } else {
+        throw new Error(error)
+      }
+    }
     this.structure = this.deployment.entry.project.structure
     this.variables = this.deployment.entry.env.variables
     return true
@@ -235,6 +265,7 @@ export default class Deploy extends Command {
   async archive() {
     await this.deployment.update('MAKE_ZIP')
     return new Observable(observer => {
+      if (fs.existsSync('./fume')) fs.rmdirSync('./fume', {recursive: true})
       fs.mkdirSync('./fume')
       fse.copySync(`${__dirname}/../../src/assets/nuxt`, './fume')
       const output = fs.createWriteStream(this.deployment.s3.path)
@@ -243,7 +274,8 @@ export default class Deploy extends Command {
       archive.on('warning', error => this.error(error))
       archive.on('error', error => this.error(error))
       archive.on('progress', progress => {
-        observer.next(`Compressing ${numeral(progress.fs.totalBytes).format('0.0 b')}`)
+        if (numeral(progress.fs.totalBytes).format('0').toString()[1] === '0')
+          observer.next(`Compressing ${numeral(progress.fs.totalBytes).format('0.0 b')}`)
       })
       archive.pipe(output)
       archive.directory('./', false)

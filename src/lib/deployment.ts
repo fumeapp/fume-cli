@@ -16,6 +16,10 @@ export default class Deployment {
     this.config = config
   }
 
+  async environments() {
+    return (await this.auth.axios.get(`/project/${this.config.id}/env`)).data.data
+  }
+
   async initialize(environment: string) {
     let commit: string
     try {
