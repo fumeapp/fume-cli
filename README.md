@@ -20,7 +20,7 @@ $ npm install -g fume-cli
 $ fume COMMAND
 running command...
 $ fume (-v|--version|version)
-fume-cli/0.0.37 darwin-x64 node-v14.15.1
+fume-cli/0.0.38 darwin-x64 node-v14.15.1
 $ fume --help [COMMAND]
 USAGE
   $ fume COMMAND
@@ -49,7 +49,7 @@ ALIASES
   $ fume login
 ```
 
-_See code: [src/commands/auth/login.ts](https://github.com/fumeapp/fume-cli/blob/v0.0.37/src/commands/auth/login.ts)_
+_See code: [src/commands/auth/login.ts](https://github.com/fumeapp/fume-cli/blob/v0.0.38/src/commands/auth/login.ts)_
 
 ## `fume auth:logout`
 
@@ -63,7 +63,7 @@ ALIASES
   $ fume logout
 ```
 
-_See code: [src/commands/auth/logout.ts](https://github.com/fumeapp/fume-cli/blob/v0.0.37/src/commands/auth/logout.ts)_
+_See code: [src/commands/auth/logout.ts](https://github.com/fumeapp/fume-cli/blob/v0.0.38/src/commands/auth/logout.ts)_
 
 ## `fume auth:status`
 
@@ -72,9 +72,12 @@ View authentication status
 ```
 USAGE
   $ fume auth:status
+
+ALIASES
+  $ fume status
 ```
 
-_See code: [src/commands/auth/status.ts](https://github.com/fumeapp/fume-cli/blob/v0.0.37/src/commands/auth/status.ts)_
+_See code: [src/commands/auth/status.ts](https://github.com/fumeapp/fume-cli/blob/v0.0.38/src/commands/auth/status.ts)_
 
 ## `fume config`
 
@@ -88,7 +91,7 @@ OPTIONS
   -h, --help  show CLI help
 ```
 
-_See code: [src/commands/config.ts](https://github.com/fumeapp/fume-cli/blob/v0.0.37/src/commands/config.ts)_
+_See code: [src/commands/config.ts](https://github.com/fumeapp/fume-cli/blob/v0.0.38/src/commands/config.ts)_
 
 ## `fume deploy [ENVIRONMENT]`
 
@@ -101,11 +104,14 @@ USAGE
 ARGUMENTS
   ENVIRONMENT  environment to deploy to (ex: staging)
 
+OPTIONS
+  -h, --help  show CLI help
+
 EXAMPLE
   $ fume deploy staging
 ```
 
-_See code: [src/commands/deploy.ts](https://github.com/fumeapp/fume-cli/blob/v0.0.37/src/commands/deploy.ts)_
+_See code: [src/commands/deploy.ts](https://github.com/fumeapp/fume-cli/blob/v0.0.38/src/commands/deploy.ts)_
 
 ## `fume help [COMMAND]`
 
@@ -136,5 +142,5 @@ EXAMPLE
   $ fume purge staging
 ```
 
-_See code: [src/commands/purge.ts](https://github.com/fumeapp/fume-cli/blob/v0.0.37/src/commands/purge.ts)_
+_See code: [src/commands/purge.ts](https://github.com/fumeapp/fume-cli/blob/v0.0.38/src/commands/purge.ts)_
 <!-- commandsstop -->
