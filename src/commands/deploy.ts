@@ -2,20 +2,26 @@ import Command from '../base'
 import AuthStatus from './auth/status'
 import execa = require('execa')
 import {Observable} from 'rxjs'
-import cli from 'cli-ux'
 import fs = require('fs')
 import fse = require('fs-extra')
 import numeral = require('numeral')
 import archiver  = require('archiver')
+import {flags} from '@oclif/command'
 import {Listr} from 'listr2'
 import yml = require('js-yaml')
 import S3 from 'aws-sdk/clients/s3'
 import chalk from 'chalk'
 import Deployment from '../lib/deployment'
 import {YamlConfig, Variable} from '../lib/types'
+import ConfigTasks from '../lib/configtasks'
+import {Auth} from '../lib/auth'
 
 export default class Deploy extends Command {
   static description = 'Deploy an Environment'
+
+  static flags = {
+    help: flags.help({char: 'h'}),
+  }
 
   static examples = [
     '$ fume deploy staging',
@@ -29,6 +35,8 @@ export default class Deploy extends Command {
     },
   ]
 
+  private auth!: Auth
+
   fumeConfig!: YamlConfig
 
   environment!: string
@@ -41,13 +49,10 @@ export default class Deploy extends Command {
 
   private deployment!: Deployment;
 
+  private noConfig = false
+
   async run() {
     const {args: {environment}} = this.parse(Deploy)
-
-    if (!fs.existsSync('fume.yml'))
-      cli.error('No fume configuration (fume.yml) found, please run ' + chalk.bold('fume config'))
-
-    this.fumeConfig = yml.load(fs.readFileSync('fume.yml').toString())
 
     this.environment = environment
 
@@ -56,6 +61,21 @@ export default class Deploy extends Command {
         title: 'Verify authentication',
         task: async (ctx, task) =>
           (new AuthStatus([], this.config)).tasks(ctx, task, true),
+      },
+      {
+        title: 'Verify fume configuration',
+        task: () => this.checkConfig(),
+      },
+      {
+        title: 'Create fume configuration',
+        task: (ctx, task): Listr =>
+          task.newListr((new ConfigTasks(this.env, this.auth)).tasks(), {concurrent: false}),
+        enabled: () => this.noConfig,
+      },
+      {
+        title: 'Load new fume configuration',
+        task: () => this.loadConfig(),
+        enabled: () => this.noConfig,
       },
       {
         title: 'Choose an environment',
@@ -145,6 +165,21 @@ export default class Deploy extends Command {
     await initial.run().catch(() =>  false)
     if (this.structure === 'ssr') ssr.run().catch(() => false)
     if (this.structure === 'headless') headless.run().catch(() => false)
+  }
+
+  async checkConfig() {
+    try {
+      this.fumeConfig = yml.load(fs.readFileSync('fume.yml').toString())
+    } catch (error) {
+      if (error.code === 'ENOENT')
+        this.noConfig = true
+      else
+        throw new Error(error)
+    }
+  }
+
+  async loadConfig() {
+    this.fumeConfig = yml.load(fs.readFileSync('fume.yml').toString())
   }
 
   async choose(ctx: any, task: any) {

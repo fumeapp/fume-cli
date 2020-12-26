@@ -7,6 +7,8 @@ import LoginTasks from '../../lib/logintasks'
 export default class AuthStatus extends Command {
   static description = 'View authentication status'
 
+  static aliases = ['status']
+
   auth!: Auth
 
   private authed: any = null;
