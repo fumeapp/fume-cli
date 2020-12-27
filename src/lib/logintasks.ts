@@ -1,7 +1,7 @@
 import {Auth} from './auth'
 import cli from 'cli-ux'
 import chalk from 'chalk'
-import {FumeEnvironment} from './types'
+import {FumeEnvironment, Inquiry} from './types'
 
 export default class LoginTasks {
   constructor(env: FumeEnvironment) {
@@ -12,6 +12,8 @@ export default class LoginTasks {
 
   env!: FumeEnvironment
 
+  inquiry!: Inquiry
+
   tasks() {
     return [
       {
@@ -19,8 +21,8 @@ export default class LoginTasks {
         task: (ctx: any, task: any) => this.launch(ctx, task),
       },
       {
-        title: 'Gather an API token',
-        task: (ctx: any, task: any) => this.gather(ctx, task),
+        title: 'Probe for an API token',
+        task: () => this.gather(),
       },
       {
         title: 'Test generated token',
@@ -34,7 +36,8 @@ export default class LoginTasks {
   }
 
   async launch(ctx: any, task: any) {
-    const url = encodeURI(await Auth.tokenUrl(this.env))
+    this.inquiry = await Auth.inquire(this.env)
+    const url = encodeURI(await Auth.tokenUrl(this.env, this.inquiry))
     ctx.input = await task.prompt({
       type: 'Toggle',
       message: 'Launch fume.app in your browser?',
@@ -42,17 +45,16 @@ export default class LoginTasks {
     })
     if (ctx.input) {
       await cli.open(url).catch(() => {
-        task.title = 'Could not open the browser, please visit ' + chalk.bold(url) + ' and paste the provided token'
+        task.title = 'Could not open the browser, please visit ' + chalk.bold(url)
       })
       task.title = 'Launched ' + chalk.bold(url)
     } else {
-      task.title = 'Please visit ' + chalk.bold(url)  + ' and paste the provided token'
+      task.title = 'Please visit ' + chalk.bold(url)
     }
   }
 
-  async gather(ctx: any, task: any) {
-    ctx.input = await task.prompt({type: 'Password', message: 'Paste generated token'})
-    this.token = ctx.input
+  async gather() {
+    this.token = await Auth.probe(this.env, this.inquiry)
   }
 
   async test(ctx: any, task: any) {

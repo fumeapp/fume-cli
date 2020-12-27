@@ -4,7 +4,7 @@ import fs = require('fs')
 import execa = require('execa')
 import os = require('os')
 import fse = require('fs-extra')
-import {FumeEnvironment, FumeAuth} from './types'
+import {FumeEnvironment, FumeAuth, Inquiry} from './types'
 
 export class Auth {
   auth: FumeAuth
@@ -49,6 +49,19 @@ export class Auth {
     }
   }
 
+  static async inquire(env: FumeEnvironment) {
+    axios.defaults.baseURL = env.api
+    const data = {
+      name: await this.getName(),
+    }
+    return (await axios.post('/inquiry', data)).data.data
+  }
+
+  static async probe(env: FumeEnvironment, inquiry: Inquiry) {
+    axios.defaults.baseURL = env.api
+    return (await axios.get(`/probe/${inquiry.hash}`)).data.data
+  }
+
   static async test(env: FumeEnvironment, token: string) {
     axios.defaults.baseURL = env.api
     try {
@@ -73,8 +86,8 @@ export class Auth {
     return ''
   }
 
-  static async tokenUrl(env: FumeEnvironment) {
-    return `${env.web}/session/create?name=${(await Auth.getName()).replace(/ /g, '+')}`
+  static async tokenUrl(env: FumeEnvironment, inquiry: Inquiry) {
+    return `${env.web}/session/approve/${inquiry.hash}`
   }
 
   static async projectUrl(env: FumeEnvironment) {
