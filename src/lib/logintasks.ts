@@ -21,7 +21,7 @@ export default class LoginTasks {
         task: (ctx: any, task: any) => this.launch(ctx, task),
       },
       {
-        title: 'Probe for an API token',
+        title: 'Check for an approved API token',
         task: () => this.gather(),
       },
       {
@@ -54,11 +54,18 @@ export default class LoginTasks {
   }
 
   async gather() {
-    this.token = await Auth.probe(this.env, this.inquiry)
+    try {
+      this.token = await Auth.probe(this.env, this.inquiry)
+    } catch (error) {
+      if (error.response.data && error.response.data.errors && error.response.data.errors[0].message === 'inquiry.timeout')
+        throw new Error('Token inquiry timed out')
+      else
+        throw new Error(error)
+    }
   }
 
   async test(ctx: any, task: any) {
-    if (ctx.input.length !== 64) throw new Error('Invalid token')
+    if (this.token.length !== 64) throw new Error('Invalid token')
     try {
       const me = (await Auth.test(this.env, this.token))
       task.title = 'Authenticated as ' + chalk.bold(me.name) + ' (' + chalk.bold(me.email) + ')'

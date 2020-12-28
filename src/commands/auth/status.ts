@@ -69,6 +69,7 @@ export default class AuthStatus extends Command {
 
       if (parentTask) parentTask.title = 'Authenticated as ' + chalk.bold(me.email)
     } catch (error) {
+      Auth.remove()
       throw new Error('Authentication error, token is invalid, run ' + chalk.bold('fume auth:login'))
     }
   }

@@ -68,7 +68,6 @@ export interface Entry {
 }
 
 export interface Inquiry {
-  hash: string;
+  key: string;
   name: string;
-  ip: string;
 }
