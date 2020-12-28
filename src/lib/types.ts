@@ -66,3 +66,8 @@ export interface Entry {
   project: Project;
   env: Env;
 }
+
+export interface Inquiry {
+  key: string;
+  name: string;
+}

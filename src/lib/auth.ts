@@ -4,7 +4,7 @@ import fs = require('fs')
 import execa = require('execa')
 import os = require('os')
 import fse = require('fs-extra')
-import {FumeEnvironment, FumeAuth} from './types'
+import {FumeEnvironment, FumeAuth, Inquiry} from './types'
 
 export class Auth {
   auth: FumeAuth
@@ -43,10 +43,40 @@ export class Auth {
   async logout() {
     try {
       await this.axios.get('/logout')
-      fse.unlinkSync(`${os.homedir()}/.config/fume/auth.yml`)
     } catch (error) {
+      if (error.response.status === 401)
+        Auth.remove()
       throw new Error(error)
     }
+    Auth.remove()
+  }
+
+  static async inquire(env: FumeEnvironment) {
+    axios.defaults.baseURL = env.api
+    const data = {
+      name: await this.getName(),
+    }
+    return (await axios.post('/inquiry', data)).data.data
+  }
+
+  static async probe(env: FumeEnvironment, inquiry: Inquiry) {
+    axios.defaults.baseURL = env.api
+    let attempts = 30
+    while (attempts !== 0) {
+      attempts--
+      // eslint-disable-next-line no-await-in-loop
+      const result = (await axios.get(`/probe/${inquiry.key}`))
+      if (result.data && result.data.data && result.data.data.is_approved) {
+        return result.data.data.token
+      }
+      // eslint-disable-next-line no-await-in-loop
+      await this.sleep(1000)
+    }
+    throw new Error('Token request timed out')
+  }
+
+  static async sleep(milliseconds: number) {
+    return new Promise(resolve => setTimeout(resolve, milliseconds))
   }
 
   static async test(env: FumeEnvironment, token: string) {
@@ -73,12 +103,17 @@ export class Auth {
     return ''
   }
 
-  static async tokenUrl(env: FumeEnvironment) {
-    return `${env.web}/session/create?name=${(await Auth.getName()).replace(/ /g, '+')}`
+  static async tokenUrl(env: FumeEnvironment, inquiry: Inquiry) {
+    return `${env.web}/session/inquire/${inquiry.key}`
   }
 
   static async projectUrl(env: FumeEnvironment) {
     return `${env.web}/project/create`
+  }
+
+  static remove() {
+    const file = `${os.homedir()}/.config/fume/auth.yml`
+    if (fs.existsSync(file)) fse.unlinkSync(file)
   }
 
   static save(env: FumeEnvironment, token: string) {

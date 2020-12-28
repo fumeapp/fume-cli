@@ -141,7 +141,7 @@ export default class Deploy extends Command {
       {
         title: 'Prepare environment variables',
         task: () => this.envPrepare(),
-        skip: () => this.variables.length < 1,
+        enabled: () => this.variables.length > 0,
       },
       {
         title: 'Generating distribution files',
@@ -150,7 +150,7 @@ export default class Deploy extends Command {
       {
         title: 'Restore environment variables',
         task: () => this.envRestore(),
-        skip: () => this.variables.length < 1,
+        enabled: () => this.variables.length > 0,
       },
       {
         title: 'Syncing distribution to the cloud',
