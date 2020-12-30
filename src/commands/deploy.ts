@@ -163,21 +163,14 @@ export default class Deploy extends Command {
       },
     ])
 
-    await initial.run().catch(error =>  this.abort(error))
-    if (this.structure === 'ssr') ssr.run().catch(error =>  this.abort(error))
-    if (this.structure === 'headless') headless.run().catch(error => this.abort(error))
+    await initial.run().catch(() => false)
+    if (this.structure === 'ssr') ssr.run().catch(() => false)
+    if (this.structure === 'headless') headless.run().catch(() => false)
 
     onDeath(this.cleanup)
   }
 
-  async abort(error: any) {
-    if (this.deployment) await this.deployment.update('ERROR')
-    this.cleanup()
-    this.warn('Deployment gracefully aborted')
-    throw error
-  }
-
-  async cleanup() {
+  cleanup() {
     if (fs.existsSync('nuxt.config.fume')) fse.moveSync('nuxt.config.fume', 'nuxt.config.js', {overwrite: true})
     if (fs.existsSync('./fume')) fse.removeSync('./fume')
     if (fs.existsSync('.env.fume')) {
