@@ -3,6 +3,7 @@ import AuthStatus from './auth/status'
 import execa = require('execa')
 import {Observable} from 'rxjs'
 import fs = require('fs')
+import onDeath = require('death')
 import fse = require('fs-extra')
 import numeral = require('numeral')
 import archiver  = require('archiver')
@@ -162,9 +163,29 @@ export default class Deploy extends Command {
       },
     ])
 
-    await initial.run().catch(() =>  false)
-    if (this.structure === 'ssr') ssr.run().catch(() => false)
-    if (this.structure === 'headless') headless.run().catch(() => false)
+    await initial.run().catch(error =>  this.abort(error))
+    if (this.structure === 'ssr') ssr.run().catch(error =>  this.abort(error))
+    if (this.structure === 'headless') headless.run().catch(error => this.abort(error))
+
+    onDeath(this.cleanup)
+  }
+
+  async abort(error: any) {
+    if (this.deployment) await this.deployment.update('ERROR')
+    this.cleanup()
+    this.warn('Deployment gracefully aborted')
+    throw error
+  }
+
+  async cleanup() {
+    if (fs.existsSync('nuxt.config.fume')) fse.moveSync('nuxt.config.fume', 'nuxt.config.js', {overwrite: true})
+    if (fs.existsSync('./fume')) fse.removeSync('./fume')
+    if (fs.existsSync('.env.fume')) {
+      fs.copyFileSync('.env.fume', '.env')
+      fs.unlinkSync('.env.fume')
+    }
+    if (fs.existsSync(this.deployment.s3.path))
+      fs.unlinkSync(this.deployment.s3.path)
   }
 
   async checkConfig() {
@@ -361,7 +382,8 @@ export default class Deploy extends Command {
         observer.next(`${(event.loaded * 100 / event.total).toFixed(2)}%`)
       }).send((error: Error) => {
         if (error) this.error(error)
-        fs.unlinkSync(this.deployment.s3.path)
+        if (fs.existsSync(this.deployment.s3.path))
+          fs.unlinkSync(this.deployment.s3.path)
         observer.complete()
       })
     })
@@ -379,13 +401,6 @@ export default class Deploy extends Command {
         this.error(error.response.data.errors[0].detail)
         observer.complete()
       })
-    })
-  }
-
-  async cleanup() {
-    return new Observable(observer => {
-      if (fs.existsSync('nuxt.config.fume')) fse.moveSync('nuxt.config.fume', 'nuxt.config.js', {overwrite: true})
-      observer.complete()
     })
   }
 }
