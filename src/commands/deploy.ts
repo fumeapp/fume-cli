@@ -202,9 +202,17 @@ export default class Deploy extends Command {
     try {
       environments = await this.deployment.environments()
     } catch (error) {
-      if (error.response) {
-        task.title = error.response.data.errors[0].detail
-        throw new Error(error.response.data.errors[0].detail)
+      if (error.response.status === 404)
+        throw new Error('Invalid fume configuration')
+      if (error.response && error.response.data) {
+        if (error.response.data.message) {
+          task.title = error.response.data.message
+          throw new Error(error)
+        }
+        if (error.response.data.errors[0].detail) {
+          task.title = error.response.data.errors[0].detail
+          throw new Error(error.response.data.errors[0].detail)
+        }
       } else {
         throw new Error(error)
       }
@@ -225,7 +233,7 @@ export default class Deploy extends Command {
     try {
       await this.deployment.initialize(this.environment)
     } catch (error) {
-      if (error.response) {
+      if (error.response && error.response.data.errors[0] && error.response.data.errors[0].detail) {
         task.title = error.response.data.errors[0].detail
         throw new Error(error.response.data.errors[0].detail)
       } else {
