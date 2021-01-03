@@ -177,7 +177,7 @@ export default class Deploy extends Command {
       fs.copyFileSync('.env.fume', '.env')
       fs.unlinkSync('.env.fume')
     }
-    if (fs.existsSync(this.deployment.s3.path))
+    if (this && this.deployment.s3 && fs.existsSync(this.deployment.s3.path))
       fs.unlinkSync(this.deployment.s3.path)
   }
 
@@ -201,6 +201,7 @@ export default class Deploy extends Command {
     let environments
     try {
       environments = await this.deployment.environments()
+      task.title = `Choose an environment to deploy (${environments[0].project.name})`
     } catch (error) {
       if (error.response.status === 404)
         throw new Error('Invalid fume configuration')
