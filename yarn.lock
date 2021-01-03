@@ -246,6 +246,11 @@
   resolved "https://registry.yarnpkg.com/@types/chai/-/chai-4.2.14.tgz#44d2dd0b5de6185089375d976b4ec5caf6861193"
   integrity sha512-G+ITQPXkwTrslfG5L/BksmbLUA0M1iybEsmCWPqzSxsRRhJZimBKJkoMi8fr/CPygPTj4zO5pJH7I2/cm9M7SQ==
 
+"@types/death@^1.1.1":
+  version "1.1.1"
+  resolved "https://registry.yarnpkg.com/@types/death/-/death-1.1.1.tgz#698a62ff197cfcbf370e69cd5301a5cad1044a90"
+  integrity sha512-SRZdlsuCMY8iJQQ5CPRHivXR9+mw25peEG9hLEg/styIQ0jiXO90CrNhf7aGFaMFc8wPA+R87QT+AY15u3mO/g==
+
 "@types/eslint-visitor-keys@^1.0.0":
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/@types/eslint-visitor-keys/-/eslint-visitor-keys-1.0.0.tgz#1ee30d79544ca84d68d4b3cdb0af4f205663dd2d"
@@ -965,6 +970,11 @@ date-fns@^1.27.2:
   version "1.30.1"
   resolved "https://registry.yarnpkg.com/date-fns/-/date-fns-1.30.1.tgz#2e71bf0b119153dbb4cc4e88d9ea5acfb50dc05c"
   integrity sha512-hBSVCvSmWC+QypYObzwGOd9wqdDpOt+0wl0KbU+R+uuZBS1jN8VsD1ss3irQDknRj5NvxiTF6oj/nDRnN/UQNw==
+
+death@^1.1.0:
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/death/-/death-1.1.0.tgz#01aa9c401edd92750514470b8266390c66c67318"
+  integrity sha1-AaqcQB7dknUFFEcLgmY5DGbGcxg=
 
 debug@3.1.0:
   version "3.1.0"

@@ -39,6 +39,7 @@ export interface S3Config {
 
 export interface Project {
   id: number;
+  name: string;
   region: string;
   structure: string;
 }

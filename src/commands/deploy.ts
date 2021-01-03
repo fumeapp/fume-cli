@@ -3,6 +3,7 @@ import AuthStatus from './auth/status'
 import execa = require('execa')
 import {Observable} from 'rxjs'
 import fs = require('fs')
+import onDeath = require('death')
 import fse = require('fs-extra')
 import numeral = require('numeral')
 import archiver  = require('archiver')
@@ -162,9 +163,22 @@ export default class Deploy extends Command {
       },
     ])
 
-    await initial.run().catch(() =>  false)
+    await initial.run().catch(() => false)
     if (this.structure === 'ssr') ssr.run().catch(() => false)
     if (this.structure === 'headless') headless.run().catch(() => false)
+
+    onDeath(this.cleanup)
+  }
+
+  cleanup() {
+    if (fs.existsSync('nuxt.config.fume')) fse.moveSync('nuxt.config.fume', 'nuxt.config.js', {overwrite: true})
+    if (fs.existsSync('./fume')) fse.removeSync('./fume')
+    if (fs.existsSync('.env.fume')) {
+      fs.copyFileSync('.env.fume', '.env')
+      fs.unlinkSync('.env.fume')
+    }
+    if (this && this.deployment.s3 && fs.existsSync(this.deployment.s3.path))
+      fs.unlinkSync(this.deployment.s3.path)
   }
 
   async checkConfig() {
@@ -187,10 +201,19 @@ export default class Deploy extends Command {
     let environments
     try {
       environments = await this.deployment.environments()
+      task.title = `Choose an environment to deploy (${environments[0].project.name})`
     } catch (error) {
-      if (error.response) {
-        task.title = error.response.data.errors[0].detail
-        throw new Error(error.response.data.errors[0].detail)
+      if (error.response.status === 404)
+        throw new Error('Invalid fume configuration')
+      if (error.response && error.response.data) {
+        if (error.response.data.message) {
+          task.title = error.response.data.message
+          throw new Error(error)
+        }
+        if (error.response.data.errors[0].detail) {
+          task.title = error.response.data.errors[0].detail
+          throw new Error(error.response.data.errors[0].detail)
+        }
       } else {
         throw new Error(error)
       }
@@ -211,7 +234,7 @@ export default class Deploy extends Command {
     try {
       await this.deployment.initialize(this.environment)
     } catch (error) {
-      if (error.response) {
+      if (error.response && error.response.data.errors[0] && error.response.data.errors[0].detail) {
         task.title = error.response.data.errors[0].detail
         throw new Error(error.response.data.errors[0].detail)
       } else {
@@ -361,7 +384,8 @@ export default class Deploy extends Command {
         observer.next(`${(event.loaded * 100 / event.total).toFixed(2)}%`)
       }).send((error: Error) => {
         if (error) this.error(error)
-        fs.unlinkSync(this.deployment.s3.path)
+        if (fs.existsSync(this.deployment.s3.path))
+          fs.unlinkSync(this.deployment.s3.path)
         observer.complete()
       })
     })
@@ -379,13 +403,6 @@ export default class Deploy extends Command {
         this.error(error.response.data.errors[0].detail)
         observer.complete()
       })
-    })
-  }
-
-  async cleanup() {
-    return new Observable(observer => {
-      if (fs.existsSync('nuxt.config.fume')) fse.moveSync('nuxt.config.fume', 'nuxt.config.js', {overwrite: true})
-      observer.complete()
     })
   }
 }
