@@ -16,6 +16,7 @@ import Deployment from '../lib/deployment'
 import {YamlConfig, Variable} from '../lib/types'
 import ConfigTasks from '../lib/configtasks'
 import {Auth} from '../lib/auth'
+const getFolderSize  = require('get-folder-size')
 
 export default class Deploy extends Command {
   static description = 'Deploy an Environment'
@@ -320,8 +321,32 @@ export default class Deploy extends Command {
     })
   }
 
+  async getSize(path: string): Promise<number> {
+    return new Promise((resolve, reject) => {
+      getFolderSize(path, (error: Error, size: any) => {
+        if (error) {
+          reject(error)
+        }
+        resolve(size)
+      })
+    })
+  }
+
+  private static mb(size: number) {
+    return (size / 1024 / 1024).toFixed(2) + 'MB'
+  }
+
   async archive() {
-    await this.deployment.update('MAKE_ZIP')
+    const size = await this.getSize('./')
+    if (size >= 250000000) {
+      const msg = `SSR projects with AWS cannot exceed 250MB, (Project size is ${Deploy.mb(size)})`
+      await this.deployment.fail({
+        message: msg,
+        detail: {size},
+      })
+      this.cleanup()
+      throw new Error(msg)
+    }
     return new Observable(observer => {
       if (fs.existsSync('./fume')) fs.rmdirSync('./fume', {recursive: true})
       fs.mkdirSync('./fume')

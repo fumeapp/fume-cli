@@ -47,6 +47,18 @@ export default class Deployment {
     }
   }
 
+  async fail(payload: object) {
+    const form = {
+      status: 'FAILURE',
+      payload: payload,
+    }
+    try {
+      return this.auth.axios.put(`/project/${this.config.id}/dep/${this.entry.id}`, form)
+    } catch (error) {
+      throw new Error(error.response)
+    }
+  }
+
   async sts(): Promise<AwsClientConfig> {
     try {
       const result = (await this.auth.axios.get(`/project/${this.config.id}/sts`)).data.data
