@@ -261,11 +261,16 @@ export default class Deploy extends Command {
 
   async build() {
     await this.deployment.update('NUXT_BUILD')
-    return new Observable(observer => {
-      observer.next('Running nuxt build')
-      execa('node_modules/.bin/nuxt', ['build'])
-      .then(() => observer.complete()) // .stdout.pipe(process.stdout),
-    })
+    try {
+      await execa('node_modules/.bin/nuxt', ['build'])
+    } catch (error) {
+      await this.deployment.fail({
+        message: 'Error bundling server and client',
+        detail: error,
+      })
+      throw new Error(error)
+    }
+    return true
   }
 
   async generate() {
