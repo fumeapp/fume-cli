@@ -11,7 +11,7 @@ import ConfigTasks from '../lib/configtasks'
 import {Auth} from '../lib/auth'
 import execa = require('execa');
 import fs = require('fs');
-import onDeath = require('death');
+import onDeath from 'death'
 import fse = require('fs-extra');
 import numeral = require('numeral');
 import archiver = require('archiver');
@@ -124,22 +124,13 @@ export default class Deploy extends Command {
         enabled: () => this.variables.length > 0,
       },
       {
-        title: 'Create layer package',
-        task: () => this.archive(PackageType.layer),
+        title: 'Send dependencies',
+        task: () => this.package(PackageType.layer),
         enabled: () => this.layer,
       },
       {
-        title: 'Upload layer package',
-        task: () => this.upload(PackageType.layer),
-        enabled: () => this.layer,
-      },
-      {
-        title: 'Create code package',
-        task: () => this.archive(PackageType.code),
-      },
-      {
-        title: 'Upload code package',
-        task: () => this.upload(PackageType.code),
+        title: 'Send source code',
+        task: () => this.package(PackageType.code),
       },
       {
         title: 'Deploy package(s)',
@@ -209,7 +200,6 @@ export default class Deploy extends Command {
       else
         throw new Error(error)
     }
-
   }
 
   async loadConfig() {
@@ -264,10 +254,15 @@ export default class Deploy extends Command {
     this.structure = this.deployment.entry.project.structure
     this.variables = this.deployment.entry.env.variables
     if (this.structure === 'ssr') {
-      this.hash = md5file.sync('package.json')
+      this.hash = this.lock()
       this.layer = this.hash !== this.deployment.entry.env.detail.hash
     }
     return true
+  }
+
+  lock() {
+    const locks = ['yarn.lock', 'package-lock.json']
+    for (const lock of locks) if (fs.existsSync(lock)) return md5file.sync(lock)
   }
 
   async yarn(args: Array<string>) {
@@ -373,6 +368,19 @@ export default class Deploy extends Command {
     fse.copySync(`${__dirname}/../../src/assets/nuxt`, './.fume')
   }
 
+  async package(type: PackageType) {
+    return new Listr([
+      {
+        title: `Archiving ${type} package`,
+        task: () =>  this.archive(type),
+      },
+      {
+        title: `Uploading ${type} package`,
+        task: () =>  this.upload(type),
+      },
+    ])
+  }
+
   async archive(type: PackageType) {
     const size = await this.getSize('./', 'node_modules')
     if (size >= 250000000) {
@@ -473,7 +481,9 @@ export default class Deploy extends Command {
         observer.complete()
       })
       .catch(error => {
-        this.error(error.response.data.errors[0].detail)
+        if (error.response.data.errors) this.error(error.response.data.errors[0].detail)
+        if (error.response.data) this.error(error.response.data)
+        this.error(error)
         observer.complete()
       })
     })
