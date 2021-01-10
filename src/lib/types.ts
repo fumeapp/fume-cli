@@ -31,10 +31,22 @@ export interface AwsClientConfig {
 }
 
 export interface S3Config {
-  file: string;
-  path: string;
+  code: string;
+  layer: string;
+  codePath: string;
+  layerPath: string;
   bucket: string;
   headless: string;
+  paths: S3ConfigPath;
+}
+export interface S3ConfigPath {
+  code: string;
+  layer: string;
+}
+
+export enum PackageType {
+  code = 'code',
+  layer = 'layer',
 }
 
 export interface Project {
@@ -48,7 +60,13 @@ export interface Env {
   id: number;
   team_id: number;
   name: string;
+  detail: EnvDetail;
   variables: Array<Variable>;
+}
+
+export interface EnvDetail {
+  hash: string;
+  DistributionId: string;
 }
 
 export interface Variable {

@@ -35,25 +35,32 @@ export default class Deployment {
 
     this.entry = (await this.auth.axios.post(`/project/${this.config.id}/dep`, data)).data.data.data
     this.s3 = (await this.auth.axios.get(`/project/${this.config.id}/dep/${this.entry.id}/s3`)).data.data
-    this.s3.path = `${__dirname}/${this.s3.file}`
+    this.s3.paths = {
+      code: `${__dirname}/${this.s3.code}`,
+      layer: `${__dirname}/${this.s3.layer}`,
+    }
     return this.entry
   }
 
-  async update(status: string) {
+  async update(status: string, hash?: string|null) {
+    const params = {
+      status: status,
+      hash: hash,
+    }
     try {
-      return this.auth.axios.put(`/project/${this.config.id}/dep/${this.entry.id}`, {status})
+      return this.auth.axios.put(`/project/${this.config.id}/dep/${this.entry.id}`, params)
     } catch (error) {
       throw new Error(error.response)
     }
   }
 
   async fail(payload: object) {
-    const form = {
+    const params = {
       status: 'FAILURE',
       payload: payload,
     }
     try {
-      return this.auth.axios.put(`/project/${this.config.id}/dep/${this.entry.id}`, form)
+      return this.auth.axios.put(`/project/${this.config.id}/dep/${this.entry.id}`, params)
     } catch (error) {
       throw new Error(error.response)
     }
