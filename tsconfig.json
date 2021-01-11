@@ -1,4 +1,5 @@
 {
+  "extends": "./node_modules/@sentry/typescript/tsconfig.json",
   "compilerOptions": {
     "declaration": true,
     "importHelpers": true,
@@ -11,7 +12,5 @@
     "esModuleInterop": true,
     "resolveJsonModule": true
   },
-  "include": [
-    "src/**/*"
-  ]
+  "include": ["src/**/*" ]
 }

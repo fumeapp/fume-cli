@@ -482,8 +482,8 @@ export default class Deploy extends Command {
       })
       .catch(error => {
         if (error.response.data.errors) this.error(error.response.data.errors[0].detail)
+        if (error.response.data) throw new Error(error.response.data)
         else throw new Error(error)
-        observer.complete()
       })
     })
   }

@@ -11,6 +11,7 @@
     "@oclif/command": "^1.8.0",
     "@oclif/config": "^1",
     "@oclif/plugin-help": "^3",
+    "@sentry/typescript": "^5.20.1",
     "@types/fs-extra": "^9.0.1",
     "@types/js-yaml": "^3.12.4",
     "@types/numeral": "^0.0.28",
@@ -34,6 +35,7 @@
     "mkdirp": "^1.0.4",
     "numeral": "^2.0.6",
     "pend": "^1.2.0",
+    "raven": "^2.6.4",
     "rimraf": "^3.0.2",
     "streamsink": "^1.2.0",
     "tslib": "^2"
