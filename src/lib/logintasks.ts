@@ -75,7 +75,7 @@ export default class LoginTasks {
   }
 
   async save(ctx: any, task: any) {
-    if (Auth.save(this.env, this.token)) {
+    if (Auth.save(this.token)) {
       task.title = 'Token Saved'
     }
   }

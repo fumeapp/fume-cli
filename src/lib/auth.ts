@@ -116,7 +116,7 @@ export class Auth {
     if (fs.existsSync(file)) fse.unlinkSync(file)
   }
 
-  static save(env: FumeEnvironment, token: string) {
+  static save(token: string) {
     const config: FumeAuth = {
       token: token,
     }

@@ -1,5 +1,4 @@
 {
-  "extends": "./node_modules/@sentry/typescript/tsconfig.json",
   "compilerOptions": {
     "declaration": true,
     "importHelpers": true,
