@@ -1,6 +1,5 @@
 import Command from '@oclif/command'
 import {FumeEnvironment} from './lib/types'
-const Raven = require('raven')
 const {oclif} = require('../package.json')
 
 export default abstract class extends Command {
@@ -35,7 +34,5 @@ export default abstract class extends Command {
     }
     env = this.envs.find(e => e.env === oclif.env)
     if (env !== undefined) this.env = env
-    if (oclif.env === 'production')
-      Raven.config('https://7a94a89f88b34b5ba4f00f814126d231@o436461.ingest.sentry.io/539770').install()
   }
 }

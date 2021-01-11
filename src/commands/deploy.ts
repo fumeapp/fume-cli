@@ -345,6 +345,15 @@ export default class Deploy extends Command {
   }
 
   async getSize(path: string, ignore: string): Promise<number> {
+    if (ignore === '')
+      return new Promise((resolve, reject) => {
+        getFolderSize(path, (error: Error, size: any) => {
+          if (error) {
+            reject(error)
+          }
+          resolve(size)
+        })
+      })
     return new Promise((resolve, reject) => {
       getFolderSize(path, new RegExp(ignore), (error: Error, size: any) => {
         if (error) {
@@ -369,6 +378,18 @@ export default class Deploy extends Command {
   }
 
   async package(type: PackageType) {
+    if (type === PackageType.layer) {
+      const size = await this.getSize('./node_modules', '')
+      if (size >= 250000000) {
+        const msg = `Your node_modules exceeds 250MB, until Fume launches EFS support, this project is too big for Fume+Lambda (modules are ${Deploy.mb(size)}`
+        await this.deployment.fail({
+          message: msg,
+          detail: {size},
+        })
+        this.cleanup()
+        this.error(msg)
+      }
+    }
     return new Listr([
       {
         title: `Archiving ${type} package`,
@@ -405,7 +426,7 @@ export default class Deploy extends Command {
       if (type === PackageType.code) {
         for (const entry of fs.readdirSync('./', {withFileTypes: true})) {
           if (entry.isDirectory()) {
-            if (entry.name !== 'node_modules' && entry.name !== '.git')
+            if (entry.name !== 'node_modules' && entry.name !== '.git' && entry.name !== 'vendor')
               archive.directory(entry.name, entry.name)
           } else archive.file(entry.name, {name: entry.name})
         }
