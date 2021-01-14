@@ -117,6 +117,7 @@ export default class Deploy extends Command {
       {
         title: 'Install production modules',
         task: () => this.yarn(['--prod']),
+        enabled: () => this.layer,
       },
       {
         title: 'Restore environment variables',
