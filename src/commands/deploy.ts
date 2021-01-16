@@ -51,7 +51,7 @@ export default class Deploy extends Command {
 
   hash!: string
 
-  layer!: boolean
+  refresh_deps!: boolean
 
   variables!: Array<Variable>
 
@@ -98,7 +98,7 @@ export default class Deploy extends Command {
 
     const ssr = new Listr([
       {
-        title: 'Install modules',
+        title: 'Install all dependencies',
         task: () => this.yarn([]),
       },
       {
@@ -115,9 +115,9 @@ export default class Deploy extends Command {
         task: () => this.build(),
       },
       {
-        title: 'Install production modules',
+        title: 'Install production dependencies',
         task: () => this.yarn(['--prod']),
-        enabled: () => this.layer,
+        enabled: () => this.refresh_deps,
       },
       {
         title: 'Restore environment variables',
@@ -125,9 +125,14 @@ export default class Deploy extends Command {
         enabled: () => this.variables.length > 0,
       },
       {
-        title: 'Send dependencies',
-        task: () => this.package(PackageType.layer),
-        enabled: () => this.layer,
+        title: 'Sync dependencies',
+        task: () => this.sync(
+          './node_modules',
+          this.deployment.s3.bucket,
+          'SYNC_DEPS',
+          `env-${this.deployment.entry.env.id}-deps/node_modules/`,
+        ),
+        enabled: () => this.refresh_deps,
       },
       {
         title: 'Send source code',
@@ -164,7 +169,11 @@ export default class Deploy extends Command {
       },
       {
         title: 'Syncing distribution to the cloud',
-        task: () => this.sync(),
+        task: () => this.sync(
+          './dist',
+          this.deployment.s3.headless,
+          'SYNC_FILES',
+          ''),
       },
       {
         title: 'Deploy package',
@@ -188,8 +197,6 @@ export default class Deploy extends Command {
     }
     if (this && this.deployment.s3 && fs.existsSync(this.deployment.s3.paths.code))
       fs.unlinkSync(this.deployment.s3.paths.code)
-    if (this && this.deployment.s3 && fs.existsSync(this.deployment.s3.paths.layer))
-      fs.unlinkSync(this.deployment.s3.paths.layer)
   }
 
   async checkConfig() {
@@ -256,7 +263,7 @@ export default class Deploy extends Command {
     this.variables = this.deployment.entry.env.variables
     if (this.structure === 'ssr') {
       this.hash = this.lock()
-      this.layer = this.hash !== this.deployment.entry.env.detail.hash
+      this.refresh_deps = this.hash !== this.deployment.entry.env.detail.hash
     }
     return true
   }
@@ -379,18 +386,6 @@ export default class Deploy extends Command {
   }
 
   async package(type: PackageType) {
-    if (type === PackageType.layer) {
-      const size = await this.getSize('./node_modules', '')
-      if (size >= 250000000) {
-        const msg = `Your node_modules exceeds 250MB, until Fume launches EFS support, this project is too big for Fume+Lambda (modules are ${Deploy.mb(size)}`
-        await this.deployment.fail({
-          message: msg,
-          detail: {size},
-        })
-        this.cleanup()
-        this.error(msg)
-      }
-    }
     return new Listr([
       {
         title: `Archiving ${type} package`,
@@ -414,7 +409,6 @@ export default class Deploy extends Command {
       this.cleanup()
       throw new Error(msg)
     }
-    if (type ===  PackageType.layer) await this.deployment.update('MAKE_LAYER_ZIP')
     if (type === PackageType.code) await this.deployment.update('MAKE_CODE_ZIP')
     const output = fs.createWriteStream(this.deployment.s3.paths[type])
     return new Observable(observer => {
@@ -422,8 +416,6 @@ export default class Deploy extends Command {
 
       const archive = archiver('zip', {zlib: {level: 9}})
 
-      if (type === PackageType.layer)
-        archive.directory('./node_modules', 'nodejs/node_modules')
       if (type === PackageType.code) {
         for (const entry of fs.readdirSync('./', {withFileTypes: true})) {
           if (entry.isDirectory()) {
@@ -450,16 +442,15 @@ export default class Deploy extends Command {
   }
 
   async upload(type: PackageType) {
-    if (type === PackageType.layer) await this.deployment.update('UPLOAD_LAYER_ZIP')
     if (type === PackageType.code) await this.deployment.update('UPLOAD_CODE_ZIP')
     const sts = await this.deployment.sts()
     return new Observable(observer => {
-      observer.next(type === 'layer' ? 'Sending layer..' : 'Sending code..')
+      observer.next('Sending code..')
       new S3.ManagedUpload({
         service: new S3(sts),
         params: {
           Bucket: this.deployment.s3.bucket,
-          Key: type === PackageType.layer ? this.deployment.s3.layer : this.deployment.s3.code,
+          Key: this.deployment.s3.code,
           Body: fs.createReadStream(this.deployment.s3.paths[type]),
         },
       }).on('httpUploadProgress', event => {
@@ -471,23 +462,24 @@ export default class Deploy extends Command {
     })
   }
 
-  async sync() {
-    await this.deployment.update('SYNC_FILES')
+  async sync(folder: string, bucket: string, status: string, prefix: string) {
+    await this.deployment.update(status)
     const sts = await this.deployment.sts()
     return new Observable(observer => {
-      observer.next('Syncing distribution..')
+      observer.next('Comparing remote dependencies..')
       const client = require(`${__dirname}/../../src/lib/s3`).createClient({s3Client: new S3(sts)})
       const uploader = client.uploadDir({
-        localDir: './dist',
+        localDir: folder,
         deleteRemoved: true,
         s3Params: {
-          Bucket: this.deployment.s3.headless,
+          Bucket: bucket,
           ACL: 'public-read',
+          Prefix: prefix,
         },
       })
       uploader.on('progress', () => {
-        if (!isNaN(uploader.pgoressAmount / uploader.progressTotal))
-          observer.next(`${(uploader.progressAmount / uploader.progressTotal * 100).toFixed(2)} complete`)
+        if (!isNaN(uploader.progressAmount / uploader.progressTotal))
+          observer.next(`${(uploader.progressAmount / uploader.progressTotal * 100).toFixed(2)}% complete`)
       })
 
       uploader.on('end', () => observer.complete())
