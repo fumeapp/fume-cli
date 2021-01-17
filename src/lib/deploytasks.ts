@@ -44,6 +44,10 @@ export default class DeployTasks {
 
   public mode!: Mode
 
+  public nuxtConfig!: any
+
+  public staticDir = 'static/'
+
   async checkConfig() {
     try {
       this.fumeConfig = yml.load(fs.readFileSync('fume.yml').toString())
@@ -59,6 +63,7 @@ export default class DeployTasks {
     this.size = {
       deps: await this.getSize('node_modules', ''),
       code: await this.getSize('.nuxt', ''),
+      static: await this.getSize(this.staticDir, ''),
       dist: 0,
       // code: await this.getSize('./', '^(node_modules|vendor|.git)\\/'),
     }
@@ -69,7 +74,8 @@ export default class DeployTasks {
 
     const deps = numeral(this.size.deps).format('0.00b')
     const code = numeral(this.size.code).format('0.00b')
-    task.title = `Dependencies: ${chalk.bold(deps)} Code: ${chalk.bold(code)} Mode: ${chalk.bold(this.mode)}`
+    const stat = numeral(this.size.static).format('0.00b')
+    task.title = `Deps: ${chalk.bold(deps)} Code: ${chalk.bold(code)} Static: ${chalk.bold(stat)} Mode: ${chalk.bold(this.mode)}`
   }
 
   async loadConfig() {
@@ -199,6 +205,7 @@ export default class DeployTasks {
   verify(task: any) {
     return new Observable(observer => {
       const config = fs.readFileSync('nuxt.config.js', 'utf8')
+
       observer.next('Checking Syntax')
       if (config.includes('export default {')) {
         observer.next('ES6 detected, converting to CommonJS')
@@ -211,6 +218,9 @@ export default class DeployTasks {
       } else {
         observer.next('CommonJS detected, no change needed')
       }
+      this.nuxtConfig = require(`${process.cwd()}/nuxt.config.js`)
+      if (this.nuxtConfig.srcDir)
+        this.staticDir = `${this.nuxtConfig.srcDir}static/`
       observer.complete()
     })
   }
@@ -271,6 +281,7 @@ export default class DeployTasks {
       if (type === PackageType.code) {
         archive.directory('.nuxt', '.nuxt')
         archive.directory('.fume', '.fume')
+        archive.directory(this.staticDir, this.staticDir)
         archive.file('nuxt.config.js', {name: 'nuxt.config.js'})
       }
       /*
@@ -333,6 +344,7 @@ export default class DeployTasks {
     this.size = {
       deps: 0,
       code: 0,
+      static: 0,
       dist: await this.getSize('dist', ''),
     }
     return new Observable(observer => {
@@ -369,7 +381,7 @@ export default class DeployTasks {
       })
       .catch(error => {
         if (error.response.data.errors) throw new Error(error.response.data.errors[0].detail)
-        if (error.response.data) throw new Error(error.response.data)
+        if (error.response.data) throw new Error(JSON.stringify(error.response.data))
         else throw error
       })
     })

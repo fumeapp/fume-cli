@@ -58,6 +58,7 @@ export enum Mode {
 export interface Size {
   deps: number;
   code: number;
+  static: number;
   dist: number;
 }
 
