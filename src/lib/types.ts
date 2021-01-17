@@ -49,6 +49,18 @@ export enum PackageType {
   layer = 'layer',
 }
 
+export enum Mode {
+  layer = 'layer',
+  efs = 'efs',
+  headless = 'headless',
+}
+
+export interface Size {
+  deps: number;
+  code: number;
+  dist: number;
+}
+
 export interface Project {
   id: number;
   name: string;

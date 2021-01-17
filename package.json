@@ -1,7 +1,7 @@
 {
   "name": "fume-cli",
   "description": "fume command line interface",
-  "version": "0.0.46",
+  "version": "0.0.47",
   "author": "acidjazz @acidjazz",
   "bin": {
     "fume": "./bin/run"
@@ -61,7 +61,7 @@
     "typescript": "^4.0"
   },
   "engines": {
-    "node": ">=8.0.0"
+    "node": ">=10.0.0"
   },
   "files": [
     "/bin",
