@@ -42,11 +42,12 @@ export default class Deployment {
     return this.entry
   }
 
-  async update(status: string, hash?: string|null) {
-    const params = {
+  async update(status: string, optionalParams?: object|null) {
+    let params = {
       status: status,
-      hash: hash,
     }
+    if (optionalParams) params = {...optionalParams, ...params}
+
     try {
       return this.auth.axios.put(`/project/${this.config.id}/dep/${this.entry.id}`, params)
     } catch (error) {
@@ -54,10 +55,10 @@ export default class Deployment {
     }
   }
 
-  async fail(payload: object) {
+  async fail(failure: object) {
     const params = {
       status: 'FAILURE',
-      payload: payload,
+      failure: failure,
     }
     try {
       return this.auth.axios.put(`/project/${this.config.id}/dep/${this.entry.id}`, params)
