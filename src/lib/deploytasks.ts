@@ -132,7 +132,10 @@ export default class DeployTasks {
     if (this.structure === 'headless') this.mode = Mode.headless
     if (this.structure === 'ssr') {
       this.hash = this.lock()
-      this.refresh_deps = this.hash !== this.deployment.entry.env.detail.hash
+      if (this.deployment.entry.env.detail && this.deployment.entry.env.detail.hash)
+        this.refresh_deps = this.hash !== this.deployment.entry.env.detail.hash
+      else
+        this.refresh_deps = true
     }
     return true
   }

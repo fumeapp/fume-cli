@@ -95,7 +95,7 @@ export default class Deploy extends Command {
         enabled: () => dp.variables.length > 0,
       },
       {
-        title: 'Determine deployment mode',
+        title: 'Analyzing project structure',
         task: (ctx, task) => dp.modeSelect(task),
       },
     ])
