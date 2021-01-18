@@ -178,8 +178,6 @@ export default class Deploy extends Command {
       },
     ])
 
-
-
     await initial.run().catch(() => false)
     if (dp.structure === 'ssr') {
       await ssr.run().catch(() => false)

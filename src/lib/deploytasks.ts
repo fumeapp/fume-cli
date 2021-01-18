@@ -65,17 +65,17 @@ export default class DeployTasks {
       code: await this.getSize('.nuxt', ''),
       static: await this.getSize(this.staticDir, ''),
       dist: 0,
-      // code: await this.getSize('./', '^(node_modules|vendor|.git)\\/'),
     }
     /*
     * TODO: determine mode based on max package size of 262144000
     */
     this.mode = Mode.layer
 
-    const deps = numeral(this.size.deps).format('0.00b')
-    const code = numeral(this.size.code).format('0.00b')
-    const stat = numeral(this.size.static).format('0.00b')
-    task.title = `Deps: ${chalk.bold(deps)} Code: ${chalk.bold(code)} Static: ${chalk.bold(stat)} Mode: ${chalk.bold(this.mode)}`
+    const deps = numeral(this.size.deps).format('0.0b')
+    const code = numeral(this.size.code).format('0.0b')
+    const stat = numeral(this.size.static).format('0.0b')
+    const all = numeral(this.size.deps + this.size.code + this.size.static).format('0.0b')
+    task.title = `Deps: ${chalk.bold(deps)} Code: ${chalk.bold(code)} Assets: ${chalk.bold(stat)} Total: ${chalk.bold(all)}`
   }
 
   async loadConfig() {
