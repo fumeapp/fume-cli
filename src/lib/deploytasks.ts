@@ -1,15 +1,15 @@
 import Deployment from './deployment'
 import chalk from 'chalk'
 import {Observable} from 'rxjs'
-import {FumeEnvironment, PackageType, Variable, YamlConfig, Size, Mode} from './types'
+import {FumeEnvironment, Mode, PackageType, Size, Variable, YamlConfig} from './types'
 import {Listr} from 'listr2'
 import S3 from 'aws-sdk/clients/s3'
 import fs from 'fs'
-import fse = require('fs-extra')
-import yml = require('js-yaml')
 import execa from 'execa'
 import archiver from 'archiver'
 import numeral from 'numeral'
+import fse = require('fs-extra');
+import yml = require('js-yaml');
 
 const md5file = require('md5-file')
 const getFolderSize  = require('get-folder-size')
@@ -31,6 +31,8 @@ export default class DeployTasks {
   public variables!: Array<Variable>
 
   public deployment!: Deployment
+
+  public firstDeploy!: boolean
 
   public name!: string
 
@@ -84,6 +86,8 @@ export default class DeployTasks {
 
   async choose(ctx: any, task: any) {
     this.deployment = new Deployment(this.fumeConfig, this.env)
+    this.firstDeploy = this.deployment.entry.firstDeploy
+
     let environments
     try {
       environments = await this.deployment.environments()
@@ -303,12 +307,10 @@ export default class DeployTasks {
         throw error
       })
 
-      /**
-       * TODO: change this to percentages, we have our sizes now as this.size
-       */
+      const size = type === PackageType.layer ? this.size.deps : this.size.code
       archive.on('progress', progress => {
-        if (numeral(progress.fs.totalBytes).format('0').toString()[1] === '0')
-          observer.next(`Compressing ${numeral(progress.fs.totalBytes).format('0.0 b')}`)
+        const complete = progress.fs.totalBytes / size
+        observer.next(`Compressing ${numeral(complete).format('0%')}`)
       })
 
       archive.pipe(output)
@@ -333,7 +335,7 @@ export default class DeployTasks {
           Body: fs.createReadStream(this.deployment.s3.paths[type]),
         },
       }).on('httpUploadProgress', event => {
-        observer.next(`${(event.loaded * 100 / event.total).toFixed(2)}%`)
+        observer.next(`${numeral((event.loaded  / event.total)).format('0%')}`)
       }).send((error: Error) => {
         if (error) throw error
         observer.complete()

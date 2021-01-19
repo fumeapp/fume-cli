@@ -95,11 +95,29 @@ export default class Deploy extends Command {
         enabled: () => dp.variables.length > 0,
       },
       {
-        title: 'Analyzing project structure',
+        title: 'Analyze project structure',
         task: (ctx, task) => dp.modeSelect(task),
+      },
+      {
+        title: 'Send dependencies package',
+        task: () => dp.package(PackageType.layer),
+        enabled: () => dp.refresh_deps,
+      },
+      {
+        title: 'Send source package',
+        task: () => dp.package(PackageType.code),
+      },
+      {
+        title: 'Create or update function',
+        task: (ctx, task) => dp.deploy('DEPLOY_FUNCTION', task),
+      },
+      {
+        title: 'Cleanup deployment',
+        task: () => dp.cleanup(),
       },
     ])
 
+    /*
     const ssrLayer = new Listr([
       {
         title: 'Send dependencies',
@@ -144,6 +162,7 @@ export default class Deploy extends Command {
         task: () => dp.cleanup(),
       },
     ])
+    */
 
     const headless = new Listr([
       {
@@ -179,14 +198,16 @@ export default class Deploy extends Command {
     ])
 
     await initial.run().catch(() => false)
-    if (dp.structure === 'ssr') {
-      await ssr.run().catch(() => false)
-      if (dp.mode === Mode.layer)
-        ssrLayer.run().catch(() => false)
-      if (dp.mode === Mode.efs)
-        ssrEFS.run().catch(() => false)
-    }
-    if (dp.structure === 'headless') headless.run().catch(() => false)
+    if (dp.structure === 'ssr') await ssr.run().catch(() => false)
+    /*
+    if (dp.mode === Mode.layer)
+      ssrLayer.run().catch(() => false)
+    if (dp.mode === Mode.efs)
+      ssrEFS.run().catch(() => false)
+    */
+    if (dp.structure === 'headless') await headless.run().catch(() => false)
+    if (dp.firstDeploy)
+      this.warn('First deployments take time to propagate')
 
     onDeath(dp.cleanup)
   }

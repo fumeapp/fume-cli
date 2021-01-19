@@ -95,6 +95,7 @@ export interface Entry {
   status: string;
   id: number;
   team_id: number;
+  firstDeploy: boolean;
   project: Project;
   env: Env;
 }
