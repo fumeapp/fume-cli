@@ -86,8 +86,6 @@ export default class DeployTasks {
 
   async choose(ctx: any, task: any) {
     this.deployment = new Deployment(this.fumeConfig, this.env)
-    this.firstDeploy = this.deployment.entry.firstDeploy
-
     let environments
     try {
       environments = await this.deployment.environments()
@@ -119,8 +117,7 @@ export default class DeployTasks {
   }
 
   async create(ctx: any, task: any) {
-    if (!this.deployment)
-      this.deployment = new Deployment(this.fumeConfig, this.env)
+    if (!this.deployment) this.deployment = new Deployment(this.fumeConfig, this.env)
     try {
       await this.deployment.initialize(this.environment)
     } catch (error) {
@@ -131,6 +128,7 @@ export default class DeployTasks {
         throw new Error(error)
       }
     }
+    this.firstDeploy = this.deployment.entry.firstDeploy
     this.structure = this.deployment.entry.project.structure
     this.variables = this.deployment.entry.env.variables
     if (this.structure === 'headless') this.mode = Mode.headless

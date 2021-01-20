@@ -206,8 +206,7 @@ export default class Deploy extends Command {
       ssrEFS.run().catch(() => false)
     */
     if (dp.structure === 'headless') await headless.run().catch(() => false)
-    if (dp.firstDeploy)
-      this.warn('First deployments take time to propagate')
+    if (dp.firstDeploy) this.warn('First deployments take time to propagate')
 
     onDeath(dp.cleanup)
   }
