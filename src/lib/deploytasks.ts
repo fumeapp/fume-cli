@@ -50,6 +50,8 @@ export default class DeployTasks {
 
   public staticDir = 'static/'
 
+  public packager = 'yarn'
+
   async checkConfig() {
     try {
       this.fumeConfig = yml.load(fs.readFileSync('fume.yml').toString())
@@ -143,18 +145,32 @@ export default class DeployTasks {
   }
 
   lock() {
-    const locks = ['yarn.lock', 'package-lock.json']
-    for (const lock of locks) if (fs.existsSync(lock)) return md5file.sync(lock)
+    if (fs.existsSync('yarn.lock')) {
+      this.packager = 'yarn'
+      return md5file.sync('yarn.lock')
+    }
+    if (fs.existsSync('package-lock.json')) {
+      this.packager = 'npm'
+      return md5file.sync('package-lock.json')
+    }
+    throw new Error('No lock file found, could not determine packager')
   }
 
-  async yarn(args: Array<string>) {
-    if (args.length > 0)
+  async yarn(type: string) {
+    if (type === 'production')
       await this.deployment.update('YARN_PROD')
     else
       await this.deployment.update('YARN_ALL')
     return new Observable(observer => {
-      observer.next('Running yarn')
-      execa('yarn', args)
+      observer.next(`Running ${this.packager}`)
+      let args: Array<string> = []
+      if (this.packager === 'npm') {
+        if (type === 'production') args = ['install', '--only=prod']
+        else args = ['install']
+      } else if (this.packager === 'yarn') {
+        if (type === 'production') args = ['--prod']
+      }
+      execa(this.packager, args)
       .then(() => observer.complete()) // .stdout.pipe(process.stdout),
     })
   }
