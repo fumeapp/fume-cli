@@ -2,7 +2,7 @@ import Command from '../base'
 import AuthStatus from './auth/status'
 import {flags} from '@oclif/command'
 import {Listr} from 'listr2'
-import {Mode, PackageType} from '../lib/types'
+import {PackageType} from '../lib/types'
 import ConfigTasks from '../lib/configtasks'
 import {Auth} from '../lib/auth'
 import onDeath from 'death'
@@ -115,7 +115,7 @@ export default class Deploy extends Command {
         title: 'Cleanup deployment',
         task: () => dp.cleanup(),
       },
-    ])
+    ], {concurrent: false})
 
     /*
     const ssrLayer = new Listr([
@@ -195,17 +195,17 @@ export default class Deploy extends Command {
         title: 'Deploy package',
         task: (ctx, task) => dp.deploy('DEPLOY_S3', task),
       },
-    ])
+    ], {concurrent: false})
 
-    await initial.run().catch(() => false)
-    if (dp.structure === 'ssr') await ssr.run().catch(() => false)
+    await initial.run().catch(error => this.error(error))
+    if (dp.structure === 'ssr') await ssr.run().catch(error => this.error(error))
     /*
     if (dp.mode === Mode.layer)
       ssrLayer.run().catch(() => false)
     if (dp.mode === Mode.efs)
       ssrEFS.run().catch(() => false)
     */
-    if (dp.structure === 'headless') await headless.run().catch(() => false)
+    if (dp.structure === 'headless') await headless.run().catch(error => this.error(error))
     if (dp.firstDeploy) this.warn('First deployments take time to propagate')
 
     onDeath(dp.cleanup)

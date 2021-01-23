@@ -263,11 +263,11 @@ export default class DeployTasks {
     return new Listr([
       {
         title: `Archiving ${type} package`,
-        task: () =>  this.archive(type),
+        task: () => this.archive(type),
       },
       {
         title: `Uploading ${type} package`,
-        task: () =>  this.upload(type),
+        task: () => this.upload(type),
       },
     ])
   }
@@ -301,8 +301,12 @@ export default class DeployTasks {
       archive.on('warning', error => {
         throw error
       })
-      archive.on('error', error => {
-        throw error
+      archive.on('error', async error => {
+        await this.deployment.fail({
+          message: error.message,
+          detail: error,
+        })
+        observer.error(error.message)
       })
 
       const size = type === PackageType.layer ? this.size.deps : this.size.code
@@ -334,9 +338,14 @@ export default class DeployTasks {
         },
       }).on('httpUploadProgress', event => {
         observer.next(`${numeral((event.loaded  / event.total)).format('0%')}`)
-      }).send((error: Error) => {
-        if (error) throw error
-        observer.complete()
+      }).send(async (error: any) =>  {
+        if (error) {
+          await this.deployment.fail({
+            message: error.message,
+            detail: error,
+          })
+          observer.error(error.message)
+        } else observer.complete()
       })
     })
   }
@@ -382,9 +391,17 @@ export default class DeployTasks {
         task.title = 'Deployment Successful: ' + chalk.bold(response.data.data.data)
         observer.complete()
       })
-      .catch(error => {
-        if (error.response.data.errors) throw new Error(error.response.data.errors[0].detail)
-        if (error.response.data) throw new Error(JSON.stringify(error.response.data))
+      .catch(async error => {
+        if (error.response.data.errors) {
+          observer.error(error.response.data.errors[0].message)
+        }
+        if (error.message) {
+          await this.deployment.fail({
+            message: error.message,
+            detail: error,
+          })
+          observer.error(error.message)
+        } else if (error.response.data) throw new Error(JSON.stringify(error.response.data))
         else throw error
       })
     })
