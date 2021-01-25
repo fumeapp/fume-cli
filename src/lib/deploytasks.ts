@@ -122,6 +122,7 @@ export default class DeployTasks {
     if (!this.deployment) this.deployment = new Deployment(this.fumeConfig, this.env)
     try {
       await this.deployment.initialize(this.environment)
+      task.title = `Initiated for ${chalk.bold(this.deployment.entry.project.name)} (${chalk.bold(this.deployment.entry.env.name)})`
     } catch (error) {
       if (error.response && error.response.data.errors[0] && error.response.data.errors[0].detail) {
         task.title = error.response.data.errors[0].detail
@@ -162,7 +163,10 @@ export default class DeployTasks {
     else
       await this.deployment.update('YARN_ALL')
     return new Observable(observer => {
-      observer.next(`Running ${this.packager}`)
+      if (this.packager === 'npm' && type === 'production') {
+        observer.next('Pruning node_modules/')
+        fse.emptyDirSync('./node_modules')
+      }
       let args: Array<string> = []
       if (this.packager === 'npm') {
         if (type === 'production') args = ['install', '--only=prod']
@@ -170,6 +174,7 @@ export default class DeployTasks {
       } else if (this.packager === 'yarn') {
         if (type === 'production') args = ['--prod']
       }
+      observer.next(`Running ${chalk.bold(this.packager)}`)
       execa(this.packager, args)
       .then(() => observer.complete()) // .stdout.pipe(process.stdout),
     })
