@@ -233,6 +233,14 @@ export default class DeployTasks {
       const config = fs.readFileSync('nuxt.config.js', 'utf8')
 
       observer.next('Checking Syntax')
+      if (config.trim().startsWith('import')) {
+        this.deployment.fail({
+          message: 'import detected inside nuxt.config.js - Fume does not yet support this but will soon',
+          detail: config,
+        })
+        this.cleanup()
+        throw new Error('"import" detected inside nuxt.config.js - Fume does not yet support this but will soon')
+      }
       if (config.includes('export default {')) {
         observer.next('ES6 detected, converting to CommonJS')
         fs.copyFileSync('nuxt.config.js', '.nuxt.config.fume')
