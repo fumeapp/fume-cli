@@ -175,8 +175,16 @@ export default class DeployTasks {
         if (type === 'production') args = ['--prod']
       }
       observer.next(`Running ${chalk.bold(this.packager)}`)
-      execa(this.packager, args)
-      .then(() => observer.complete()) // .stdout.pipe(process.stdout),
+      try {
+        execa.sync(this.packager, args)
+      } catch (error) {
+        this.cleanup()
+        this.deployment.fail({
+          message: error.message,
+          detail: error,
+        })
+      }
+      observer.complete()
     })
   }
 
@@ -236,17 +244,27 @@ export default class DeployTasks {
       if (config.includes('export default {')) {
         observer.next('ES6 detected, converting to CommonJS')
         fs.copyFileSync('nuxt.config.js', '.nuxt.config.fume')
+        /*
         fs.writeFileSync(
           'nuxt.config.js',
           config.replace('export default {', 'module.exports = {'),
           'utf8')
+        */
+        const output = require('@babel/core').transform(fs.readFileSync('nuxt.config.js'), {
+          plugins: [
+            ['@babel/plugin-transform-modules-commonjs', {lazy: true}],
+          ],
+        })
+        fs.writeFileSync('nuxt.config.js', output.code, 'utf8')
         task.title = 'Check config syntax: converted'
       } else {
         observer.next('CommonJS detected, no change needed')
       }
+      /*
       this.nuxtConfig = require(`${process.cwd()}/nuxt.config.js`)
       if (this.nuxtConfig.srcDir)
         this.staticDir = `${this.nuxtConfig.srcDir}static/`
+      */
       observer.complete()
     })
   }
