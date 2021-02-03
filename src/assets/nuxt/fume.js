@@ -12,6 +12,7 @@ const binaryMimeTypes = [
     'font/woff2',
     'image/jpeg',
     'image/png',
+    'image/gif',
     'image/svg+xml',
     'text/comma-separated-values',
     'text/css',
