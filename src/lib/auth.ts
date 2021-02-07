@@ -111,6 +111,10 @@ export class Auth {
     return `${env.web}/project/create`
   }
 
+  static async billingUrl(env: FumeEnvironment) {
+    return `${env.web}/billing`
+  }
+
   static remove() {
     const file = `${os.homedir()}/.config/fume/auth.yml`
     if (fs.existsSync(file)) fse.unlinkSync(file)

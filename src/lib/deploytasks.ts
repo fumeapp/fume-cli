@@ -8,6 +8,7 @@ import fs from 'fs'
 import execa from 'execa'
 import archiver from 'archiver'
 import numeral from 'numeral'
+import {cli} from 'cli-ux'
 import fse = require('fs-extra');
 import yml = require('js-yaml');
 
@@ -86,6 +87,17 @@ export default class DeployTasks {
     this.fumeConfig = yml.load(fs.readFileSync('fume.yml').toString())
   }
 
+  async billing(ctx: any, task: any) {
+    task.title = 'This action requires an active subscription from a team member'
+    ctx.input = await task.prompt({
+      type: 'Toggle',
+      message: 'Visit your billing section?',
+      initial: 'yes',
+    })
+    if (ctx.input) await cli.open(`${this.env.web}/billing`)
+    throw new Error(`Visit ${this.env.web}https://fume.app/billing and choose a plan that fits.`)
+  }
+
   async choose(ctx: any, task: any) {
     this.deployment = new Deployment(this.fumeConfig, this.env)
     let environments
@@ -124,6 +136,10 @@ export default class DeployTasks {
       await this.deployment.initialize(this.environment)
       task.title = `Initiated for ${chalk.bold(this.deployment.entry.project.name)} (${chalk.bold(this.deployment.entry.env.name)})`
     } catch (error) {
+      if (error.response.status === 402)
+        return this.billing(ctx, task)
+      if (error.response.data.message)
+        throw new Error(error.response.data.message)
       if (error.response && error.response.data.errors[0] && error.response.data.errors[0].detail) {
         task.title = error.response.data.errors[0].detail
         throw new Error(error.response.data.errors[0].detail)
