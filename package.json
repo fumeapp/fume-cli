@@ -1,10 +1,10 @@
 {
   "name": "fume-cli",
   "description": "fume command line interface",
-  "version": "0.0.55",
+  "version": "0.0.56",
   "author": "acidjazz @acidjazz",
   "bin": {
-    "fume": "./bin/run"
+    "fume": "bin/run"
   },
   "bugs": "https://github.com/fumeapp/fume-cli/issues",
   "dependencies": {
