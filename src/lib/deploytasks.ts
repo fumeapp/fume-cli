@@ -105,7 +105,7 @@ export default class DeployTasks {
       environments = await this.deployment.environments()
       task.title = `Choose an environment to deploy (${environments[0].project.name})`
     } catch (error) {
-      if (error.response.status === 404)
+      if (error.response && error.response.status === 404)
         throw new Error('Invalid fume configuration')
       if (error.response && error.response.data) {
         if (error.response.data.message) {
@@ -136,9 +136,9 @@ export default class DeployTasks {
       await this.deployment.initialize(this.environment)
       task.title = `Initiated for ${chalk.bold(this.deployment.entry.project.name)} (${chalk.bold(this.deployment.entry.env.name)})`
     } catch (error) {
-      if (error.response.status === 402)
+      if (error.response && error.response.status === 402)
         return this.billing(ctx, task)
-      if (error.response.data.message)
+      if (error.response && error.response.data.message)
         throw new Error(error.response.data.message)
       if (error.response && error.response.data.errors[0] && error.response.data.errors[0].detail) {
         task.title = error.response.data.errors[0].detail
