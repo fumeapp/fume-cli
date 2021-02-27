@@ -355,9 +355,12 @@ export default class DeployTasks {
       })
 
       const size = type === PackageType.layer ? this.size.deps : this.size.code
+      let previous = '0%'
       archive.on('progress', progress => {
         const complete = progress.fs.totalBytes / size
-        observer.next(`Compressing ${numeral(complete).format('0%')}`)
+        const formatted = numeral(complete).format('0%')
+        if (formatted !== previous) observer.next(`Compressing ${formatted}`)
+        previous = formatted
       })
 
       archive.pipe(output)
