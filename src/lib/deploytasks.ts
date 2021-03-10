@@ -78,9 +78,17 @@ export default class DeployTasks {
     const format = '0.0b'
     this.mode = Mode.layer
 
-    if (this.size.deps > allowed) {
+    if (this.refresh_deps && this.size.deps > allowed) {
+      const error = `Dependencies greater than an allowed size of ${allowed} bytes (${numeral(allowed).format(format)}) - ${this.size.deps} (${numeral(this.size.deps).format(format)})`
+      this.deployment.fail({
+        message: error,
+        detail: [
+          `Current Payload size: ${this.size.deps} (${numeral(this.size.deps).format(format)})`,
+          `Difference: ${this.size.deps - allowed} (${numeral(this.size.deps - allowed).format(format)})`,
+        ],
+      })
       this.cleanup()
-      throw new Error(`Dependencies greater than an allowed size of ${allowed} bytes (${numeral(allowed).format(format)})`)
+      throw new Error(error)
     }
 
     const deps = numeral(this.size.deps).format('0.0b')
