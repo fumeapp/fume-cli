@@ -323,13 +323,19 @@ export default class DeployTasks {
     return new Listr([
       {
         title: `Archiving ${type} package`,
-        task: () => this.archive(type),
+        task: () => type === PackageType.layer ? this.sendDeps() : this.archive(type),
       },
       {
         title: `Uploading ${type} package`,
         task: () => this.upload(type),
       },
     ])
+  }
+
+  async sendDeps() {
+    for (const entry of fs.readdirSync('node_modules/')) {
+      console.log(entry)
+    }
   }
 
   async archive(type: PackageType) {
