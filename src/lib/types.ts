@@ -1,3 +1,9 @@
+export interface Module {
+  group: number;
+  entry: string;
+  size: number;
+}
+
 export interface FumeAuth {
   token: string;
 }
