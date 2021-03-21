@@ -78,10 +78,11 @@ export default class DeployTasks {
     /*
     * TODO: determine mode based on max package size of 262144000
     */
-    const allowed = 262144000
-    const format = '0.0b'
     this.mode = Mode.layer
 
+    /*
+    const allowed = 262144000
+    const format = '0.0b'
     if (this.refresh_deps && this.size.deps > allowed) {
       const error = `Dependencies greater than an allowed size of ${allowed} bytes (${numeral(allowed).format(format)}) - ${this.size.deps} (${numeral(this.size.deps).format(format)})`
       this.deployment.fail({
@@ -94,6 +95,7 @@ export default class DeployTasks {
       this.cleanup()
       throw new Error(error)
     }
+    */
 
     const deps = numeral(this.size.deps).format('0.0b')
     const code = numeral(this.size.code).format('0.0b')
