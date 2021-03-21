@@ -1,7 +1,7 @@
 import Deployment from './deployment'
 import chalk from 'chalk'
 import {Observable} from 'rxjs'
-import {FumeEnvironment, Mode, PackageType, Size, Variable, YamlConfig} from './types'
+import {FumeEnvironment, Mode, Module, PackageType, Size, Variable, YamlConfig} from './types'
 import {Listr} from 'listr2'
 import S3 from 'aws-sdk/clients/s3'
 import fs from 'fs'
@@ -52,6 +52,10 @@ export default class DeployTasks {
   public staticDir = 'static/'
 
   public packager = 'yarn'
+
+  public layerGroups = 1
+
+  public modulePath = 'node_modules/'
 
   async checkConfig() {
     try {
@@ -323,7 +327,7 @@ export default class DeployTasks {
     return new Listr([
       {
         title: `Archiving ${type} package`,
-        task: () => type === PackageType.layer ? this.sendDeps() : this.archive(type),
+        task: () => this.archive(type),
       },
       {
         title: `Uploading ${type} package`,
@@ -332,10 +336,81 @@ export default class DeployTasks {
     ])
   }
 
-  async sendDeps() {
-    for (const entry of fs.readdirSync('node_modules/')) {
-      console.log(entry)
+  async packageDependencies() {
+    const modules: Array<Module> = await this.groupLayers()
+    const listr = []
+
+    for (let cg = 1; cg <= this.layerGroups; cg++)
+      listr.push({
+        title: `Archiving layer ${cg}`,
+        task: () => this.archiveLayer(cg, modules.filter(m => m.group === cg)),
+      })
+    for (let cg = 1; cg <= this.layerGroups; cg++)
+      listr.push({
+        title: `Uploading layer ${cg}`,
+        task: () => this.upload(PackageType.layer, cg),
+      })
+    return new Listr(listr)
+  }
+
+  async groupLayers(): Promise<Array<Module>> {
+    const groupSize = 200000000
+    const modules: Array<Module> = []
+    let totalSize = 0
+
+    for (const entry of fs.readdirSync(this.modulePath, {withFileTypes: true})) {
+      if (totalSize >= groupSize) {
+        this.layerGroups++
+        totalSize = 0
+      }
+
+      // eslint-disable-next-line no-await-in-loop
+      const size = await this.getSize(`${this.modulePath}${entry.name}`, '')
+      if (entry.isDirectory())
+        modules.push({entry: entry.name, size, group: this.layerGroups})
+      totalSize += size
     }
+
+    return modules
+  }
+
+  async archiveLayer(group: number, modules: Array<Module>) {
+    const output = fs.createWriteStream(this.deployment.s3.paths.layer.replace('-layer.zip', `-layer-${group}.zip`))
+    const archive = archiver('zip', {zlib: {level: 9}})
+
+    return new Observable(observer => {
+      let size = 0
+      for (const module of modules.filter(m => m.group === group)) {
+        archive.directory(`${this.modulePath}${module.entry}`, `nodejs/${this.modulePath}${module.entry}`)
+        size += module.size
+      }
+
+      archive.on('warning', error => {
+        throw error
+      })
+      archive.on('error', async error => {
+        await this.deployment.fail({
+          message: error.message,
+          detail: error,
+        })
+        observer.error(error.message)
+      })
+
+      let previous = '0%'
+      archive.on('progress', progress => {
+        const complete = progress.fs.totalBytes / size
+        const formatted = numeral(complete).format('0%')
+        if (formatted !== previous) observer.next(`Compression progress: ${formatted}`)
+        previous = formatted
+      })
+
+      archive.pipe(output)
+
+      archive.finalize()
+      archive.on('finish', () => {
+        observer.complete()
+      })
+    })
   }
 
   async archive(type: PackageType) {
@@ -393,17 +468,18 @@ export default class DeployTasks {
     })
   }
 
-  async upload(type: PackageType) {
+  async upload(type: PackageType, group?: number) {
     if (type === PackageType.code) await this.deployment.update('UPLOAD_CODE_ZIP')
     const sts = await this.deployment.sts()
+    const path = type === PackageType.code ? this.deployment.s3.paths.code : this.deployment.s3.paths.layer.replace('-layer.zip', `-layer-${group}.zip`)
+    const file = type === PackageType.code ? this.deployment.s3.code : this.deployment.s3.layer.replace('-layer.zip', `-layer-${group}.zip`)
     return new Observable(observer => {
-      observer.next('Sending code..')
       new S3.ManagedUpload({
         service: new S3(sts),
         params: {
           Bucket: this.deployment.s3.bucket,
-          Key: type === PackageType.layer ? this.deployment.s3.layer : this.deployment.s3.code,
-          Body: fs.createReadStream(this.deployment.s3.paths[type]),
+          Key: file,
+          Body: fs.createReadStream(path),
         },
       }).on('httpUploadProgress', event => {
         observer.next(`${numeral((event.loaded  / event.total)).format('0%')}`)
@@ -455,7 +531,12 @@ export default class DeployTasks {
       const payload = {
         size: this.size,
       }
-      this.deployment.update(status, {hash: this.hash, mode: this.mode, payload})
+      this.deployment.update(status, {
+        hash: this.hash,
+        mode: this.mode,
+        payload,
+        layers: this.layerGroups,
+      })
       .then(response =>  {
         task.title = 'Deployment Successful: ' + chalk.bold(response.data.data.data)
         observer.complete()
@@ -485,7 +566,10 @@ export default class DeployTasks {
     }
     if (this && this.deployment.s3 && fs.existsSync(this.deployment.s3.paths.code))
       fs.unlinkSync(this.deployment.s3.paths.code)
-    if (this && this.deployment.s3 && fs.existsSync(this.deployment.s3.paths.layer))
-      fs.unlinkSync(this.deployment.s3.paths.layer)
+    if (this && this.deployment.s3)
+      for (let gc = 1; gc <= this.layerGroups; gc++) {
+        const layer = this.deployment.s3.paths.layer.replace('-layer.zip', `-layer-${gc}.zip`)
+        if (fs.existsSync(layer)) fs.unlinkSync(layer)
+      }
   }
 }
