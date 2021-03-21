@@ -99,8 +99,8 @@ export default class Deploy extends Command {
         task: (ctx, task) => dp.modeSelect(task),
       },
       {
-        title: 'Send dependency layers',
-        task: () => dp.packageDependencies(),
+        title: 'Send dependencies package',
+        task: () => dp.package(PackageType.layer),
         enabled: () => dp.refresh_deps,
       },
       {
