@@ -430,14 +430,6 @@ export default class DeployTasks {
         archive.directory(this.staticDir, this.staticDir)
         archive.file('nuxt.config.js', {name: 'nuxt.config.js'})
       }
-      /*
-      for (const entry of fs.readdirSync('.nuxt/', {withFileTypes: true})) {
-        if (entry.isDirectory()) {
-          if (entry.name !== 'node_modules' && entry.name !== '.git' && entry.name !== 'vendor')
-            archive.directory(entry.name, entry.name)
-        } else archive.file(entry.name, {name: entry.name})
-      }
-     */
 
       archive.on('warning', error => {
         throw error
