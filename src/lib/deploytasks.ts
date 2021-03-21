@@ -76,7 +76,6 @@ export default class DeployTasks {
     */
     this.mode = Mode.layer
 
-    /*
     const allowed = 262144000
     const format = '0.0b'
     if (this.refresh_deps && this.size.deps > allowed) {
@@ -91,7 +90,6 @@ export default class DeployTasks {
       this.cleanup()
       throw new Error(error)
     }
-    */
 
     const deps = numeral(this.size.deps).format('0.0b')
     const code = numeral(this.size.code).format('0.0b')
