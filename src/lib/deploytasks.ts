@@ -69,7 +69,6 @@ export default class DeployTasks {
       deps: await this.getSize('node_modules', ''),
       code: await this.getSize('.nuxt', ''),
       static: await this.getSize(this.staticDir, ''),
-      dist: 0,
     }
     /*
     * TODO: determine mode based on max package size of 262144000
@@ -78,7 +77,9 @@ export default class DeployTasks {
 
     const allowed = 262144000
     const format = '0.0b'
-    if (this.refresh_deps && this.size.deps > allowed) {
+    if (this.refresh_deps && this.size.deps > allowed)
+      this.mode = Mode.efs
+    /*
       const error = `Dependencies greater than an allowed size of ${allowed} bytes (${numeral(allowed).format(format)}) - ${this.size.deps} (${numeral(this.size.deps).format(format)})`
       this.deployment.fail({
         message: error,
@@ -89,13 +90,13 @@ export default class DeployTasks {
       })
       this.cleanup()
       throw new Error(error)
-    }
+   */
 
-    const deps = numeral(this.size.deps).format('0.0b')
-    const code = numeral(this.size.code).format('0.0b')
-    const stat = numeral(this.size.static).format('0.0b')
-    const all = numeral(this.size.deps + this.size.code + this.size.static).format('0.0b')
-    task.title = `Deps: ${chalk.bold(deps)} Code: ${chalk.bold(code)} Assets: ${chalk.bold(stat)} Total: ${chalk.bold(all)}`
+    const deps = numeral(this.size.deps).format(format)
+    const code = numeral(this.size.code).format(format)
+    const stat = numeral(this.size.static).format(format)
+    const all = numeral(this.size.deps + this.size.code + this.size.static).format(format)
+    task.title = `Deps: ${chalk.bold(deps)} Code: ${chalk.bold(code)} Assets: ${chalk.bold(stat)} Total: ${chalk.bold(all)} Mode: ${chalk(this.mode)}`
   }
 
   async loadConfig() {
@@ -416,15 +417,10 @@ export default class DeployTasks {
   async sync(folder: string, bucket: string, status: string, prefix: string) {
     await this.deployment.update(status)
     const sts = await this.deployment.sts()
-    this.size = {
-      deps: 0,
-      code: 0,
-      static: 0,
-      dist: await this.getSize('dist', ''),
-    }
+
     return new Observable(observer => {
       observer.next('Comparing remote dependencies..')
-      const client = require(`${__dirname}/../../src/lib/s3`).createClient({s3Client: new S3(sts)})
+      const client = require('@auth0/s3').createClient({s3Client: new S3(sts)})
       const uploader = client.uploadDir({
         localDir: folder,
         deleteRemoved: true,
@@ -435,10 +431,12 @@ export default class DeployTasks {
         },
       })
       uploader.on('progress', () => {
-        if (!isNaN(uploader.progressAmount / uploader.progressTotal))
-          observer.next(`${(uploader.progressAmount / uploader.progressTotal * 100).toFixed(2)}% complete`)
+        if (!isNaN(uploader.progressAmount / uploader.progressTotal)) {
+          const formatted = numeral(uploader.progressAmount / uploader.progressTotal).format('0.00%')
+          observer.next(`${formatted} complete`)
+          if (formatted === '100.00') observer.complete()
+        }
       })
-
       uploader.on('end', () => observer.complete())
     })
   }

@@ -59,7 +59,6 @@ export interface Size {
   deps: number;
   code: number;
   static: number;
-  dist: number;
 }
 
 export interface Project {

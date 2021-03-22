@@ -8,6 +8,7 @@
   },
   "bugs": "https://github.com/fumeapp/fume-cli/issues",
   "dependencies": {
+    "@auth0/s3": "^1.0.0",
     "@oclif/command": "^1.8.0",
     "@oclif/config": "^1",
     "@oclif/plugin-help": "^3",

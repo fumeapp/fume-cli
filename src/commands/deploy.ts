@@ -2,7 +2,7 @@ import Command from '../base'
 import AuthStatus from './auth/status'
 import {flags} from '@oclif/command'
 import {Listr} from 'listr2'
-import {PackageType} from '../lib/types'
+import {Mode, PackageType} from '../lib/types'
 import ConfigTasks from '../lib/configtasks'
 import {Auth} from '../lib/auth'
 import onDeath from 'death'
@@ -98,26 +98,8 @@ export default class Deploy extends Command {
         title: 'Analyze project structure',
         task: (ctx, task) => dp.modeSelect(task),
       },
-      {
-        title: 'Send dependencies package',
-        task: () => dp.package(PackageType.layer),
-        enabled: () => dp.refresh_deps,
-      },
-      {
-        title: 'Send source package',
-        task: () => dp.package(PackageType.code),
-      },
-      {
-        title: 'Create or update function',
-        task: (ctx, task) => dp.deploy('DEPLOY_FUNCTION', task),
-      },
-      {
-        title: 'Cleanup deployment',
-        task: () => dp.cleanup(),
-      },
     ], {concurrent: false})
 
-    /*
     const ssrLayer = new Listr([
       {
         title: 'Send dependencies',
@@ -154,7 +136,7 @@ export default class Deploy extends Command {
         task: () => dp.package(PackageType.code),
       },
       {
-        title: 'Deploy package(s)',
+        title: 'Deploy to function',
         task: (ctx, task) => dp.deploy('DEPLOY_FUNCTION', task),
       },
       {
@@ -162,7 +144,6 @@ export default class Deploy extends Command {
         task: () => dp.cleanup(),
       },
     ])
-    */
 
     const headless = new Listr([
       {
@@ -199,12 +180,8 @@ export default class Deploy extends Command {
 
     await initial.run().catch(error => this.error(error))
     if (dp.structure === 'ssr') await ssr.run().catch(error => this.error(error))
-    /*
-    if (dp.mode === Mode.layer)
-      ssrLayer.run().catch(() => false)
-    if (dp.mode === Mode.efs)
-      ssrEFS.run().catch(() => false)
-    */
+    if (dp.mode === Mode.layer) ssrLayer.run().catch(() => false)
+    if (dp.mode === Mode.efs) ssrEFS.run().catch(() => false)
     if (dp.structure === 'headless') await headless.run().catch(error => this.error(error))
     if (dp.firstDeploy) this.warn('First deployments take time to propagate')
 
