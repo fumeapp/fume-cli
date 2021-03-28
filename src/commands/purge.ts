@@ -19,7 +19,7 @@ export default class Purge extends Command {
     const {args: {environment}} = this.parse(Purge)
 
     if (!fs.existsSync('fume.yml'))
-      cli.error('No fume configuration (fume.yml) found, please run fume init')
+      cli.error('No fume configuration (fume.yml) found, please run fume config')
 
     const yaml = yml.load(fs.readFileSync('fume.yml').toString())
 
