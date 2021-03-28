@@ -23,7 +23,7 @@ export default class Purge extends Command {
 
     const yaml = yml.load(fs.readFileSync('fume.yml').toString())
 
-    if (!Object.keys(yaml.environments).includes(environment)) {
+    if (!yaml.environments || !Object.keys(yaml.environments).includes(environment)) {
       cli.error(`Environment: ${environment} not found in configuration (fume.yml)`)
     }
     const tasks = new Listr([
