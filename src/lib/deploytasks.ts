@@ -78,7 +78,7 @@ export default class DeployTasks {
     const allowed = 262144000
     const format = '0.0b'
     if (this.refresh_deps && this.size.deps > allowed)
-      this.mode = Mode.efs
+      this.mode = Mode.docker
     /*
       const error = `Dependencies greater than an allowed size of ${allowed} bytes (${numeral(allowed).format(format)}) - ${this.size.deps} (${numeral(this.size.deps).format(format)})`
       this.deployment.fail({

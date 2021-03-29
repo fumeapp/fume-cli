@@ -120,6 +120,27 @@ export default class Deploy extends Command {
       },
     ])
 
+    const ssrDocker = new Listr([
+      {
+        title: 'Send dependencies',
+        task: () => dp.package(PackageType.layer),
+        enabled: () => dp.refresh_deps,
+      },
+      {
+        title: 'Send source code',
+        task: () => dp.package(PackageType.code),
+      },
+      {
+        title: 'Deploy to function',
+        task: (ctx, task) => dp.deploy('DEPLOY_FUNCTION', task),
+      },
+      {
+        title: 'Cleanup deployment',
+        task: () => dp.cleanup(),
+      },
+    ])
+
+
     const ssrEFS = new Listr([
       {
         title: 'Sync dependencies',

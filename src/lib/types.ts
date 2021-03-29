@@ -53,6 +53,7 @@ export enum Mode {
   layer = 'layer',
   efs = 'efs',
   headless = 'headless',
+  docker = 'docker',
 }
 
 export interface Size {
