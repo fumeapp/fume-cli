@@ -71,10 +71,12 @@ export default class Deploy extends Command {
         title: 'Install all dependencies',
         task: () => dp.yarn('all'),
       },
+      /*
       {
         title: 'Check config syntax',
         task: (ctx, task) => dp.verify(task),
       },
+      */
       {
         title: 'Prepare environment variables',
         task: () => dp.envPrepare(),
