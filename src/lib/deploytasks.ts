@@ -73,7 +73,7 @@ export default class DeployTasks {
     /*
     * TODO: determine mode based on max package size of 262144000
     */
-    this.mode = Mode.layer
+    this.mode = Mode.docker
 
     const allowed = 262144000
     const format = '0.0b'
@@ -96,7 +96,7 @@ export default class DeployTasks {
     const code = numeral(this.size.code).format(format)
     const stat = numeral(this.size.static).format(format)
     const all = numeral(this.size.deps + this.size.code + this.size.static).format(format)
-    task.title = `Deps: ${chalk.bold(deps)} Code: ${chalk.bold(code)} Assets: ${chalk.bold(stat)} Total: ${chalk.bold(all)} Mode: ${chalk(this.mode)}`
+    task.title = `Deps: ${chalk.bold(deps)} Code: ${chalk.bold(code)} Assets: ${chalk.bold(stat)} Total: ${chalk.bold(all)} Mode: ${chalk.bold(this.mode)}`
   }
 
   async loadConfig() {
@@ -439,6 +439,10 @@ export default class DeployTasks {
       })
       uploader.on('end', () => observer.complete())
     })
+  }
+
+  async docker() {
+    await this.deployment.update('DOCKER_BUILD')
   }
 
   async deploy(status: string, task: any) {

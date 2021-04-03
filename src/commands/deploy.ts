@@ -122,7 +122,7 @@ export default class Deploy extends Command {
       },
     ])
 
-    const ssrDocker = new Listr([
+    const docker = new Listr([
       {
         title: 'Send dependencies',
         task: () => dp.package(PackageType.layer),
@@ -131,6 +131,10 @@ export default class Deploy extends Command {
       {
         title: 'Send source code',
         task: () => dp.package(PackageType.code),
+      },
+      {
+        title: 'Build Docker image',
+        task: () => dp.docker(),
       },
       {
         title: 'Deploy to function',
@@ -205,6 +209,7 @@ export default class Deploy extends Command {
     if (dp.structure === 'ssr') await ssr.run().catch(error => this.error(error))
     if (dp.mode === Mode.layer) ssrLayer.run().catch(() => false)
     if (dp.mode === Mode.efs) ssrEFS.run().catch(() => false)
+    if (dp.mode === Mode.docker) docker.run().catch(() => false)
     if (dp.structure === 'headless') await headless.run().catch(error => this.error(error))
     if (dp.firstDeploy) this.warn('First deployments take time to propagate')
 
