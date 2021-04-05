@@ -133,8 +133,8 @@ export default class Deploy extends Command {
         task: () => dp.package(PackageType.code),
       },
       {
-        title: 'Build Docker image',
-        task: () => dp.docker(),
+        title: 'Build Container image',
+        task: () => dp.container(),
       },
       {
         title: 'Deploy to function',
@@ -145,7 +145,6 @@ export default class Deploy extends Command {
         task: () => dp.cleanup(),
       },
     ])
-
 
     const ssrEFS = new Listr([
       {

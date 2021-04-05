@@ -42,6 +42,10 @@ export default class Deployment {
     return this.entry
   }
 
+  async get() {
+    return this.auth.axios.get(`/project/${this.config.id}/dep/${this.entry.id}`)
+  }
+
   async update(status: string, optionalParams?: object|null) {
     let params = {
       status: status,

@@ -82,7 +82,7 @@ export default class DeployTasks {
     /*
       const error = `Dependencies greater than an allowed size of ${allowed} bytes (${numeral(allowed).format(format)}) - ${this.size.deps} (${numeral(this.size.deps).format(format)})`
       this.deployment.fail({
-        message: error,
+        message: error,images
         detail: [
           `Current Payload size: ${this.size.deps} (${numeral(this.size.deps).format(format)})`,
           `Difference: ${this.size.deps - allowed} (${numeral(this.size.deps - allowed).format(format)})`,
@@ -338,7 +338,8 @@ export default class DeployTasks {
     if (type === PackageType.code) await this.deployment.update('MAKE_CODE_ZIP')
     const output = fs.createWriteStream(this.deployment.s3.paths[type])
     return new Observable(observer => {
-      this.assets()
+      // assets moved to bob
+      // this.assets()
 
       const archive = archiver('zip', {zlib: {level: 9}})
 
@@ -441,8 +442,24 @@ export default class DeployTasks {
     })
   }
 
-  async docker() {
-    await this.deployment.update('DOCKER_BUILD')
+  async container() {
+    await this.deployment.update('CONTAINER_BUILD')
+    let attempts = 30
+    const delay = 5
+    while (attempts !== 0) {
+      attempts--
+      // eslint-disable-next-line no-await-in-loop
+      const result = await this.deployment.get()
+      if (result.data && result.data.data && result.data.data.digest !== null)
+        return true
+      // eslint-disable-next-line no-await-in-loop
+      await this.sleep(delay * 1000)
+    }
+    throw new Error('Timed out waiting for container digest')
+  }
+
+  sleep(milliseconds: number) {
+    return new Promise(resolve => setTimeout(resolve, milliseconds))
   }
 
   async deploy(status: string, task: any) {
