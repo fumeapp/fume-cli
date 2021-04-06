@@ -2,7 +2,7 @@ import Deployment from './deployment'
 import chalk from 'chalk'
 import {Observable} from 'rxjs'
 import {FumeEnvironment, Mode, PackageType, Size, Variable, YamlConfig} from './types'
-import {Listr} from 'listr2'
+import { Listr, ListrTaskWrapper } from 'listr2'
 import S3 from 'aws-sdk/clients/s3'
 import fs from 'fs'
 import execa from 'execa'
@@ -73,12 +73,12 @@ export default class DeployTasks {
     /*
     * TODO: determine mode based on max package size of 262144000
     */
-    this.mode = Mode.docker
+    this.mode = Mode.image
 
     const allowed = 262144000
     const format = '0.0b'
     if (this.refresh_deps && this.size.deps > allowed)
-      this.mode = Mode.docker
+      this.mode = Mode.image
     /*
       const error = `Dependencies greater than an allowed size of ${allowed} bytes (${numeral(allowed).format(format)}) - ${this.size.deps} (${numeral(this.size.deps).format(format)})`
       this.deployment.fail({
@@ -442,20 +442,21 @@ export default class DeployTasks {
     })
   }
 
-  async container() {
-    await this.deployment.update('CONTAINER_BUILD')
-    let attempts = 30
+  async image(task: ListrTaskWrapper<any, any>) {
+    await this.deployment.update('IMAGE_BUILD')
+    let attempts = 60
     const delay = 5
     while (attempts !== 0) {
-      attempts--
       // eslint-disable-next-line no-await-in-loop
       const result = await this.deployment.get()
       if (result.data && result.data.data && result.data.data.digest !== null)
         return true
+      task.title = `Build container image (${attempts}:${delay})`
       // eslint-disable-next-line no-await-in-loop
       await this.sleep(delay * 1000)
+      attempts--
     }
-    throw new Error('Timed out waiting for container digest')
+    throw new Error('Timed out waiting for image digest')
   }
 
   sleep(milliseconds: number) {
