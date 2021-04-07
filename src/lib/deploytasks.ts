@@ -111,7 +111,7 @@ export default class DeployTasks {
       initial: 'yes',
     })
     if (ctx.input) await cli.open(`${this.env.web}/billing`)
-    throw new Error(`Visit ${this.env.web}https://fume.app/billing and choose a plan that fits.`)
+    throw new Error(`Visit ${this.env.web}/billing and choose a plan that fits.`)
   }
 
   async choose(ctx: any, task: any) {
@@ -344,7 +344,7 @@ export default class DeployTasks {
       const archive = archiver('zip', {zlib: {level: 9}})
 
       if (type === PackageType.layer)
-        archive.directory('node_modules', 'nodejs/node_modules')
+        archive.directory('node_modules', 'node_modules')
       if (type === PackageType.code) {
         archive.directory('.nuxt', '.nuxt')
         archive.directory('.fume', '.fume')
@@ -449,6 +449,8 @@ export default class DeployTasks {
     while (attempts !== 0) {
       // eslint-disable-next-line no-await-in-loop
       const result = await this.deployment.get()
+      if (result.data && result.data.data && result.data.data.status === 'FAILURE')
+        throw new Error(`Error building image - check details at ${this.env.web}${this.deployment.entry.dep_url}`)
       if (result.data && result.data.data && result.data.data.digest !== null)
         return true
       task.title = `Build container image (${attempts}:${delay})`
