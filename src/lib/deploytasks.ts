@@ -57,11 +57,11 @@ export default class DeployTasks {
   async checkConfig() {
     try {
       this.fumeConfig = yml.load(fs.readFileSync('fume.yml').toString())
-      if (this.fumeConfig.srcDir)
-        if (this.fumeConfig.srcDir[this.fumeConfig.srcDir.length - 1] === '/')
-          this.staticDir = `${this.fumeConfig.srcDir}static`
+      if (this.fumeConfig.nuxt && this.fumeConfig.nuxt.srcDir)
+        if (this.fumeConfig.nuxt.srcDir[this.fumeConfig.nuxt.srcDir.length - 1] === '/')
+          this.staticDir = `${this.fumeConfig.nuxt.srcDir}static`
         else
-          this.staticDir = `${this.fumeConfig.srcDir}/static`
+          this.staticDir = `${this.fumeConfig.nuxt.srcDir}/static`
     } catch (error) {
       if (error.code === 'ENOENT')
         this.noConfig = true

@@ -10,12 +10,10 @@ export interface FumeEnvironment {
 
 export interface YamlConfig {
   id: number;
-  srcDir: string | undefined;
-  /*
-  team_id: number;
-  name: string;
-  environments: Partial<Record<'staging' | 'production', Environment>>;
- */
+  nuxt?: YamlNuxtConfig;
+}
+export interface YamlNuxtConfig {
+  srcDir?: string;
 }
 
 export interface Environment {
