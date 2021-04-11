@@ -11,7 +11,9 @@ import numeral from 'numeral'
 import {cli} from 'cli-ux'
 import fse = require('fs-extra')
 import yml = require('js-yaml')
-const {parse, stringify}  = require('envfile')
+const {stringify}  = require('envfile')
+
+// const {transformSync} = require('@babel/core')
 
 const md5file = require('md5-file')
 const getFolderSize  = require('get-folder-size')
@@ -262,6 +264,7 @@ export default class DeployTasks {
     })
   }
 
+  /*
   verify(task: any) {
     return new Observable(observer => {
       const config = fs.readFileSync('nuxt.config.js', 'utf8')
@@ -278,9 +281,16 @@ export default class DeployTasks {
       if (config.includes('export default {')) {
         observer.next('ES6 detected, converting to CommonJS')
         fs.copyFileSync('nuxt.config.js', '.nuxt.config.fume')
+        const converted = transformSync(config, {
+          plugins: [
+            ['@babel/plugin-transform-modules-commonjs', {
+              lazy: true,
+            }],
+          ],
+        })
         fs.writeFileSync(
           'nuxt.config.js',
-          config.replace('export default {', 'module.exports = {'),
+          converted.code,
           'utf8')
         task.title = 'Check config syntax: converted'
       } else {
@@ -292,6 +302,7 @@ export default class DeployTasks {
       observer.complete()
     })
   }
+  */
 
   async getSize(path: string, ignore: string): Promise<number> {
     if (ignore === '')
@@ -352,7 +363,6 @@ export default class DeployTasks {
         archive.directory('.fume', '.fume')
         archive.directory(this.staticDir, this.staticDir)
         archive.file('nuxt.config.js', {name: 'nuxt.config.js'})
-        archive.file('.env', {name: '.env'})
       }
       /*
       for (const entry of fs.readdirSync('.nuxt/', {withFileTypes: true})) {
