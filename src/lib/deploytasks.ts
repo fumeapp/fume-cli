@@ -50,8 +50,6 @@ export default class DeployTasks {
 
   public mode!: Mode
 
-  public nuxtConfig!: any
-
   public staticDir = 'static/'
 
   public packager = 'yarn'
@@ -59,6 +57,11 @@ export default class DeployTasks {
   async checkConfig() {
     try {
       this.fumeConfig = yml.load(fs.readFileSync('fume.yml').toString())
+      if (this.fumeConfig.srcDir)
+        if (this.fumeConfig.srcDir[this.fumeConfig.srcDir.length - 1] === '/')
+          this.staticDir = `${this.fumeConfig.srcDir}static`
+        else
+          this.staticDir = `${this.fumeConfig.srcDir}/static`
     } catch (error) {
       if (error.code === 'ENOENT')
         this.noConfig = true

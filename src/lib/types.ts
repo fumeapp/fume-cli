@@ -10,6 +10,7 @@ export interface FumeEnvironment {
 
 export interface YamlConfig {
   id: number;
+  srcDir: string | undefined;
   /*
   team_id: number;
   name: string;
