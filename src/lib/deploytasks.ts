@@ -366,6 +366,7 @@ export default class DeployTasks {
         archive.directory('.fume', '.fume')
         archive.directory(this.staticDir, this.staticDir)
         archive.file('nuxt.config.js', {name: 'nuxt.config.js'})
+        archive.file('fume.yml', {name: 'fume.yml'})
       }
       /*
       for (const entry of fs.readdirSync('.nuxt/', {withFileTypes: true})) {
