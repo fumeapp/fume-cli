@@ -92,11 +92,6 @@ export default class Deploy extends Command {
         enabled: () => dp.refresh_deps,
       },
       {
-        title: 'Restore environment variables',
-        task: () => dp.envRestore(),
-        enabled: () => dp.variables.length > 0,
-      },
-      {
         title: 'Analyze project structure',
         task: (ctx, task) => dp.modeSelect(task),
       },
@@ -131,6 +126,11 @@ export default class Deploy extends Command {
       {
         title: 'Send source code',
         task: () => dp.package(PackageType.code),
+      },
+      {
+        title: 'Restore environment variables',
+        task: () => dp.envRestore(),
+        enabled: () => dp.variables.length > 0,
       },
       {
         title: 'Build container image',

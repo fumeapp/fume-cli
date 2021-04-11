@@ -2,15 +2,16 @@ import Deployment from './deployment'
 import chalk from 'chalk'
 import {Observable} from 'rxjs'
 import {FumeEnvironment, Mode, PackageType, Size, Variable, YamlConfig} from './types'
-import { Listr, ListrTaskWrapper } from 'listr2'
+import {Listr, ListrTaskWrapper} from 'listr2'
 import S3 from 'aws-sdk/clients/s3'
 import fs from 'fs'
 import execa from 'execa'
 import archiver from 'archiver'
 import numeral from 'numeral'
 import {cli} from 'cli-ux'
-import fse = require('fs-extra');
-import yml = require('js-yaml');
+import fse = require('fs-extra')
+import yml = require('js-yaml')
+const {parse, stringify}  = require('envfile')
 
 const md5file = require('md5-file')
 const getFolderSize  = require('get-folder-size')
@@ -242,8 +243,9 @@ export default class DeployTasks {
       if (fs.existsSync('.env')) {
         fs.copyFileSync('.env', '.env.fume')
       }
-      const cfg = this.variables.map(v => `${v.name}=${v.value}`).join('\n')
-      fs.writeFileSync('.env', cfg, 'utf8')
+      const env: Record<string, any> = {}
+      this.variables.map(v => env[v.name] = v.value)
+      fs.writeFileSync('.env', stringify(env), 'utf8')
       observer.complete()
     })
   }
@@ -350,6 +352,7 @@ export default class DeployTasks {
         archive.directory('.fume', '.fume')
         archive.directory(this.staticDir, this.staticDir)
         archive.file('nuxt.config.js', {name: 'nuxt.config.js'})
+        archive.file('.env', {name: '.env'})
       }
       /*
       for (const entry of fs.readdirSync('.nuxt/', {withFileTypes: true})) {
