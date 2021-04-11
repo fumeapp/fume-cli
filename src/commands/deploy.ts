@@ -71,10 +71,12 @@ export default class Deploy extends Command {
         title: 'Install all dependencies',
         task: () => dp.yarn('all'),
       },
+      /*
       {
         title: 'Check config syntax',
         task: (ctx, task) => dp.verify(task),
       },
+      */
       {
         title: 'Prepare environment variables',
         task: () => dp.envPrepare(),
@@ -109,6 +111,30 @@ export default class Deploy extends Command {
       {
         title: 'Send source code',
         task: () => dp.package(PackageType.code),
+      },
+      {
+        title: 'Deploy to function',
+        task: (ctx, task) => dp.deploy('DEPLOY_FUNCTION', task),
+      },
+      {
+        title: 'Cleanup deployment',
+        task: () => dp.cleanup(),
+      },
+    ])
+
+    const image = new Listr([
+      {
+        title: 'Send dependencies',
+        task: () => dp.package(PackageType.layer),
+        enabled: () => dp.refresh_deps,
+      },
+      {
+        title: 'Send source code',
+        task: () => dp.package(PackageType.code),
+      },
+      {
+        title: 'Build container image',
+        task: (ctx, task) => dp.image(task),
       },
       {
         title: 'Deploy to function',
@@ -182,6 +208,7 @@ export default class Deploy extends Command {
     if (dp.structure === 'ssr') await ssr.run().catch(error => this.error(error))
     if (dp.mode === Mode.layer) ssrLayer.run().catch(() => false)
     if (dp.mode === Mode.efs) ssrEFS.run().catch(() => false)
+    if (dp.mode === Mode.image) image.run().catch(() => false)
     if (dp.structure === 'headless') await headless.run().catch(error => this.error(error))
     if (dp.firstDeploy) this.warn('First deployments take time to propagate')
 

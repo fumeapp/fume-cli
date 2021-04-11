@@ -2,7 +2,7 @@ import Deployment from './deployment'
 import chalk from 'chalk'
 import {Observable} from 'rxjs'
 import {FumeEnvironment, Mode, PackageType, Size, Variable, YamlConfig} from './types'
-import {Listr} from 'listr2'
+import { Listr, ListrTaskWrapper } from 'listr2'
 import S3 from 'aws-sdk/clients/s3'
 import fs from 'fs'
 import execa from 'execa'
@@ -73,16 +73,16 @@ export default class DeployTasks {
     /*
     * TODO: determine mode based on max package size of 262144000
     */
-    this.mode = Mode.layer
+    this.mode = Mode.image
 
     const allowed = 262144000
     const format = '0.0b'
     if (this.refresh_deps && this.size.deps > allowed)
-      this.mode = Mode.efs
+      this.mode = Mode.image
     /*
       const error = `Dependencies greater than an allowed size of ${allowed} bytes (${numeral(allowed).format(format)}) - ${this.size.deps} (${numeral(this.size.deps).format(format)})`
       this.deployment.fail({
-        message: error,
+        message: error,images
         detail: [
           `Current Payload size: ${this.size.deps} (${numeral(this.size.deps).format(format)})`,
           `Difference: ${this.size.deps - allowed} (${numeral(this.size.deps - allowed).format(format)})`,
@@ -96,7 +96,7 @@ export default class DeployTasks {
     const code = numeral(this.size.code).format(format)
     const stat = numeral(this.size.static).format(format)
     const all = numeral(this.size.deps + this.size.code + this.size.static).format(format)
-    task.title = `Deps: ${chalk.bold(deps)} Code: ${chalk.bold(code)} Assets: ${chalk.bold(stat)} Total: ${chalk.bold(all)} Mode: ${chalk(this.mode)}`
+    task.title = `Deps: ${chalk.bold(deps)} Code: ${chalk.bold(code)} Assets: ${chalk.bold(stat)} Total: ${chalk.bold(all)} Mode: ${chalk.bold(this.mode)}`
   }
 
   async loadConfig() {
@@ -111,7 +111,7 @@ export default class DeployTasks {
       initial: 'yes',
     })
     if (ctx.input) await cli.open(`${this.env.web}/billing`)
-    throw new Error(`Visit ${this.env.web}https://fume.app/billing and choose a plan that fits.`)
+    throw new Error(`Visit ${this.env.web}/billing and choose a plan that fits.`)
   }
 
   async choose(ctx: any, task: any) {
@@ -338,12 +338,13 @@ export default class DeployTasks {
     if (type === PackageType.code) await this.deployment.update('MAKE_CODE_ZIP')
     const output = fs.createWriteStream(this.deployment.s3.paths[type])
     return new Observable(observer => {
-      this.assets()
+      // assets moved to bob
+      // this.assets()
 
       const archive = archiver('zip', {zlib: {level: 9}})
 
       if (type === PackageType.layer)
-        archive.directory('node_modules', 'nodejs/node_modules')
+        archive.directory('node_modules', 'node_modules')
       if (type === PackageType.code) {
         archive.directory('.nuxt', '.nuxt')
         archive.directory('.fume', '.fume')
@@ -439,6 +440,29 @@ export default class DeployTasks {
       })
       uploader.on('end', () => observer.complete())
     })
+  }
+
+  async image(task: ListrTaskWrapper<any, any>) {
+    await this.deployment.update('IMAGE_BUILD')
+    let attempts = 60
+    const delay = 5
+    while (attempts !== 0) {
+      // eslint-disable-next-line no-await-in-loop
+      const result = await this.deployment.get()
+      if (result.data && result.data.data && result.data.data.status === 'FAILURE')
+        throw new Error(`Error building image - check details at ${this.env.web}${this.deployment.entry.dep_url}`)
+      if (result.data && result.data.data && result.data.data.digest !== null)
+        return true
+      task.title = `Build container image (${attempts}:${delay})`
+      // eslint-disable-next-line no-await-in-loop
+      await this.sleep(delay * 1000)
+      attempts--
+    }
+    throw new Error('Timed out waiting for image digest')
+  }
+
+  sleep(milliseconds: number) {
+    return new Promise(resolve => setTimeout(resolve, milliseconds))
   }
 
   async deploy(status: string, task: any) {

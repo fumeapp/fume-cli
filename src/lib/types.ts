@@ -53,6 +53,7 @@ export enum Mode {
   layer = 'layer',
   efs = 'efs',
   headless = 'headless',
+  image = 'image',
 }
 
 export interface Size {
@@ -63,6 +64,8 @@ export interface Size {
 
 export interface Project {
   id: number;
+  // front-end url of our project minus the domain
+  url: string;
   name: string;
   region: string;
   structure: string;
@@ -71,6 +74,8 @@ export interface Project {
 export interface Env {
   id: number;
   team_id: number;
+  // front-end url of our env minus the domain
+  url: string;
   name: string;
   detail: EnvDetail;
   variables: Array<Variable>;
@@ -91,9 +96,10 @@ export interface Variable {
 }
 
 export interface Entry {
-  status: string;
   id: number;
   team_id: number;
+  dep_url: string;
+  status: string;
   firstDeploy: boolean;
   project: Project;
   env: Env;
