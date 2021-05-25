@@ -352,7 +352,9 @@ export default class DeployTasks {
   async archive(type: PackageType) {
     if (type ===  PackageType.layer) await this.deployment.update('SYNC_DEPS')
     if (type === PackageType.code) await this.deployment.update('MAKE_CODE_ZIP')
+
     const output = fs.createWriteStream(this.deployment.s3.paths[type])
+
     return new Observable(observer => {
       // assets moved to bob
       // this.assets()
@@ -368,15 +370,6 @@ export default class DeployTasks {
         archive.file('nuxt.config.js', {name: 'nuxt.config.js'})
         archive.file('fume.yml', {name: 'fume.yml'})
       }
-      /*
-      for (const entry of fs.readdirSync('.nuxt/', {withFileTypes: true})) {
-        if (entry.isDirectory()) {
-          if (entry.name !== 'node_modules' && entry.name !== '.git' && entry.name !== 'vendor')
-            archive.directory(entry.name, entry.name)
-        } else archive.file(entry.name, {name: entry.name})
-      }
-     */
-
       archive.on('warning', error => {
         throw error
       })
