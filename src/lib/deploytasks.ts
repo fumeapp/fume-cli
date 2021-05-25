@@ -196,11 +196,14 @@ export default class DeployTasks {
     throw new Error('No lock file found, could not determine packager')
   }
 
-  async yarn(type: string) {
-    if (type === 'production')
+  async yarn(type: string, task: ListrTaskWrapper<any, any>) {
+    if (type === 'production') {
+      task.title = `Install production dependencies with ${chalk.bold(this.packager)}`
       await this.deployment.update('YARN_PROD')
-    else
+    }  else {
+      task.title = `Install all dependencies with ${chalk.bold(this.packager)}`
       await this.deployment.update('YARN_ALL')
+    }
     return new Observable(observer => {
       if (this.packager === 'npm' && type === 'production') {
         observer.next('Pruning node_modules/')

@@ -69,7 +69,7 @@ export default class Deploy extends Command {
     const ssr = new Listr([
       {
         title: 'Install all dependencies',
-        task: () => dp.yarn('all'),
+        task: (ctx, task) => dp.yarn('all', task),
       },
       /*
       {
@@ -88,7 +88,7 @@ export default class Deploy extends Command {
       },
       {
         title: 'Install production dependencies',
-        task: () => dp.yarn('production'),
+        task: (ctx, task) => dp.yarn('production', task),
         enabled: () => dp.refresh_deps,
       },
       {
@@ -174,7 +174,7 @@ export default class Deploy extends Command {
     const headless = new Listr([
       {
         title: 'Install modules',
-        task: () => dp.yarn('all'),
+        task: (ctx, task) => dp.yarn('all', task),
       },
       {
         title: 'Prepare environment variables',
