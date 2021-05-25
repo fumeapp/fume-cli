@@ -215,8 +215,9 @@ export default class DeployTasks {
         else args = ['install']
       } else if (this.packager === 'yarn') {
         if (type === 'production') args = ['--prod']
+        else args = ['install']
       }
-      observer.next(`Running ${chalk.bold(this.packager)}`)
+      observer.next(`Running ${chalk.bold(this.packager)} ${args.join(' ')}`)
       execa(this.packager, args)
       .then(() => observer.complete()) // .stdout.pipe(process.stdout),
     })
@@ -366,19 +367,15 @@ export default class DeployTasks {
     const output = fs.createWriteStream(this.deployment.s3.paths[type])
 
     return new Observable(observer => {
-      // assets moved to bob
-      // this.assets()
-
       const archive = archiver('zip', {zlib: {level: 9}})
-
       if (type === PackageType.layer)
         archive.directory('node_modules', 'node_modules')
       if (type === PackageType.code) {
-        archive.directory('.nuxt', '.nuxt')
-        archive.directory('.fume', '.fume')
         archive.directory(this.staticDir, this.staticDir)
         archive.file('nuxt.config.js', {name: 'nuxt.config.js'})
         archive.file('fume.yml', {name: 'fume.yml'})
+        archive.directory('.nuxt', '.nuxt')
+        archive.directory('.fume', '.fume')
       }
       archive.on('warning', error => {
         throw error
