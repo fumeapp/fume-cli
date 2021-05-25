@@ -36,8 +36,8 @@ export default class Deployment {
     this.entry = (await this.auth.axios.post(`/project/${this.config.id}/dep`, data)).data.data.data
     this.s3 = (await this.auth.axios.get(`/project/${this.config.id}/dep/${this.entry.id}/s3`)).data.data
     this.s3.paths = {
-      code: `${__dirname}/${this.s3.code}`,
-      layer: `${__dirname}/${this.s3.layer}`,
+      code: `/tmp/${this.s3.code}`,
+      layer: `/tmp/${this.s3.layer}`,
     }
     return this.entry
   }
