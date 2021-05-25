@@ -20,7 +20,7 @@ $ npm install -g fume-cli
 $ fume COMMAND
 running command...
 $ fume (-v|--version|version)
-fume-cli/0.1.3 darwin-arm64 node-v16.0.0
+fume-cli/0.1.4 darwin-arm64 node-v16.0.0
 $ fume --help [COMMAND]
 USAGE
   $ fume COMMAND
@@ -49,7 +49,7 @@ ALIASES
   $ fume login
 ```
 
-_See code: [src/commands/auth/login.ts](https://github.com/fumeapp/fume-cli/blob/v0.1.3/src/commands/auth/login.ts)_
+_See code: [src/commands/auth/login.ts](https://github.com/fumeapp/fume-cli/blob/v0.1.4/src/commands/auth/login.ts)_
 
 ## `fume auth:logout`
 
@@ -63,7 +63,7 @@ ALIASES
   $ fume logout
 ```
 
-_See code: [src/commands/auth/logout.ts](https://github.com/fumeapp/fume-cli/blob/v0.1.3/src/commands/auth/logout.ts)_
+_See code: [src/commands/auth/logout.ts](https://github.com/fumeapp/fume-cli/blob/v0.1.4/src/commands/auth/logout.ts)_
 
 ## `fume auth:status`
 
@@ -77,7 +77,7 @@ ALIASES
   $ fume status
 ```
 
-_See code: [src/commands/auth/status.ts](https://github.com/fumeapp/fume-cli/blob/v0.1.3/src/commands/auth/status.ts)_
+_See code: [src/commands/auth/status.ts](https://github.com/fumeapp/fume-cli/blob/v0.1.4/src/commands/auth/status.ts)_
 
 ## `fume config`
 
@@ -91,7 +91,7 @@ OPTIONS
   -h, --help  show CLI help
 ```
 
-_See code: [src/commands/config.ts](https://github.com/fumeapp/fume-cli/blob/v0.1.3/src/commands/config.ts)_
+_See code: [src/commands/config.ts](https://github.com/fumeapp/fume-cli/blob/v0.1.4/src/commands/config.ts)_
 
 ## `fume deploy [ENVIRONMENT]`
 
@@ -111,7 +111,7 @@ EXAMPLE
   $ fume deploy staging
 ```
 
-_See code: [src/commands/deploy.ts](https://github.com/fumeapp/fume-cli/blob/v0.1.3/src/commands/deploy.ts)_
+_See code: [src/commands/deploy.ts](https://github.com/fumeapp/fume-cli/blob/v0.1.4/src/commands/deploy.ts)_
 
 ## `fume help [COMMAND]`
 
@@ -142,5 +142,5 @@ EXAMPLE
   $ fume purge staging
 ```
 
-_See code: [src/commands/purge.ts](https://github.com/fumeapp/fume-cli/blob/v0.1.3/src/commands/purge.ts)_
+_See code: [src/commands/purge.ts](https://github.com/fumeapp/fume-cli/blob/v0.1.4/src/commands/purge.ts)_
 <!-- commandsstop -->
