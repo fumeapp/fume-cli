@@ -158,6 +158,7 @@ export default class DeployTasks {
       await this.deployment.initialize(this.environment)
       task.title = `Initiated for ${chalk.bold(this.deployment.entry.project.name)} (${chalk.bold(this.deployment.entry.env.name)})`
     } catch (error) {
+      console.log(error.response.data)
       if (error.response && error.response.status === 402)
         return this.billing(ctx, task)
       if (error.response && error.response.data.message)
@@ -220,8 +221,14 @@ export default class DeployTasks {
 
   async build() {
     await this.deployment.update('NUXT_BUILD')
+    let args: Array<string> = []
     try {
-      await execa('node_modules/.bin/nuxt', ['build'])
+      if (this.packager === 'npm') {
+        args = ['run', 'build']
+      } else {
+        args = ['build']
+      }
+      await execa(this.packager, args)
     } catch (error) {
       await this.deployment.fail({
         message: 'Error bundling server and client',
