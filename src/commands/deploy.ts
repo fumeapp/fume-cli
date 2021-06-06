@@ -97,6 +97,39 @@ export default class Deploy extends Command {
       },
     ], {concurrent: false})
 
+    const nest = new Listr([
+      {
+        title: 'Install all dependencies',
+        task: (ctx, task) => dp.yarn('all', task),
+      },
+      /*
+      {
+        title: 'Check config syntax',
+        task: (ctx, task) => dp.verify(task),
+      },
+      */
+      {
+        title: 'Prepare environment variables',
+        task: () => dp.envPrepare(),
+        enabled: () => dp.variables.length > 0,
+      },
+      {
+        title: 'Bundle for server and client',
+        task: () => dp.build(),
+      },
+      /*
+      {
+        title: 'Install production dependencies',
+        task: (ctx, task) => dp.yarn('production', task),
+        enabled: () => dp.refresh_deps,
+      },
+      */
+      {
+        title: 'Analyze project structure',
+        task: (ctx, task) => dp.modeSelect(task),
+      },
+    ], {concurrent: false})
+
     const ssrLayer = new Listr([
       {
         title: 'Send dependencies',
@@ -205,12 +238,17 @@ export default class Deploy extends Command {
     ], {concurrent: false})
 
     await initial.run().catch(error => this.error(error))
-    if (dp.structure === 'ssr') await ssr.run().catch(error => this.error(error))
-    if (dp.mode === Mode.layer) ssrLayer.run().catch(() => false)
-    if (dp.mode === Mode.efs) ssrEFS.run().catch(() => false)
-    if (dp.mode === Mode.image) image.run().catch(() => false)
-    if (dp.structure === 'headless') await headless.run().catch(error => this.error(error))
-    if (dp.firstDeploy) this.warn('First deployments take time to propagate')
+    if (dp.framework === 'NestJS')  {
+      await nest.run().catch(error => this.error(error))
+      await image.run().catch(error => this.error(error))
+    } else {
+      if (dp.structure === 'ssr') await ssr.run().catch(error => this.error(error))
+      if (dp.mode === Mode.layer) ssrLayer.run().catch(() => false)
+      if (dp.mode === Mode.efs) ssrEFS.run().catch(() => false)
+      if (dp.mode === Mode.image) image.run().catch(() => false)
+      if (dp.structure === 'headless') await headless.run().catch(error => this.error(error))
+    }
+      if (dp.firstDeploy) this.warn('First deployments take time to propagate')
 
     onDeath(dp.cleanup)
   }

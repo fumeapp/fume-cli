@@ -67,6 +67,7 @@ export interface Project {
   url: string;
   name: string;
   region: string;
+  framework: string;
   structure: string;
 }
 

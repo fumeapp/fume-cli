@@ -40,6 +40,8 @@ export default class DeployTasks {
 
   public name!: string
 
+  public framework!: string
+
   public structure!: string
 
   public hash!: string
@@ -71,11 +73,20 @@ export default class DeployTasks {
   }
 
   async modeSelect(task: any) {
-    this.size = {
-      deps: await this.getSize('node_modules', ''),
-      code: await this.getSize('.nuxt', ''),
-      static: await this.getSize(this.staticDir, ''),
-    }
+
+    if (this.deployment.entry.project.framework === 'NestJS')
+      this.size = {
+        deps: await this.getSize('node_modules', ''),
+        code: await this.getSize('dist', ''),
+        static: 0,
+      }
+    else
+      this.size = {
+        deps: await this.getSize('node_modules', ''),
+        code: await this.getSize('.nuxt', ''),
+        static: await this.getSize(this.staticDir, ''),
+      }
+
     /*
     * TODO: determine mode based on max package size of 262144000
     */
@@ -158,7 +169,7 @@ export default class DeployTasks {
       await this.deployment.initialize(this.environment)
       task.title = `Initiated for ${chalk.bold(this.deployment.entry.project.name)} (${chalk.bold(this.deployment.entry.env.name)})`
     } catch (error) {
-      console.log(error.response.data)
+      if (!error.response) throw new Error(error)
       if (error.response && error.response.status === 402)
         return this.billing(ctx, task)
       if (error.response && error.response.data.message)
@@ -171,6 +182,7 @@ export default class DeployTasks {
       }
     }
     this.firstDeploy = this.deployment.entry.firstDeploy
+    this.framework = this.deployment.entry.project.framework
     this.structure = this.deployment.entry.project.structure
     this.variables = this.deployment.entry.env.variables
     if (this.structure === 'headless') this.mode = Mode.headless
@@ -371,11 +383,16 @@ export default class DeployTasks {
       if (type === PackageType.layer)
         archive.directory('node_modules', 'node_modules')
       if (type === PackageType.code) {
-        archive.directory(this.staticDir, this.staticDir)
-        archive.file('nuxt.config.js', {name: 'nuxt.config.js'})
-        archive.file('fume.yml', {name: 'fume.yml'})
-        archive.directory('.nuxt', '.nuxt')
-        archive.directory('.fume', '.fume')
+        if (this.deployment.entry.project.framework === 'NestJS') {
+          archive.directory('dist', 'dist')
+          archive.file('fume.yml', {name: 'fume.yml'})
+        } else {
+          archive.directory(this.staticDir, this.staticDir)
+          archive.file('nuxt.config.js', {name: 'nuxt.config.js'})
+          archive.file('fume.yml', {name: 'fume.yml'})
+          archive.directory('.nuxt', '.nuxt')
+          archive.directory('.fume', '.fume')
+        }
       }
       archive.on('warning', error => {
         throw error
