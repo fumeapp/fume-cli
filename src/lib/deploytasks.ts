@@ -73,7 +73,6 @@ export default class DeployTasks {
   }
 
   async modeSelect(task: any) {
-
     if (this.deployment.entry.project.framework === 'NestJS')
       this.size = {
         deps: await this.getSize('node_modules', ''),
