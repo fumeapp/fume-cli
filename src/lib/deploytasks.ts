@@ -271,7 +271,10 @@ export default class DeployTasks {
         fs.copyFileSync('.env', '.env.fume')
       }
       const env: Record<string, any> = {}
-      this.variables.map(v => env[v.name] = v.value)
+      // eslint-disable-next-line array-callback-return
+      this.variables.map(v => {
+        env[v.name] = v.value
+      })
       fs.writeFileSync('.env', stringify(env), 'utf8')
       observer.complete()
     })
