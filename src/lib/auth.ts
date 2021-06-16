@@ -27,7 +27,7 @@ export class Auth {
       if (!fs.existsSync(`${os.homedir()}/.config/fume/auth.yml`)) {
         throw new Error('no-auth')
       }
-      this.auth = yml.load(fs.readFileSync(`${os.homedir()}/.config/fume/auth.yml`).toString()) as FumeAuth
+      this.auth = yml.load(fs.readFileSync(`${os.homedir()}/.config/fume/auth.yml`).toString())
     }
 
     this.axios = axios.create({
