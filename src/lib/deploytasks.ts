@@ -59,7 +59,7 @@ export default class DeployTasks {
 
   async checkConfig() {
     try {
-      this.fumeConfig = yml.load(fs.readFileSync('fume.yml').toString())
+      this.fumeConfig = yml.load(fs.readFileSync('fume.yml').toString()) as YamlConfig
       if (this.fumeConfig.nuxt && this.fumeConfig.nuxt.srcDir)
         if (this.fumeConfig.nuxt.srcDir[this.fumeConfig.nuxt.srcDir.length - 1] === '/')
           this.staticDir = `${this.fumeConfig.nuxt.srcDir}static`
@@ -117,7 +117,7 @@ export default class DeployTasks {
   }
 
   async loadConfig() {
-    this.fumeConfig = yml.load(fs.readFileSync('fume.yml').toString())
+    this.fumeConfig = yml.load(fs.readFileSync('fume.yml').toString()) as YamlConfig
   }
 
   async billing(ctx: any, task: any) {
