@@ -88,7 +88,7 @@ export default class ConfigTasks {
       id: this.project.id,
     }
 
-    fs.writeFileSync('fume.yml', yml.safeDump(config))
+    fs.writeFileSync('fume.yml', yml.dump(config))
     task.title = 'Configuration file generated, ready to deploy!'
   }
 }

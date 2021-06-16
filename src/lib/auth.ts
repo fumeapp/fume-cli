@@ -7,7 +7,7 @@ import fse = require('fs-extra')
 import {FumeEnvironment, FumeAuth, Inquiry} from './types'
 
 export class Auth {
-  auth: FumeAuth
+  auth: object | string | number | null | undefined
 
   axios: AxiosInstance
 
@@ -126,7 +126,7 @@ export class Auth {
     }
     if (!fs.existsSync(`${os.homedir()}/.config`)) fs.mkdirSync(`${os.homedir()}/.config`)
     if (!fs.existsSync(`${os.homedir()}/.config/fume`)) fs.mkdirSync(`${os.homedir()}/.config/fume`)
-    fs.writeFileSync(`${os.homedir()}/.config/fume/auth.yml`, yml.safeDump(config))
+    fs.writeFileSync(`${os.homedir()}/.config/fume/auth.yml`, yml.dump(config))
     return true
   }
 }

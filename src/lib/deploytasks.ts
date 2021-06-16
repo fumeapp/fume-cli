@@ -13,10 +13,11 @@ import fse = require('fs-extra')
 import yml = require('js-yaml')
 const {stringify}  = require('envfile')
 
+const getFolderSize = require('get-folder-size')
+
 // const {transformSync} = require('@babel/core')
 
 const md5file = require('md5-file')
-const getFolderSize  = require('get-folder-size')
 
 export default class DeployTasks {
   constructor(env: FumeEnvironment, environment: string) {

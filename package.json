@@ -26,7 +26,7 @@
     "fd-slicer": "^1.1.0",
     "findit2": "^2.2.3",
     "fs-extra": "^10.0.0",
-    "get-folder-size": "^3.1.0",
+    "get-folder-size": "^2.0.1",
     "inquirer": "^8.1.1",
     "js-yaml": "^4.1.0",
     "listr": "^0.14.3",
