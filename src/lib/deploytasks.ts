@@ -6,11 +6,11 @@ import {Listr, ListrTaskWrapper} from 'listr2'
 import S3 from 'aws-sdk/clients/s3'
 import fs from 'fs'
 import execa from 'execa'
-import archiver from 'archiver'
 import numeral from 'numeral'
 import {cli} from 'cli-ux'
 import fse = require('fs-extra')
 import yml = require('js-yaml')
+import AdmZip = require('adm-zip')
 const {stringify}  = require('envfile')
 
 const getFolderSize = require('get-folder-size')
@@ -379,35 +379,25 @@ export default class DeployTasks {
     if (type ===  PackageType.layer) await this.deployment.update('SYNC_DEPS')
     if (type === PackageType.code) await this.deployment.update('MAKE_CODE_ZIP')
 
-    const output = fs.createWriteStream(this.deployment.s3.paths[type])
-
     return new Observable(observer => {
-      const archive = archiver('zip', {zlib: {level: 9}})
+      const archive = new AdmZip()
+      const dir = process.cwd()
       if (type === PackageType.layer)
-        archive.directory('node_modules', 'node_modules')
+        archive.addLocalFolder(`${dir}/node_modules`, 'node_modules')
       if (type === PackageType.code) {
         if (this.deployment.entry.project.framework === 'NestJS') {
-          archive.directory('dist', 'dist')
-          archive.file('fume.yml', {name: 'fume.yml'})
+          archive.addLocalFolder(`${dir}/dist`, 'dist')
+          archive.addLocalFile(`${dir}/fume.yml`)
         } else {
-          archive.directory(this.staticDir, this.staticDir)
-          archive.file('nuxt.config.js', {name: 'nuxt.config.js'})
-          archive.file('fume.yml', {name: 'fume.yml'})
-          archive.directory('.nuxt', '.nuxt')
-          archive.directory('.fume', '.fume')
+          archive.addLocalFolder(this.staticDir, this.staticDir)
+          archive.addLocalFile(`${dir}/nuxt.config.js`)
+          archive.addLocalFile(`${dir}/fume.yml`)
+          archive.addLocalFolder(`${dir}/.nuxt`, '.nuxt')
+          // archive.directory('.fume', '.fume')
         }
       }
-      archive.on('warning', error => {
-        throw error
-      })
-      archive.on('error', async error => {
-        await this.deployment.fail({
-          message: error.message,
-          detail: error,
-        })
-        observer.error(error.message)
-      })
 
+      /*
       const size = type === PackageType.layer ? this.size.deps : this.size.code
       let previous = '0%'
       archive.on('progress', progress => {
@@ -416,11 +406,13 @@ export default class DeployTasks {
         if (formatted !== previous) observer.next(`Compressing ${formatted}`)
         previous = formatted
       })
-
-      archive.pipe(output)
-
       archive.finalize()
       archive.on('finish', () => {
+        observer.complete()
+      })archive.pipe(output)
+      */
+
+      archive.writeZip(this.deployment.s3.paths[type], () => {
         observer.complete()
       })
     })
