@@ -365,7 +365,7 @@ export default class DeployTasks {
   async package(type: PackageType) {
     return new Listr([
       {
-        title: `Archiving ${type} package`,
+        title: `Archiving ${type} package (may seem frozen)`,
         task: () => this.archive(type),
       },
       {
