@@ -75,7 +75,6 @@ export default class DeployTasks {
 
   async modeSelect(task: any) {
     const getFolderSize = (await import('get-folder-size')).default
-
     if (this.deployment.entry.project.framework === 'NestJS')
       this.size = {
         deps: await getFolderSize.loose('node_modules'),
@@ -88,12 +87,7 @@ export default class DeployTasks {
         code: await getFolderSize.loose('.nuxt'),
         static: await getFolderSize.loose(this.staticDir),
       }
-
-    /*
-    * TODO: determine mode based on max package size of 262144000
-    */
     this.mode = Mode.image
-
     const allowed = 262144000
     const format = '0.0b'
     if (this.refresh_deps && this.size.deps > allowed)
