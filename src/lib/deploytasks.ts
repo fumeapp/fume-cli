@@ -13,7 +13,7 @@ import yml = require('js-yaml')
 import AdmZip = require('adm-zip')
 const {stringify}  = require('envfile')
 
-const getFolderSize = require('get-folder-size')
+import getFolderSize from 'get-folder-size'
 
 // const {transformSync} = require('@babel/core')
 
@@ -76,15 +76,15 @@ export default class DeployTasks {
   async modeSelect(task: any) {
     if (this.deployment.entry.project.framework === 'NestJS')
       this.size = {
-        deps: await this.getSize('node_modules', ''),
-        code: await this.getSize('dist', ''),
+        deps: await getFolderSize.loose('node_modules'),
+        code: await getFolderSize.loose('dist'),
         static: 0,
       }
     else
       this.size = {
-        deps: await this.getSize('node_modules', ''),
-        code: await this.getSize('.nuxt', ''),
-        static: await this.getSize(this.staticDir, ''),
+        deps: await getFolderSize.loose('node_modules'),
+        code: await getFolderSize.loose('.nuxt'),
+        static: await getFolderSize.loose(this.staticDir),
       }
 
     /*
@@ -332,26 +332,6 @@ export default class DeployTasks {
     })
   }
   */
-
-  async getSize(path: string, ignore: string): Promise<number> {
-    if (ignore === '')
-      return new Promise((resolve, reject) => {
-        getFolderSize(path, (error: Error, size: any) => {
-          if (error) {
-            reject(error)
-          }
-          resolve(size)
-        })
-      })
-    return new Promise((resolve, reject) => {
-      getFolderSize(path, new RegExp(ignore), (error: Error, size: any) => {
-        if (error) {
-          reject(error)
-        }
-        resolve(size)
-      })
-    })
-  }
 
   /*
    * copy fume assets into project
