@@ -74,18 +74,19 @@ export default class DeployTasks {
   }
 
   async modeSelect(task: any) {
-    const getFolderSize = (await import('get-folder-size')).default
+    const util = require('util')
+    const getFolderSize = util.promisify(require('get-folder-size'))
     if (this.deployment.entry.project.framework === 'NestJS')
       this.size = {
-        deps: await getFolderSize.loose('node_modules'),
-        code: await getFolderSize.loose('dist'),
+        deps: await getFolderSize('node_modules'),
+        code: await getFolderSize('dist'),
         static: 0,
       }
     else
       this.size = {
-        deps: await getFolderSize.loose('node_modules'),
-        code: await getFolderSize.loose('.nuxt'),
-        static: await getFolderSize.loose(this.staticDir),
+        deps: await getFolderSize('node_modules'),
+        code: await getFolderSize('.nuxt'),
+        static: await getFolderSize(this.staticDir),
       }
     this.mode = Mode.image
     const allowed = 262144000
