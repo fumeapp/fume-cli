@@ -20,7 +20,7 @@ $ npm install -g fume-cli
 $ fume COMMAND
 running command...
 $ fume (-v|--version|version)
-fume-cli/0.1.19 darwin-x64 node-v14.15.3
+fume-cli/0.1.20 darwin-x64 node-v14.15.3
 $ fume --help [COMMAND]
 USAGE
   $ fume COMMAND
@@ -34,7 +34,6 @@ USAGE
 * [`fume auth:status`](#fume-authstatus)
 * [`fume config`](#fume-config)
 * [`fume help [COMMAND]`](#fume-help-command)
-* [`fume purge ENVIRONMENT`](#fume-purge-environment)
 
 ## `fume auth:login`
 
@@ -48,7 +47,7 @@ ALIASES
   $ fume login
 ```
 
-_See code: [src/commands/auth/login.ts](https://github.com/fumeapp/fume-cli/blob/v0.1.19/src/commands/auth/login.ts)_
+_See code: [src/commands/auth/login.ts](https://github.com/fumeapp/fume-cli/blob/v0.1.20/src/commands/auth/login.ts)_
 
 ## `fume auth:logout`
 
@@ -62,7 +61,7 @@ ALIASES
   $ fume logout
 ```
 
-_See code: [src/commands/auth/logout.ts](https://github.com/fumeapp/fume-cli/blob/v0.1.19/src/commands/auth/logout.ts)_
+_See code: [src/commands/auth/logout.ts](https://github.com/fumeapp/fume-cli/blob/v0.1.20/src/commands/auth/logout.ts)_
 
 ## `fume auth:status`
 
@@ -76,7 +75,7 @@ ALIASES
   $ fume status
 ```
 
-_See code: [src/commands/auth/status.ts](https://github.com/fumeapp/fume-cli/blob/v0.1.19/src/commands/auth/status.ts)_
+_See code: [src/commands/auth/status.ts](https://github.com/fumeapp/fume-cli/blob/v0.1.20/src/commands/auth/status.ts)_
 
 ## `fume config`
 
@@ -90,7 +89,7 @@ OPTIONS
   -h, --help  show CLI help
 ```
 
-_See code: [src/commands/config.ts](https://github.com/fumeapp/fume-cli/blob/v0.1.19/src/commands/config.ts)_
+_See code: [src/commands/config.ts](https://github.com/fumeapp/fume-cli/blob/v0.1.20/src/commands/config.ts)_
 
 ## `fume help [COMMAND]`
 
@@ -108,18 +107,4 @@ OPTIONS
 ```
 
 _See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v3.2.2/src/commands/help.ts)_
-
-## `fume purge ENVIRONMENT`
-
-Purge an environment
-
-```
-USAGE
-  $ fume purge ENVIRONMENT
-
-EXAMPLE
-  $ fume purge staging
-```
-
-_See code: [src/commands/purge.ts](https://github.com/fumeapp/fume-cli/blob/v0.1.19/src/commands/purge.ts)_
 <!-- commandsstop -->
