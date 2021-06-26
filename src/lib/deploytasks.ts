@@ -13,7 +13,7 @@ import yml = require('js-yaml')
 import AdmZip = require('adm-zip')
 const {stringify}  = require('envfile')
 
-import getFolderSize from 'get-folder-size'
+
 
 // const {transformSync} = require('@babel/core')
 
@@ -74,6 +74,8 @@ export default class DeployTasks {
   }
 
   async modeSelect(task: any) {
+    const getFolderSize = (await import('get-folder-size')).default
+
     if (this.deployment.entry.project.framework === 'NestJS')
       this.size = {
         deps: await getFolderSize.loose('node_modules'),
