@@ -13,8 +13,6 @@ import yml = require('js-yaml')
 import AdmZip = require('adm-zip')
 const {stringify}  = require('envfile')
 
-
-
 // const {transformSync} = require('@babel/core')
 
 const md5file = require('md5-file')
@@ -450,7 +448,7 @@ export default class DeployTasks {
 
   async image(task: ListrTaskWrapper<any, any>) {
     await this.deployment.update('IMAGE_BUILD')
-    let attempts = 60
+    let attempts = 80
     const delay = 5
     while (attempts !== 0) {
       // eslint-disable-next-line no-await-in-loop
