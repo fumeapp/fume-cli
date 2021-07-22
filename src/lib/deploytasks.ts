@@ -13,8 +13,6 @@ import yml = require('js-yaml')
 import AdmZip = require('adm-zip')
 const {stringify}  = require('envfile')
 
-
-
 // const {transformSync} = require('@babel/core')
 
 const md5file = require('md5-file')
@@ -343,7 +341,7 @@ export default class DeployTasks {
     return new Listr([
       {
         title: `Archiving ${type} package`,
-        task: () => this.archive(type),
+        task: () => process.platform === 'win32' ? this.archive(type) : this.archiveNative(type),
       },
       {
         title: `Uploading ${type} package`,
@@ -353,6 +351,33 @@ export default class DeployTasks {
   }
 
   async archive(type: PackageType) {
+    if (type ===  PackageType.layer) await this.deployment.update('SYNC_DEPS')
+    if (type === PackageType.code) await this.deployment.update('MAKE_CODE_ZIP')
+
+    return new Observable(observer => {
+      const archive = new AdmZip()
+      const dir = process.cwd()
+      if (type === PackageType.layer)
+        archive.addLocalFolder(`${dir}/node_modules`, 'node_modules')
+      if (type === PackageType.code) {
+        if (this.deployment.entry.project.framework === 'NestJS') {
+          archive.addLocalFolder(`${dir}/dist`, 'dist')
+          archive.addLocalFile(`${dir}/fume.yml`)
+        } else {
+          archive.addLocalFolder(this.staticDir, this.staticDir)
+          archive.addLocalFile(`${dir}/nuxt.config.js`)
+          archive.addLocalFile(`${dir}/fume.yml`)
+          archive.addLocalFolder(`${dir}/.nuxt`, '.nuxt')
+        }
+      }
+
+      archive.writeZip(this.deployment.s3.paths[type], () => {
+        observer.complete()
+      })
+    })
+  }
+
+  async archiveNative(type: PackageType) {
     if (type ===  PackageType.layer) await this.deployment.update('SYNC_DEPS')
     if (type === PackageType.code) await this.deployment.update('MAKE_CODE_ZIP')
 
