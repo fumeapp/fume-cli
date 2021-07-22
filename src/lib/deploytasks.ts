@@ -340,8 +340,8 @@ export default class DeployTasks {
   async package(type: PackageType) {
     return new Listr([
       {
-        title: `Archiving ${type} package (may seem frozen)`,
-        task: () => this.archive(type),
+        title: `Archiving ${type} package`,
+        task: () => process.platform === 'win32' ? this.archive(type) : this.archiveNative(type),
       },
       {
         title: `Uploading ${type} package`,
@@ -368,29 +368,44 @@ export default class DeployTasks {
           archive.addLocalFile(`${dir}/nuxt.config.js`)
           archive.addLocalFile(`${dir}/fume.yml`)
           archive.addLocalFolder(`${dir}/.nuxt`, '.nuxt')
-          // archive.directory('.fume', '.fume')
         }
       }
-
-      /*
-      const size = type === PackageType.layer ? this.size.deps : this.size.code
-      let previous = '0%'
-      archive.on('progress', progress => {
-        const complete = progress.fs.totalBytes / size
-        const formatted = numeral(complete).format('0%')
-        if (formatted !== previous) observer.next(`Compressing ${formatted}`)
-        previous = formatted
-      })
-      archive.finalize()
-      archive.on('finish', () => {
-        observer.complete()
-      })archive.pipe(output)
-      */
 
       archive.writeZip(this.deployment.s3.paths[type], () => {
         observer.complete()
       })
     })
+  }
+
+  async archiveNative(type: PackageType) {
+    if (type ===  PackageType.layer) await this.deployment.update('SYNC_DEPS')
+    if (type === PackageType.code) await this.deployment.update('MAKE_CODE_ZIP')
+
+    if (type === PackageType.layer)
+      await execa('zip', [
+        '-r',
+        this.deployment.s3.paths[type],
+        'node_modules/',
+      ])
+    if (type === PackageType.code) {
+      if (this.deployment.entry.project.framework === 'NestJS') {
+        await execa('zip', [
+          this.deployment.s3.paths[type],
+          '-r',
+          'dist',
+          'fume.yml',
+        ])
+      } else {
+        await execa('zip', [
+          this.deployment.s3.paths[type],
+          '-r',
+          this.staticDir,
+          'nuxt.config.js',
+          'fume.yml',
+          '.nuxt/',
+        ])
+      }
+    }
   }
 
   async upload(type: PackageType) {
