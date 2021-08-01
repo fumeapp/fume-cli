@@ -411,27 +411,14 @@ export default class DeployTasks {
   async upload(type: PackageType) {
     if (type === PackageType.code) await this.deployment.update('UPLOAD_CODE_ZIP')
     const sts = await this.deployment.sts()
-    return new Observable(observer => {
-      observer.next('Sending code..')
-      new S3.ManagedUpload({
-        service: new S3(sts),
-        params: {
-          Bucket: this.deployment.s3.bucket,
-          Key: type === PackageType.layer ? this.deployment.s3.layer : this.deployment.s3.code,
-          Body: fs.createReadStream(this.deployment.s3.paths[type]),
-        },
-      }).on('httpUploadProgress', event => {
-        observer.next(`${numeral((event.loaded  / event.total)).format('0%')}`)
-      }).send(async (error: any) =>  {
-        if (error) {
-          await this.deployment.fail({
-            message: error.message,
-            detail: error,
-          })
-          observer.error(error.message)
-        } else observer.complete()
-      })
-    })
+    await new S3.ManagedUpload({
+      service: new S3(sts),
+      params: {
+        Bucket: this.deployment.s3.bucket,
+        Key: type === PackageType.layer ? this.deployment.s3.layer : this.deployment.s3.code,
+        Body: fs.createReadStream(this.deployment.s3.paths[type]),
+      },
+    }).promise()
   }
 
   async sync(folder: string, bucket: string, status: string, prefix: string) {
@@ -485,29 +472,25 @@ export default class DeployTasks {
   }
 
   async deploy(status: string, task: any) {
-    return new Observable(observer => {
-      observer.next('Initiating deployment')
-      const payload = {
-        size: this.size,
+    const payload = {
+      size: this.size,
+    }
+    return this.deployment.update(status, {hash: this.hash, mode: this.mode, payload})
+    .then(response =>  {
+      task.title = 'Deployment Successful: ' + chalk.bold(response.data.data.data)
+    })
+    .catch(async error => {
+      if (error.response.data.errors) {
+        error(error.response.data.errors[0].message)
       }
-      this.deployment.update(status, {hash: this.hash, mode: this.mode, payload})
-      .then(response =>  {
-        task.title = 'Deployment Successful: ' + chalk.bold(response.data.data.data)
-        observer.complete()
-      })
-      .catch(async error => {
-        if (error.response.data.errors) {
-          observer.error(error.response.data.errors[0].message)
-        }
-        if (error.message) {
-          await this.deployment.fail({
-            message: error.message,
-            detail: error,
-          })
-          observer.error(error.message)
-        } else if (error.response.data) throw new Error(JSON.stringify(error.response.data))
-        else throw error
-      })
+      if (error.message) {
+        await this.deployment.fail({
+          message: error.message,
+          detail: error,
+        })
+        error(error.message)
+      } else if (error.response.data) throw new Error(JSON.stringify(error.response.data))
+      else throw error
     })
   }
 
