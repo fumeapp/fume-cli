@@ -411,27 +411,37 @@ export default class DeployTasks {
   async upload(type: PackageType) {
     if (type === PackageType.code) await this.deployment.update('UPLOAD_CODE_ZIP')
     const sts = await this.deployment.sts()
-    return new Observable(observer => {
-      observer.next('Sending code..')
-      new S3.ManagedUpload({
-        service: new S3(sts),
-        params: {
-          Bucket: this.deployment.s3.bucket,
-          Key: type === PackageType.layer ? this.deployment.s3.layer : this.deployment.s3.code,
-          Body: fs.createReadStream(this.deployment.s3.paths[type]),
-        },
-      }).on('httpUploadProgress', event => {
-        observer.next(`${numeral((event.loaded  / event.total)).format('0%')}`)
-      }).send(async (error: any) =>  {
-        if (error) {
-          await this.deployment.fail({
-            message: error.message,
-            detail: error,
-          })
-          observer.error(error.message)
-        } else observer.complete()
+    await new S3.ManagedUpload({
+      service: new S3(sts),
+      params: {
+        Bucket: this.deployment.s3.bucket,
+        Key: type === PackageType.layer ? this.deployment.s3.layer : this.deployment.s3.code,
+        Body: fs.createReadStream(this.deployment.s3.paths[type]),
+      },
+    }).promise()
+    /*
+      return new Observable(observer => {
+        observer.next('Sending code..')
+        new S3.ManagedUpload({
+          service: new S3(sts),
+          params: {
+            Bucket: this.deployment.s3.bucket,
+            Key: type === PackageType.layer ? this.deployment.s3.layer : this.deployment.s3.code,
+            Body: fs.createReadStream(this.deployment.s3.paths[type]),
+          },
+        }).on('httpUploadProgress', event => {
+          observer.next(`${numeral((event.loaded  / event.total)).format('0%')}`)
+        }).send(async (error: any) =>  {
+          if (error) {
+            await this.deployment.fail({
+              message: error.message,
+              detail: error,
+            })
+            observer.error(error.message)
+          } else observer.complete()
+        })
       })
-    })
+      */
   }
 
   async sync(folder: string, bucket: string, status: string, prefix: string) {
