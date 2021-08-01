@@ -432,7 +432,7 @@ export default class DeployTasks {
         } else observer.complete()
       })
     })
-}
+  }
 
   async sync(folder: string, bucket: string, status: string, prefix: string) {
     await this.deployment.update(status)
