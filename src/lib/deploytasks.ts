@@ -211,23 +211,20 @@ export default class DeployTasks {
       task.title = `Install all dependencies with ${chalk.bold(this.packager)}`
       await this.deployment.update('YARN_ALL')
     }
-    return new Observable(observer => {
-      if (this.packager === 'npm' && type === 'production') {
-        observer.next('Pruning node_modules/')
-        fse.emptyDirSync('./node_modules')
-      }
-      let args: Array<string> = []
-      if (this.packager === 'npm') {
-        if (type === 'production') args = ['install', '--only=prod']
-        else args = ['install']
-      } else if (this.packager === 'yarn') {
-        if (type === 'production') args = ['--prod']
-        else args = ['install']
-      }
-      observer.next(`Running ${chalk.bold(this.packager)} ${args.join(' ')}`)
-      execa(this.packager, args)
-      .then(() => observer.complete()) // .stdout.pipe(process.stdout),
-    })
+    if (this.packager === 'npm' && type === 'production') {
+      task.title = 'Pruning node_modules/'
+      fse.emptyDirSync('./node_modules')
+    }
+    let args: Array<string> = []
+    if (this.packager === 'npm') {
+      if (type === 'production') args = ['install', '--only=prod']
+      else args = ['install']
+    } else if (this.packager === 'yarn') {
+      if (type === 'production') args = ['--prod']
+      else args = ['install']
+    }
+    task.title = `Running ${chalk.bold(this.packager)} ${args.join(' ')}`
+    await execa(this.packager, args)
   }
 
   async build() {
