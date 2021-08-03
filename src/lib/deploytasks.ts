@@ -1,6 +1,5 @@
 import Deployment from './deployment'
 import chalk from 'chalk'
-import {Observable} from 'rxjs'
 import {FumeEnvironment, Mode, PackageType, Size, Variable, YamlConfig} from './types'
 import {Listr, ListrTaskWrapper} from 'listr2'
 import S3 from 'aws-sdk/clients/s3'
@@ -10,7 +9,6 @@ import numeral from 'numeral'
 import {cli} from 'cli-ux'
 import fse = require('fs-extra')
 import yml = require('js-yaml')
-import AdmZip = require('adm-zip')
 const {stringify}  = require('envfile')
 
 // const {transformSync} = require('@babel/core')
@@ -249,132 +247,42 @@ export default class DeployTasks {
 
   async generate() {
     await this.deployment.update('NUXT_GENERATE')
-    return new Observable(observer => {
-      observer.next('Running nuxt generate')
-      execa('node_modules/.bin/nuxt', ['generate'])
-      .then(() => observer.complete()) // .stdout.pipe(process.stdout),
-    })
+    await execa('node_modules/.bin/nuxt', ['generate'])
   }
 
   async envPrepare() {
     await this.deployment.update('ENV_PREPARE')
-    return new Observable(observer => {
-      observer.next(`Compiling .env for ${this.environment}`)
-      if (fs.existsSync('.env')) {
-        fs.copyFileSync('.env', '.env.fume')
-      }
-      const env: Record<string, any> = {}
-      // eslint-disable-next-line array-callback-return
-      this.variables.map(v => {
-        env[v.name] = v.value
-      })
-      fs.writeFileSync('.env', stringify(env), 'utf8')
-      observer.complete()
-    })
+    if (fs.existsSync('.env')) {
+      fs.copyFileSync('.env', '.env.fume')
+    }
+    const env: Record<string, any> = {}
+    for (const variable of this.variables)
+      env[variable.name] = variable.value
+    fs.writeFileSync('.env', stringify(env), 'utf8')
   }
 
   async envRestore() {
     await this.deployment.update('ENV_RESTORE')
-    return new Observable(observer => {
-      observer.next(`Compiling .env for ${this.environment}`)
-      if (fs.existsSync('.env.fume')) {
-        fs.copyFileSync('.env.fume', '.env')
-        fs.unlinkSync('.env.fume')
-      }
-      observer.complete()
-    })
-  }
-
-  /*
-  verify(task: any) {
-    return new Observable(observer => {
-      const config = fs.readFileSync('nuxt.config.js', 'utf8')
-
-      observer.next('Checking Syntax')
-      if (config.trim().startsWith('import')) {
-        this.deployment.fail({
-          message: 'import detected inside nuxt.config.js - Fume does not yet support this but will soon',
-          detail: config,
-        })
-        this.cleanup()
-        throw new Error('"import" detected inside nuxt.config.js - Fume does not yet support this but will soon')
-      }
-      if (config.includes('export default {')) {
-        observer.next('ES6 detected, converting to CommonJS')
-        fs.copyFileSync('nuxt.config.js', '.nuxt.config.fume')
-        const converted = transformSync(config, {
-          plugins: [
-            ['@babel/plugin-transform-modules-commonjs', {
-              lazy: true,
-            }],
-          ],
-        })
-        fs.writeFileSync(
-          'nuxt.config.js',
-          converted.code,
-          'utf8')
-        task.title = 'Check config syntax: converted'
-      } else {
-        observer.next('CommonJS detected, no change needed')
-      }
-      this.nuxtConfig = require(`${process.cwd()}/nuxt.config.js`)
-      if (this.nuxtConfig.srcDir)
-        this.staticDir = `${this.nuxtConfig.srcDir}static/`
-      observer.complete()
-    })
-  }
-  */
-
-  /*
-   * copy fume assets into project
-   */
-  async assets() {
-    if (fs.existsSync('./.fume')) fs.rmdirSync('./.fume', {recursive: true})
-    fs.mkdirSync('./.fume')
-    fse.copySync(`${__dirname}/../../src/assets/nuxt`, './.fume')
+    if (fs.existsSync('.env.fume')) {
+      fs.copyFileSync('.env.fume', '.env')
+      fs.unlinkSync('.env.fume')
+    }
   }
 
   async package(type: PackageType) {
     return new Listr([
       {
         title: `Archiving ${type} package`,
-        task: () => process.platform === 'win32' ? this.archive(type) : this.archiveNative(type),
+        task: () => this.archive(type),
       },
       {
         title: `Uploading ${type} package`,
-        task: () => this.upload(type),
+        task: (_, task) => this.upload(task, type),
       },
     ])
   }
 
   async archive(type: PackageType) {
-    if (type ===  PackageType.layer) await this.deployment.update('SYNC_DEPS')
-    if (type === PackageType.code) await this.deployment.update('MAKE_CODE_ZIP')
-
-    return new Observable(observer => {
-      const archive = new AdmZip()
-      const dir = process.cwd()
-      if (type === PackageType.layer)
-        archive.addLocalFolder(`${dir}/node_modules`, 'node_modules')
-      if (type === PackageType.code) {
-        if (this.deployment.entry.project.framework === 'NestJS') {
-          archive.addLocalFolder(`${dir}/dist`, 'dist')
-          archive.addLocalFile(`${dir}/fume.yml`)
-        } else {
-          archive.addLocalFolder(this.staticDir, this.staticDir)
-          archive.addLocalFile(`${dir}/nuxt.config.js`)
-          archive.addLocalFile(`${dir}/fume.yml`)
-          archive.addLocalFolder(`${dir}/.nuxt`, '.nuxt')
-        }
-      }
-
-      archive.writeZip(this.deployment.s3.paths[type], () => {
-        observer.complete()
-      })
-    })
-  }
-
-  async archiveNative(type: PackageType) {
     if (type ===  PackageType.layer) await this.deployment.update('SYNC_DEPS')
     if (type === PackageType.code) await this.deployment.update('MAKE_CODE_ZIP')
 
@@ -405,7 +313,7 @@ export default class DeployTasks {
     }
   }
 
-  async upload(type: PackageType) {
+  async upload(task: ListrTaskWrapper<any, any>, type: PackageType) {
     if (type === PackageType.code) await this.deployment.update('UPLOAD_CODE_ZIP')
     const sts = await this.deployment.sts()
     await new S3.ManagedUpload({
@@ -416,33 +324,41 @@ export default class DeployTasks {
         Body: fs.createReadStream(this.deployment.s3.paths[type]),
       },
     }).promise()
+    /*
+    .on('httpUploadProgress', event => {
+      task.title = `${numeral((event.loaded / event.total)).format('0%')}`
+    }).send(async (error: any) => {
+      if (error) {
+        await this.deployment.fail({
+          message: error.message,
+          detail: error,
+        })
+      }
+    })
+    */
   }
 
-  async sync(folder: string, bucket: string, status: string, prefix: string) {
+  async sync(task: ListrTaskWrapper<any, any>, folder: string, bucket: string, status: string) {
     await this.deployment.update(status)
     const sts = await this.deployment.sts()
-
-    return new Observable(observer => {
-      observer.next('Comparing remote dependencies..')
-      const client = require('@auth0/s3').createClient({s3Client: new S3(sts)})
-      const uploader = client.uploadDir({
-        localDir: folder,
-        deleteRemoved: true,
-        s3Params: {
-          Bucket: bucket,
-          ACL: 'public-read',
-          Prefix: prefix,
-        },
-      })
-      uploader.on('progress', () => {
-        if (!isNaN(uploader.progressAmount / uploader.progressTotal)) {
-          const formatted = numeral(uploader.progressAmount / uploader.progressTotal).format('0.00%')
-          observer.next(`${formatted} complete`)
-          if (formatted === '100.00') observer.complete()
-        }
-      })
-      uploader.on('end', () => observer.complete())
+    const client = require('@auth0/s3').createClient({s3Client: new S3(sts)})
+    await client.uploadDir({
+      localDir: folder,
+      deleteRemoved: true,
+      s3Params: {
+        Bucket: bucket,
+        ACL: 'public-read',
+        Prefix: '',
+      },
+    }).promise()
+    /*
+    uploader.on('progress', () => {
+      if (!isNaN(uploader.progressAmount / uploader.progressTotal)) {
+        const formatted = numeral(uploader.progressAmount / uploader.progressTotal).format('0.00%')
+        task.title = `${formatted} complete`
+      }
     })
+   */
   }
 
   async image(task: ListrTaskWrapper<any, any>) {

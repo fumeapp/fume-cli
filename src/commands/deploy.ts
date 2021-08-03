@@ -31,6 +31,8 @@ export default class Deploy extends Command {
 
   async run() {
     const {args: {environment}} = this.parse(Deploy)
+    if (process.platform === 'win32')
+      this.error('Windows is not supported yet')
 
     const dp = new DeployTasks(this.env, environment)
 
@@ -71,12 +73,6 @@ export default class Deploy extends Command {
         title: 'Install all dependencies',
         task: (ctx, task) => dp.yarn('all', task),
       },
-      /*
-      {
-        title: 'Check config syntax',
-        task: (ctx, task) => dp.verify(task),
-      },
-      */
       {
         title: 'Prepare environment variables',
         task: () => dp.envPrepare(),
@@ -102,12 +98,6 @@ export default class Deploy extends Command {
         title: 'Install all dependencies',
         task: (ctx, task) => dp.yarn('all', task),
       },
-      /*
-      {
-        title: 'Check config syntax',
-        task: (ctx, task) => dp.verify(task),
-      },
-      */
       {
         title: 'Prepare environment variables',
         task: () => dp.envPrepare(),
@@ -117,38 +107,11 @@ export default class Deploy extends Command {
         title: 'Bundle for server and client',
         task: () => dp.build(),
       },
-      /*
-      {
-        title: 'Install production dependencies',
-        task: (ctx, task) => dp.yarn('production', task),
-        enabled: () => dp.refresh_deps,
-      },
-      */
       {
         title: 'Analyze project structure',
         task: (ctx, task) => dp.modeSelect(task),
       },
     ], {concurrent: false})
-
-    const ssrLayer = new Listr([
-      {
-        title: 'Send dependencies',
-        task: () => dp.package(PackageType.layer),
-        enabled: () => dp.refresh_deps,
-      },
-      {
-        title: 'Send source code',
-        task: () => dp.package(PackageType.code),
-      },
-      {
-        title: 'Deploy to function',
-        task: (ctx, task) => dp.deploy('DEPLOY_FUNCTION', task),
-      },
-      {
-        title: 'Cleanup deployment',
-        task: () => dp.cleanup(),
-      },
-    ])
 
     const image = new Listr([
       {
@@ -168,31 +131,6 @@ export default class Deploy extends Command {
       {
         title: 'Build container image',
         task: (ctx, task) => dp.image(task),
-      },
-      {
-        title: 'Deploy to function',
-        task: (ctx, task) => dp.deploy('DEPLOY_FUNCTION', task),
-      },
-      {
-        title: 'Cleanup deployment',
-        task: () => dp.cleanup(),
-      },
-    ])
-
-    const ssrEFS = new Listr([
-      {
-        title: 'Sync dependencies',
-        task: () => dp.sync(
-          './node_modules',
-          dp.deployment.s3.bucket,
-          'SYNC_DEPS',
-          `env-${dp.deployment.entry.env.id}-deps/node_modules/`,
-        ),
-        enabled: () => dp.refresh_deps,
-      },
-      {
-        title: 'Send source code',
-        task: () => dp.package(PackageType.code),
       },
       {
         title: 'Deploy to function',
@@ -225,11 +163,12 @@ export default class Deploy extends Command {
       },
       {
         title: 'Syncing distribution to the cloud',
-        task: () => dp.sync(
+        task: (_, task) => dp.sync(
+          task,
           'dist',
           dp.deployment.s3.headless,
           'SYNC_FILES',
-          ''),
+        ),
       },
       {
         title: 'Deploy package',
@@ -243,8 +182,6 @@ export default class Deploy extends Command {
       await image.run().catch(error => this.error(error))
     } else {
       if (dp.structure === 'ssr') await ssr.run().catch(error => this.error(error))
-      if (dp.mode === Mode.layer) ssrLayer.run().catch(() => false)
-      if (dp.mode === Mode.efs) ssrEFS.run().catch(() => false)
       if (dp.mode === Mode.image) image.run().catch(() => false)
       if (dp.structure === 'headless') await headless.run().catch(error => this.error(error))
     }
