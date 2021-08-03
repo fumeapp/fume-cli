@@ -316,49 +316,53 @@ export default class DeployTasks {
   async upload(task: ListrTaskWrapper<any, any>, type: PackageType) {
     if (type === PackageType.code) await this.deployment.update('UPLOAD_CODE_ZIP')
     const sts = await this.deployment.sts()
-    await new S3.ManagedUpload({
-      service: new S3(sts),
-      params: {
-        Bucket: this.deployment.s3.bucket,
-        Key: type === PackageType.layer ? this.deployment.s3.layer : this.deployment.s3.code,
-        Body: fs.createReadStream(this.deployment.s3.paths[type]),
-      },
-    }).promise()
-    /*
-    .on('httpUploadProgress', event => {
-      task.title = `${numeral((event.loaded / event.total)).format('0%')}`
-    }).send(async (error: any) => {
-      if (error) {
-        await this.deployment.fail({
-          message: error.message,
-          detail: error,
-        })
-      }
+    return new Promise((resolve, reject) => {
+      new S3.ManagedUpload({
+        service: new S3(sts),
+        params: {
+          Bucket: this.deployment.s3.bucket,
+          Key: type === PackageType.layer ? this.deployment.s3.layer : this.deployment.s3.code,
+          Body: fs.createReadStream(this.deployment.s3.paths[type]),
+        },
+      }).on('httpUploadProgress', event => {
+        task.title = `Uploading ${type} package: ${numeral((event.loaded / event.total)).format('0%')}`
+      }).send(async (error: any) => {
+        if (error) {
+          await this.deployment.fail({
+            message: error.message,
+            detail: error,
+          })
+          reject(error)
+        } else {
+          resolve(true)
+        }
+      })
     })
-    */
   }
 
   async sync(task: ListrTaskWrapper<any, any>, folder: string, bucket: string, status: string) {
     await this.deployment.update(status)
     const sts = await this.deployment.sts()
     const client = require('@auth0/s3').createClient({s3Client: new S3(sts)})
-    await client.uploadDir({
-      localDir: folder,
-      deleteRemoved: true,
-      s3Params: {
-        Bucket: bucket,
-        ACL: 'public-read',
-        Prefix: '',
-      },
-    }).promise()
-    /*
-    uploader.on('progress', () => {
-      if (!isNaN(uploader.progressAmount / uploader.progressTotal)) {
-        const formatted = numeral(uploader.progressAmount / uploader.progressTotal).format('0.00%')
-        task.title = `${formatted} complete`
-      }
+    return new Promise((resolve, reject) => {
+      const uploader = client.uploadDir({
+        localDir: folder,
+        deleteRemoved: true,
+        s3Params: {
+          Bucket: bucket,
+          ACL: 'public-read',
+          Prefix: '',
+        },
+      })
+      uploader.on('progress', () => {
+        if (!isNaN(uploader.progressAmount / uploader.progressTotal)) {
+          const formatted = numeral(uploader.progressAmount / uploader.progressTotal).format('0.00%')
+          task.title = `Syncing distribution to the cloud: ${formatted} complete`
+        }
+      })
+      uploader.on('error', (err: Error) => reject(err))
+      uploader.on('end', () => resolve(true))
     })
-   */
   }
 
   async image(task: ListrTaskWrapper<any, any>) {
