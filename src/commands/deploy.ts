@@ -93,6 +93,26 @@ export default class Deploy extends Command {
       },
     ], {concurrent: false})
 
+    const nitro = new Listr([
+      {
+        title: 'Install dependencies',
+        task: (ctx, task) => dp.yarn('all', task),
+      },
+      {
+        title: 'Prepare environment variables',
+        task: () => dp.envPrepare(),
+        enabled: () => dp.variables.length > 0,
+      },
+      {
+        title: 'Generate output for public and server',
+        task: () => dp.build(),
+      },
+      {
+        title: 'Analyze output structure',
+        task: (ctx, task) => dp.modeSelect(task),
+      },
+    ])
+
     const nest = new Listr([
       {
         title: 'Install all dependencies',
@@ -117,11 +137,17 @@ export default class Deploy extends Command {
       {
         title: 'Send dependencies',
         task: () => dp.package(PackageType.layer),
-        enabled: () => dp.refresh_deps,
+        enabled: () => dp.refresh_deps && !dp.nitro,
       },
       {
         title: 'Send source code',
         task: () => dp.package(PackageType.code),
+        enabled: () => !dp.nitro,
+      },
+      {
+        title: 'Sending build output',
+        task: () => dp.package(PackageType.output),
+        enabled: () => dp.nitro,
       },
       {
         title: 'Restore environment variables',
@@ -181,7 +207,10 @@ export default class Deploy extends Command {
       await nest.run().catch(error => this.error(error))
       await image.run().catch(error => this.error(error))
     } else {
-      if (dp.structure === 'ssr') await ssr.run().catch(error => this.error(error))
+      if (dp.structure === 'ssr')  {
+        if (dp.nitro) await nitro.run().catch(error => this.error(error))
+        else await ssr.run().catch(error => this.error(error))
+      }
       if (dp.mode === Mode.image) image.run().catch(() => false)
       if (dp.structure === 'headless') await headless.run().catch(error => this.error(error))
     }

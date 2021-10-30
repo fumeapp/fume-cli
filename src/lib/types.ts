@@ -46,6 +46,7 @@ export interface S3ConfigPath {
 export enum PackageType {
   code = 'code',
   layer = 'layer',
+  output = 'output',
 }
 
 export enum Mode {
@@ -56,6 +57,8 @@ export enum Mode {
 }
 
 export interface Size {
+  pub: number;
+  server: number;
   deps: number;
   code: number;
   static: number;

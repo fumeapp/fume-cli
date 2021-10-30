@@ -41,6 +41,8 @@ export default class DeployTasks {
 
   public structure!: string
 
+  public nitro = false
+
   public hash!: string
 
   public refresh_deps!: boolean
@@ -61,7 +63,7 @@ export default class DeployTasks {
           this.staticDir = `${this.fumeConfig.nuxt.srcDir}static`
         else
           this.staticDir = `${this.fumeConfig.nuxt.srcDir}/static`
-    } catch (error) {
+    } catch (error: any) {
       if (error.code === 'ENOENT')
         this.noConfig = true
       else
@@ -72,21 +74,42 @@ export default class DeployTasks {
   async modeSelect(task: any) {
     const util = require('util')
     const getFolderSize = util.promisify(require('get-folder-size'))
+    const format = '0.0b'
+    if (this.nitro) {
+      this.mode = Mode.image
+
+      this.size = {
+        pub: await getFolderSize('.output/public'),
+        server: await getFolderSize('.output/server'),
+        deps: 0,
+        code: 0,
+        static: 0,
+      }
+      const pub = numeral(this.size.pub).format(format)
+      const server = numeral(this.size.server).format(format)
+      const all = numeral(this.size.pub + this.size.server).format(format)
+
+      task.title = `Public: ${chalk.bold(pub)} Server: ${chalk.bold(server)} Total: ${chalk.bold(all)} Mode: ${chalk.bold(this.mode)}`
+      return
+    }
     if (this.deployment.entry.project.framework === 'NestJS')
       this.size = {
         deps: await getFolderSize('node_modules'),
         code: await getFolderSize('dist'),
         static: 0,
+        pub: 0,
+        server: 0,
       }
     else
       this.size = {
         deps: await getFolderSize('node_modules'),
         code: await getFolderSize('.nuxt'),
         static: await getFolderSize(this.staticDir),
+        pub: 0,
+        server: 0,
       }
     this.mode = Mode.image
     const allowed = 262144000
-    const format = '0.0b'
     if (this.refresh_deps && this.size.deps > allowed)
       this.mode = Mode.image
     /*
@@ -130,7 +153,7 @@ export default class DeployTasks {
     try {
       environments = await this.deployment.environments()
       task.title = `Choose an environment to deploy (${environments[0].project.name})`
-    } catch (error) {
+    } catch (error: any) {
       if (error.response && error.response.status === 404)
         throw new Error('Invalid fume configuration')
       if (error.response && error.response.data) {
@@ -161,7 +184,7 @@ export default class DeployTasks {
     try {
       await this.deployment.initialize(this.environment)
       task.title = `Initiated for ${chalk.bold(this.deployment.entry.project.name)} (${chalk.bold(this.deployment.entry.env.name)})`
-    } catch (error) {
+    } catch (error: any) {
       if (!error.response) throw new Error(error)
       if (error.response && error.response.status === 402)
         return this.billing(ctx, task)
@@ -180,6 +203,10 @@ export default class DeployTasks {
     this.variables = this.deployment.entry.env.variables
     if (this.structure === 'headless') this.mode = Mode.headless
     if (this.structure === 'ssr') {
+      if (await this.checkNitro()) {
+        this.nitro = true
+        task.title  += ` - ${chalk.yellowBright('⚡')}nitro detected`
+      }
       this.hash = this.lock()
       if (this.deployment.entry.env.detail && this.deployment.entry.env.detail.hash)
         this.refresh_deps = this.hash !== this.deployment.entry.env.detail.hash
@@ -187,6 +214,13 @@ export default class DeployTasks {
         this.refresh_deps = true
     }
     return true
+  }
+
+  // check if our setup is using nuxt3 or nuxt-bridge - in that case compile with nitro
+  async checkNitro(): Promise<boolean> {
+    const pkg = JSON.parse(fs.readFileSync('package.json').toString()) as Record<string, any>
+    if (pkg.devDependencies && pkg.devDependencies.nuxt3) return true
+    return Boolean(pkg.devDependencies && pkg.devDependencies['@nuxt/bridge'])
   }
 
   lock() {
@@ -234,8 +268,11 @@ export default class DeployTasks {
       } else {
         args = ['build']
       }
-      await execa(this.packager, args)
-    } catch (error) {
+      if (this.nitro)
+        await execa(this.packager, args, {env: {NITRO_PRESET: 'lambda'}})
+      else
+        await execa(this.packager, args)
+    } catch (error: any) {
       await this.deployment.fail({
         message: 'Error bundling server and client',
         detail: error,
@@ -270,6 +307,19 @@ export default class DeployTasks {
   }
 
   async package(type: PackageType) {
+    if (type === PackageType.output) {
+      return new Listr([
+        {
+          title: 'Syncing build output to S3',
+          task: (_, task) => this.sync(
+            task,
+            '.output',
+            this.deployment.s3.bucket,
+            'SYNC_OUTPUT',
+          ),
+        },
+      ])
+    }
     return new Listr([
       {
         title: `Archiving ${type} package`,
@@ -340,7 +390,7 @@ export default class DeployTasks {
     })
   }
 
-  async sync(task: ListrTaskWrapper<any, any>, folder: string, bucket: string, status: string) {
+  async sync(task: ListrTaskWrapper<any, any>|null, folder: string, bucket: string, status: string) {
     await this.deployment.update(status)
     const sts = await this.deployment.sts()
     const client = require('@auth0/s3').createClient({s3Client: new S3(sts)})
@@ -357,7 +407,7 @@ export default class DeployTasks {
       uploader.on('progress', () => {
         if (!isNaN(uploader.progressAmount / uploader.progressTotal)) {
           const formatted = numeral(uploader.progressAmount / uploader.progressTotal).format('0.00%')
-          task.title = `Syncing distribution to the cloud: ${formatted} complete`
+          if (task) task.title = `Syncing distribution to the cloud: ${formatted} complete`
         }
       })
       uploader.on('error', (err: Error) => reject(err))
@@ -366,7 +416,7 @@ export default class DeployTasks {
   }
 
   async image(task: ListrTaskWrapper<any, any>) {
-    await this.deployment.update('IMAGE_BUILD')
+    await this.deployment.update('IMAGE_BUILD', {nitro: this.nitro})
     let attempts = 80
     const delay = 5
     while (attempts !== 0) {

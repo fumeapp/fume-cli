@@ -55,7 +55,7 @@ export default class Deployment {
 
     try {
       return this.auth.axios.put(`/project/${this.config.id}/dep/${this.entry.id}`, params)
-    } catch (error) {
+    } catch (error: any) {
       throw new Error(error.response)
     }
   }
