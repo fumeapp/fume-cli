@@ -53,11 +53,20 @@ export default class Deployment {
     }
     if (optionalParams) params = {...optionalParams, ...params}
 
+    let result
     try {
-      return this.auth.axios.put(`/project/${this.config.id}/dep/${this.entry.id}`, params)
+      result = await this.auth.axios.put(`/project/${this.config.id}/dep/${this.entry.id}`, params)
     } catch (error: any) {
-      throw new Error(error.response)
+      if (error.response.data.errors) {
+        await this.fail({
+          message: `Error on status: ${status}`,
+          detail: error.response.data.errors[0],
+        })
+        throw new Error(error.response.data.errors[0].detail)
+      } else throw new Error(error.response)
     }
+
+    return result
   }
 
   async fail(failure: object) {
@@ -67,7 +76,7 @@ export default class Deployment {
     }
     try {
       return this.auth.axios.put(`/project/${this.config.id}/dep/${this.entry.id}`, params)
-    } catch (error) {
+    } catch (error: any) {
       throw new Error(error.response)
     }
   }
@@ -82,7 +91,7 @@ export default class Deployment {
         expiration: result.Expiration,
         region: this.entry.project.region,
       }
-    } catch (error) {
+    } catch (error: any) {
       throw new Error(error.response)
     }
   }

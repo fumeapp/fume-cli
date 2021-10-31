@@ -3,7 +3,7 @@ import chalk from 'chalk'
 import {FumeEnvironment, Mode, PackageType, Size, Variable, YamlConfig} from './types'
 import {Listr, ListrTaskWrapper} from 'listr2'
 import S3 from 'aws-sdk/clients/s3'
-import fs from 'fs'
+import fs from 'node:fs'
 import execa from 'execa'
 import numeral from 'numeral'
 import {cli} from 'cli-ux'
@@ -59,10 +59,7 @@ export default class DeployTasks {
     try {
       this.fumeConfig = yml.load(fs.readFileSync('fume.yml').toString()) as YamlConfig
       if (this.fumeConfig.nuxt && this.fumeConfig.nuxt.srcDir)
-        if (this.fumeConfig.nuxt.srcDir[this.fumeConfig.nuxt.srcDir.length - 1] === '/')
-          this.staticDir = `${this.fumeConfig.nuxt.srcDir}static`
-        else
-          this.staticDir = `${this.fumeConfig.nuxt.srcDir}/static`
+        this.staticDir = this.fumeConfig.nuxt.srcDir[this.fumeConfig.nuxt.srcDir.length - 1] === '/' ? `${this.fumeConfig.nuxt.srcDir}static` : `${this.fumeConfig.nuxt.srcDir}/static`
     } catch (error: any) {
       if (error.code === 'ENOENT')
         this.noConfig = true
@@ -92,24 +89,22 @@ export default class DeployTasks {
       task.title = `Public: ${chalk.bold(pub)} Server: ${chalk.bold(server)} Total: ${chalk.bold(all)} Mode: ${chalk.bold(this.mode)}`
       return
     }
-    if (this.deployment.entry.project.framework === 'NestJS')
-      this.size = {
-        deps: await getFolderSize('node_modules'),
-        code: await getFolderSize('dist'),
-        static: 0,
-        pub: 0,
-        server: 0,
-      }
-    else
-      this.size = {
-        deps: await getFolderSize('node_modules'),
-        code: await getFolderSize('.nuxt'),
-        static: await getFolderSize(this.staticDir),
-        pub: 0,
-        server: 0,
-      }
+
+    this.size = this.deployment.entry.project.framework === 'NestJS' ? {
+      deps: await getFolderSize('node_modules'),
+      code: await getFolderSize('dist'),
+      static: 0,
+      pub: 0,
+      server: 0,
+    } : {
+      deps: await getFolderSize('node_modules'),
+      code: await getFolderSize('.nuxt'),
+      static: await getFolderSize(this.staticDir),
+      pub: 0,
+      server: 0,
+    }
     this.mode = Mode.image
-    const allowed = 262144000
+    const allowed = 262_144_000
     if (this.refresh_deps && this.size.deps > allowed)
       this.mode = Mode.image
     /*
@@ -161,6 +156,7 @@ export default class DeployTasks {
           task.title = error.response.data.message
           throw error
         }
+
         if (error.response.data.errors[0].detail) {
           task.title = error.response.data.errors[0].detail
           throw new Error(error.response.data.errors[0].detail)
@@ -169,6 +165,7 @@ export default class DeployTasks {
         throw error
       }
     }
+
     const choices = environments.map((e: any) => e.name)
     const response = await task.prompt({
       type: 'AutoComplete',
@@ -197,6 +194,7 @@ export default class DeployTasks {
         throw new Error(error)
       }
     }
+
     this.firstDeploy = this.deployment.entry.firstDeploy
     this.framework = this.deployment.entry.project.framework
     this.structure = this.deployment.entry.project.structure
@@ -207,12 +205,11 @@ export default class DeployTasks {
         this.nitro = true
         task.title  += ` - ${chalk.yellowBright('⚡')}nitro detected`
       }
+
       this.hash = this.lock()
-      if (this.deployment.entry.env.detail && this.deployment.entry.env.detail.hash)
-        this.refresh_deps = this.hash !== this.deployment.entry.env.detail.hash
-      else
-        this.refresh_deps = true
+      this.refresh_deps = this.deployment.entry.env.detail && this.deployment.entry.env.detail.hash ? this.hash !== this.deployment.entry.env.detail.hash : true
     }
+
     return true
   }
 
@@ -228,10 +225,12 @@ export default class DeployTasks {
       this.packager = 'yarn'
       return md5file.sync('yarn.lock')
     }
+
     if (fs.existsSync('package-lock.json')) {
       this.packager = 'npm'
       return md5file.sync('package-lock.json')
     }
+
     throw new Error('No lock file found, could not determine packager')
   }
 
@@ -243,35 +242,29 @@ export default class DeployTasks {
       task.title = `Install all dependencies with ${chalk.bold(this.packager)}`
       await this.deployment.update('YARN_ALL')
     }
+
     if (this.packager === 'npm' && type === 'production') {
       task.title = 'Pruning node_modules/'
       fse.emptyDirSync('./node_modules')
     }
+
     let args: Array<string> = []
     if (this.packager === 'npm') {
-      if (type === 'production') args = ['install', '--only=prod']
-      else args = ['install']
+      args = type === 'production' ? ['install', '--only=prod'] : ['install']
     } else if (this.packager === 'yarn') {
-      if (type === 'production') args = ['--prod']
-      else args = ['install']
+      args = type === 'production' ? ['--prod'] : ['install']
     }
+
     task.title = `Running ${chalk.bold(this.packager)} ${args.join(' ')}`
     await execa(this.packager, args)
   }
 
   async build() {
-    await this.deployment.update('NUXT_BUILD')
+    await this.deployment.update('NUXT_BUILD', {nitro: this.nitro})
     let args: Array<string> = []
     try {
-      if (this.packager === 'npm') {
-        args = ['run', 'build']
-      } else {
-        args = ['build']
-      }
-      if (this.nitro)
-        await execa(this.packager, args, {env: {NITRO_PRESET: 'lambda'}})
-      else
-        await execa(this.packager, args)
+      args = this.packager === 'npm' ? ['run', 'build'] : ['build']
+      await (this.nitro ? execa(this.packager, args, {env: {NITRO_PRESET: 'lambda'}}) : execa(this.packager, args))
     } catch (error: any) {
       await this.deployment.fail({
         message: 'Error bundling server and client',
@@ -279,6 +272,7 @@ export default class DeployTasks {
       })
       throw new Error(error)
     }
+
     return true
   }
 
@@ -292,6 +286,7 @@ export default class DeployTasks {
     if (fs.existsSync('.env')) {
       fs.copyFileSync('.env', '.env.fume')
     }
+
     const env: Record<string, any> = {}
     for (const variable of this.variables)
       env[variable.name] = variable.value
@@ -320,6 +315,7 @@ export default class DeployTasks {
         },
       ])
     }
+
     return new Listr([
       {
         title: `Archiving ${type} package`,
@@ -343,23 +339,19 @@ export default class DeployTasks {
         'node_modules/',
       ])
     if (type === PackageType.code) {
-      if (this.deployment.entry.project.framework === 'NestJS') {
-        await execa('zip', [
-          this.deployment.s3.paths[type],
-          '-r',
-          'dist',
-          'fume.yml',
-        ])
-      } else {
-        await execa('zip', [
-          this.deployment.s3.paths[type],
-          '-r',
-          this.staticDir,
-          'nuxt.config.js',
-          'fume.yml',
-          '.nuxt/',
-        ])
-      }
+      await (this.deployment.entry.project.framework === 'NestJS' ? execa('zip', [
+        this.deployment.s3.paths[type],
+        '-r',
+        'dist',
+        'fume.yml',
+      ]) : execa('zip', [
+        this.deployment.s3.paths[type],
+        '-r',
+        this.staticDir,
+        'nuxt.config.js',
+        'fume.yml',
+        '.nuxt/',
+      ]))
     }
   }
 
@@ -431,6 +423,7 @@ export default class DeployTasks {
       await this.sleep(delay * 1000)
       attempts--
     }
+
     throw new Error('Timed out waiting for image digest')
   }
 
@@ -450,6 +443,7 @@ export default class DeployTasks {
       if (error.response.data.errors) {
         error(error.response.data.errors[0].message)
       }
+
       if (error.message) {
         await this.deployment.fail({
           message: error.message,
@@ -468,6 +462,7 @@ export default class DeployTasks {
       fs.copyFileSync('.env.fume', '.env')
       fs.unlinkSync('.env.fume')
     }
+
     if (this && this.deployment.s3 && fs.existsSync(this.deployment.s3.paths.code))
       fs.unlinkSync(this.deployment.s3.paths.code)
     if (this && this.deployment.s3 && fs.existsSync(this.deployment.s3.paths.layer))
