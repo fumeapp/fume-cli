@@ -42,7 +42,7 @@ export default class AuthStatus extends Command {
       this.auth = new Auth(this.env)
       task.title = `Initialized for ${this.env.env} environment`
       this.authed = true
-    } catch (error) {
+    } catch (error: any) {
       if (error.message === 'no-auth') {
         ctx.input = await task.prompt({
           type: 'Toggle',
