@@ -43,11 +43,12 @@ export class Auth {
   async logout() {
     try {
       await this.axios.get('/logout')
-    } catch (error) {
+    } catch (error: any) {
       if (error.response.status === 401)
         Auth.remove()
       throw new Error(error)
     }
+
     Auth.remove()
   }
 

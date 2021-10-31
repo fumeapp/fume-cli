@@ -25,7 +25,7 @@ export default class Deployment {
     let commit: string
     try {
       commit = (await execa('git', ['log',  '--decorate=short',  '-n 1'])).stdout
-    } catch (error) {
+    } catch (error: any) {
       throw new Error('This project has no commits, please add one before deploying')
     }
 

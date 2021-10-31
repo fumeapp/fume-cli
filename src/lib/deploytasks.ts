@@ -364,6 +364,7 @@ export default class DeployTasks {
         params: {
           Bucket: this.deployment.s3.bucket,
           Key: type === PackageType.layer ? this.deployment.s3.layer : this.deployment.s3.code,
+          // @ts-ignore
           Body: fs.createReadStream(this.deployment.s3.paths[type]),
         },
       }).on('httpUploadProgress', event => {

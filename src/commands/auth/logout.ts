@@ -25,7 +25,7 @@ export default class AuthLogout extends Command {
     try {
       await this.auth.logout()
       task.title = 'Token invalidated and removed'
-    } catch (error) {
+    } catch (error: any) {
       throw new Error(error)
     }
   }

@@ -56,7 +56,7 @@ export default class LoginTasks {
   async gather() {
     try {
       this.token = await Auth.probe(this.env, this.inquiry)
-    } catch (error) {
+    } catch (error: any) {
       if (error.response.data && error.response.data.errors && error.response.data.errors[0].message === 'inquiry.timeout')
         throw new Error('Token inquiry timed out')
       else
@@ -69,7 +69,7 @@ export default class LoginTasks {
     try {
       const me = (await Auth.test(this.env, this.token))
       task.title = 'Authenticated as ' + chalk.bold(me.name) + ' (' + chalk.bold(me.email) + ')'
-    } catch (error) {
+    } catch (error: any) {
       throw new Error('Invalid token')
     }
   }
