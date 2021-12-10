@@ -9,13 +9,13 @@
   "bugs": "https://github.com/fumeapp/fume-cli/issues",
   "dependencies": {
     "@auth0/s3": "^1.0.0",
-    "@oclif/command": "^1.8.0",
-    "@oclif/config": "^1",
-    "@oclif/plugin-help": "^3",
+    "@oclif/command": "^1.8.12",
+    "@oclif/config": "^1.18.2",
+    "@oclif/plugin-help": "^3.2.17",
     "@types/fs-extra": "^9.0.1",
     "@types/js-yaml": "^4.0.1",
     "@types/numeral": "^2.0.1",
-    "aws-sdk": "^2.756.0",
+    "aws-sdk": "^2.1046.0",
     "axios": "^0.21.0",
     "cli-ux": "^5.5.0",
     "death": "^1.1.0",
@@ -28,9 +28,9 @@
     "get-folder-size": "^2.0.1",
     "inquirer": "^8.1.1",
     "js-yaml": "^4.1.0",
-    "listr2": "^3.1.1",
+    "listr2": "^3.13.5",
     "md5-file": "^5.0.0",
-    "mime": "^2.4.6",
+    "mime": "^2.6.0",
     "mkdirp": "^1.0.4",
     "numeral": "^2.0.6",
     "pend": "^1.2.0",
@@ -40,9 +40,9 @@
     "tslib": "^2"
   },
   "devDependencies": {
-    "@oclif/dev-cli": "^1",
+    "@oclif/dev-cli": "^1.26.9",
     "@oclif/test": "^1",
-    "@types/chai": "^4",
+    "@types/chai": "^4.3.0",
     "@types/death": "^1.1.1",
     "@types/get-folder-size": "^3.0.0",
     "@types/inquirer": "^7.3.1",
@@ -57,7 +57,7 @@
     "mocha": "^9",
     "nyc": "^15",
     "ts-node": "^10",
-    "typescript": "^4.0"
+    "typescript": "^4.5.3"
   },
   "engines": {
     "node": ">=10.0.0"
