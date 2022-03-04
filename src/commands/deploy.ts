@@ -11,7 +11,7 @@ import DeployTasks from '../lib/deploytasks'
 export default class Deploy extends Command {
   static description = 'Deploy an Environment'
 
-  static flags = {
+  static flags:  {help: any} = {
     help: flags.help({char: 'h'}),
   }
 

@@ -313,6 +313,17 @@ export default class DeployTasks {
             'SYNC_OUTPUT',
           ),
         },
+        {
+          title: 'Syncing _nuxt folder to S3',
+          task: (_, task) => this.sync(
+            task,
+            '.output/public/_nuxt',
+            this.deployment.s3.bucket,
+            'SYNC_OUTPUT',
+            'public/',
+            false,
+          ),
+        },
       ])
     }
 
@@ -383,18 +394,18 @@ export default class DeployTasks {
     })
   }
 
-  async sync(task: ListrTaskWrapper<any, any>|null, folder: string, bucket: string, status: string) {
+  async sync(task: ListrTaskWrapper<any, any>|null, folder: string, bucket: string, status: string, prefix = '', deleteRemoved = true) {
     await this.deployment.update(status)
     const sts = await this.deployment.sts()
     const client = require('@auth0/s3').createClient({s3Client: new S3(sts)})
     return new Promise((resolve, reject) => {
       const uploader = client.uploadDir({
         localDir: folder,
-        deleteRemoved: true,
+        deleteRemoved: deleteRemoved,
         s3Params: {
           Bucket: bucket,
           ACL: 'public-read',
-          Prefix: '',
+          Prefix: prefix,
         },
       })
       uploader.on('progress', () => {

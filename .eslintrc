@@ -4,6 +4,7 @@
     "oclif-typescript"
   ],
   "rules": {
-    "require-atomic-updates": "off"
+    "require-atomic-updates": "off",
+    "ban-ts-comment": 0
   }
 }

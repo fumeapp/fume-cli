@@ -8,7 +8,9 @@ import ConfigTasks from '../lib/configtasks'
 export default class Config extends Command {
   static description = 'Generate a fume.yml config'
 
-  static flags = {
+  // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+  // @ts-ignore
+  static flags:  {help: any} = {
     help: flags.help({char: 'h'}),
   }
 
