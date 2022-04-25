@@ -216,7 +216,7 @@ export default class DeployTasks {
   // check if our setup is using nuxt3 or nuxt-bridge - in that case compile with nitro
   async checkNitro(): Promise<boolean> {
     const pkg = JSON.parse(fs.readFileSync('package.json').toString()) as Record<string, any>
-    if (pkg.devDependencies && pkg.devDependencies.nuxt3) return true
+    if (pkg.devDependencies && (pkg.devDependencies.nuxt3 || pkg?.devDependencies?.nuxt?.includes('^3'))) return true
     return Boolean(pkg.devDependencies && pkg.devDependencies['@nuxt/bridge'])
   }
 
@@ -264,7 +264,7 @@ export default class DeployTasks {
     let args: Array<string> = []
     try {
       args = this.packager === 'npm' ? ['run', 'build'] : ['build']
-      await (this.nitro ? execa(this.packager, args, {env: {NITRO_PRESET: 'lambda'}}) : execa(this.packager, args))
+      await (this.nitro ? execa(this.packager, args, {env: {NITRO_PRESET: 'aws-lambda'}}) : execa(this.packager, args))
     } catch (error: any) {
       await this.deployment.fail({
         message: 'Error bundling server and client',
