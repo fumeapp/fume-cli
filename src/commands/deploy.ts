@@ -7,6 +7,7 @@ import ConfigTasks from '../lib/configtasks'
 import {Auth} from '../lib/auth'
 import onDeath from 'death'
 import DeployTasks from '../lib/deploytasks'
+import { toUnicode } from 'punycode'
 
 export default class Deploy extends Command {
   static description = 'Deploy an Environment'
@@ -133,6 +134,29 @@ export default class Deploy extends Command {
       },
     ], {concurrent: false})
 
+    const tonic = new Listr([
+      {
+        title: 'Compile go package',
+        task: (ctx, task) => dp.goCompile(task),
+      },
+      {
+        title: 'Archive binary',
+        task: (ctx, task) => dp.goArchive(task),
+      },
+      {
+        title: 'Upload binary archive',
+        task: (ctx, task) => dp.goUpload(task),
+      },
+      {
+        title: 'Deploy to function',
+        task: (ctx, task) => dp.deploy('DEPLOY_FUNCTION', task),
+      },
+      {
+        title: 'Cleanup deployment',
+        task: () => dp.cleanup(),
+      },
+    ], {concurrent: false})
+
     const image = new Listr([
       {
         title: 'Send dependencies',
@@ -203,7 +227,9 @@ export default class Deploy extends Command {
     ], {concurrent: false})
 
     await initial.run().catch(error => this.error(error))
-    if (dp.framework === 'NestJS')  {
+    if (dp.framework === 'Tonic')  {
+      await tonic.run().catch(error => this.error(error))
+    } else if (dp.framework === 'NestJS')  {
       await nest.run().catch(error => this.error(error))
       await image.run().catch(error => this.error(error))
     } else {
