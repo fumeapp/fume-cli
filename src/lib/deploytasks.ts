@@ -202,7 +202,7 @@ export default class DeployTasks {
     this.structure = this.deployment.entry.project.structure
     this.variables = this.deployment.entry.env.variables
     if (this.structure === 'headless') this.mode = Mode.headless
-    if (this.framework !== 'Tonic' && this.structure === 'ssr') {
+    if (this.framework !== 'Go' && this.structure === 'ssr') {
       if (await this.checkNitro()) {
         this.nitro = true
         task.title  += ` - ${chalk.yellowBright('⚡')}nitro detected`

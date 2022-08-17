@@ -134,7 +134,7 @@ export default class Deploy extends Command {
       },
     ], {concurrent: false})
 
-    const tonic = new Listr([
+    const go = new Listr([
       {
         title: 'Compile go package',
         task: (ctx, task) => dp.goCompile(task),
@@ -227,8 +227,8 @@ export default class Deploy extends Command {
     ], {concurrent: false})
 
     await initial.run().catch(error => this.error(error))
-    if (dp.framework === 'Tonic')  {
-      await tonic.run().catch(error => this.error(error))
+    if (dp.framework === 'Go')  {
+      await go.run().catch(error => this.error(error))
     } else if (dp.framework === 'NestJS')  {
       await nest.run().catch(error => this.error(error))
       await image.run().catch(error => this.error(error))
