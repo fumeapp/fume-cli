@@ -268,7 +268,7 @@ export default class DeployTasks {
   }
 
   async goArchive(task: ListrTaskWrapper<any, any>) {
-    this.mode = Mode.raw
+    this.mode = Mode.native
     await this.deployment.update('GO_ARCHIVE')
     task.title = 'Archiving go binary'
     this.size = {

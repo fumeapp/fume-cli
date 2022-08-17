@@ -50,7 +50,7 @@ export enum PackageType {
 }
 
 export enum Mode {
-  raw = 'raw',
+  native = 'native',
   layer = 'layer',
   efs = 'efs',
   headless = 'headless',
