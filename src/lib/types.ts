@@ -50,6 +50,7 @@ export enum PackageType {
 }
 
 export enum Mode {
+  native = 'native',
   layer = 'layer',
   efs = 'efs',
   headless = 'headless',
@@ -57,11 +58,11 @@ export enum Mode {
 }
 
 export interface Size {
-  pub: number;
-  server: number;
-  deps: number;
+  pub?: number;
+  server?: number;
+  deps?: number;
   code: number;
-  static: number;
+  static?: number;
 }
 
 export interface Project {

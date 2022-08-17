@@ -9,6 +9,8 @@ import numeral from 'numeral'
 import {cli} from 'cli-ux'
 import fse = require('fs-extra')
 import yml = require('js-yaml')
+import { urlToHttpOptions } from 'http'
+import getFolderSize from 'get-folder-size'
 const {stringify}  = require('envfile')
 
 // const {transformSync} = require('@babel/core')
@@ -200,7 +202,7 @@ export default class DeployTasks {
     this.structure = this.deployment.entry.project.structure
     this.variables = this.deployment.entry.env.variables
     if (this.structure === 'headless') this.mode = Mode.headless
-    if (this.structure === 'ssr') {
+    if (this.framework !== 'Go' && this.structure === 'ssr') {
       if (await this.checkNitro()) {
         this.nitro = true
         task.title  += ` - ${chalk.yellowBright('⚡')}nitro detected`
@@ -257,6 +259,50 @@ export default class DeployTasks {
 
     task.title = `Running ${chalk.bold(this.packager)} ${args.join(' ')}`
     await execa(this.packager, args)
+  }
+
+  async goCompile(task: ListrTaskWrapper<any, any>) {
+    task.title = 'Compiling go binary'
+    await this.deployment.update('GO_COMPILE')
+    await execa('go', ['build', '-o', 'main', 'main.go'], {env: {GOOS: 'linux', GOARCH: 'amd64'}})
+  }
+
+  async goArchive(task: ListrTaskWrapper<any, any>) {
+    this.mode = Mode.native
+    await this.deployment.update('GO_ARCHIVE')
+    task.title = 'Archiving go binary'
+    this.size = {
+      code: fs.statSync('main').size,
+    }
+    await execa('zip', [this.deployment.s3.code, 'main'])
+  }
+
+  async goUpload(task: ListrTaskWrapper<any, any>) {
+    await this.deployment.update('UPLOAD_BINARY')
+    task.title = 'Uploading binary archive'
+    const sts = await this.deployment.sts()
+    return new Promise((resolve, reject) => {
+      new S3.ManagedUpload({
+        service: new S3(sts),
+        params: {
+          Bucket: this.deployment.s3.bucket,
+          Key: this.deployment.s3.code,
+          Body: fs.createReadStream(this.deployment.s3.code),
+        },
+      }).on('httpUploadProgress', event => {
+        task.title = `Uploading binary archive: ${numeral((event.loaded / event.total)).format('0%')}`
+      }).send(async (error: any) => {
+        if (error) {
+          await this.deployment.fail({
+            message: error.message,
+            detail: error,
+          })
+          reject(error)
+        } else {
+          resolve(true)
+        }
+      })
+    })
   }
 
   async build() {
@@ -475,8 +521,11 @@ export default class DeployTasks {
       fs.unlinkSync('.env.fume')
     }
 
-    if (this && this.deployment.s3 && fs.existsSync(this.deployment.s3.paths.code))
-      fs.unlinkSync(this.deployment.s3.paths.code)
+    if (fs.existsSync('main')) fse.removeSync('main')
+    if (fs.existsSync(this.deployment.s3.paths.code)) fse.removeSync(this.deployment.s3.paths.code)
+
+    if (this && this.deployment.s3.code && fs.existsSync(this.deployment.s3.code))
+      fs.unlinkSync(this.deployment.s3.code)
     if (this && this.deployment.s3 && fs.existsSync(this.deployment.s3.paths.layer))
       fs.unlinkSync(this.deployment.s3.paths.layer)
   }
