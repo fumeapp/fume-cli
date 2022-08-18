@@ -20,7 +20,7 @@ $ npm install -g fume-cli
 $ fume COMMAND
 running command...
 $ fume (--version)
-fume-cli/0.2.10 darwin-arm64 node-v16.16.0
+fume-cli/0.2.11 darwin-arm64 node-v16.16.0
 $ fume --help [COMMAND]
 USAGE
   $ fume COMMAND
@@ -33,7 +33,6 @@ USAGE
 * [`fume auth:logout`](#fume-authlogout)
 * [`fume auth:status`](#fume-authstatus)
 * [`fume config`](#fume-config)
-* [`fume deploy [ENVIRONMENT]`](#fume-deploy-environment)
 * [`fume help [COMMAND]`](#fume-help-command)
 * [`fume login`](#fume-login)
 * [`fume logout`](#fume-logout)
@@ -63,7 +62,7 @@ ALIASES
   $ fume login
 ```
 
-_See code: [dist/commands/auth/login.ts](https://github.com/fumeapp/fume-cli/blob/v0.2.10/dist/commands/auth/login.ts)_
+_See code: [dist/commands/auth/login.ts](https://github.com/fumeapp/fume-cli/blob/v0.2.11/dist/commands/auth/login.ts)_
 
 ## `fume auth:logout`
 
@@ -80,7 +79,7 @@ ALIASES
   $ fume logout
 ```
 
-_See code: [dist/commands/auth/logout.ts](https://github.com/fumeapp/fume-cli/blob/v0.2.10/dist/commands/auth/logout.ts)_
+_See code: [dist/commands/auth/logout.ts](https://github.com/fumeapp/fume-cli/blob/v0.2.11/dist/commands/auth/logout.ts)_
 
 ## `fume auth:status`
 
@@ -97,7 +96,7 @@ ALIASES
   $ fume status
 ```
 
-_See code: [dist/commands/auth/status.ts](https://github.com/fumeapp/fume-cli/blob/v0.2.10/dist/commands/auth/status.ts)_
+_See code: [dist/commands/auth/status.ts](https://github.com/fumeapp/fume-cli/blob/v0.2.11/dist/commands/auth/status.ts)_
 
 ## `fume config`
 
@@ -114,30 +113,7 @@ DESCRIPTION
   Generate a fume.yml config
 ```
 
-_See code: [dist/commands/config.ts](https://github.com/fumeapp/fume-cli/blob/v0.2.10/dist/commands/config.ts)_
-
-## `fume deploy [ENVIRONMENT]`
-
-Deploy an Environment
-
-```
-USAGE
-  $ fume deploy [ENVIRONMENT] [-h]
-
-ARGUMENTS
-  ENVIRONMENT  environment to deploy to (ex: staging)
-
-FLAGS
-  -h, --help  Show CLI help.
-
-DESCRIPTION
-  Deploy an Environment
-
-EXAMPLES
-  $ fume deploy staging
-```
-
-_See code: [dist/commands/deploy.ts](https://github.com/fumeapp/fume-cli/blob/v0.2.10/dist/commands/deploy.ts)_
+_See code: [dist/commands/config.ts](https://github.com/fumeapp/fume-cli/blob/v0.2.11/dist/commands/config.ts)_
 
 ## `fume help [COMMAND]`
 
