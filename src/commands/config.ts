@@ -1,4 +1,4 @@
-import {flags} from '@oclif/command'
+import {Flags} from '@oclif/core'
 import {Listr} from 'listr2'
 import Command from '../base'
 import AuthStatus from './auth/status'
@@ -11,7 +11,7 @@ export default class Config extends Command {
   // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
   // @ts-ignore
   static flags:  {help: any} = {
-    help: flags.help({char: 'h'}),
+    help: Flags.help({char: 'h'}),
   }
 
   private auth!: Auth

@@ -19,7 +19,7 @@ fume command line interface
 $ npm install -g fume-cli
 $ fume COMMAND
 running command...
-$ fume (-v|--version|version)
+$ fume (--version)
 fume-cli/0.2.8 darwin-arm64 node-v16.13.1
 $ fume --help [COMMAND]
 USAGE
@@ -35,6 +35,18 @@ USAGE
 * [`fume config`](#fume-config)
 * [`fume deploy [ENVIRONMENT]`](#fume-deploy-environment)
 * [`fume help [COMMAND]`](#fume-help-command)
+* [`fume login`](#fume-login)
+* [`fume logout`](#fume-logout)
+* [`fume plugins`](#fume-plugins)
+* [`fume plugins:install PLUGIN...`](#fume-pluginsinstall-plugin)
+* [`fume plugins:inspect PLUGIN...`](#fume-pluginsinspect-plugin)
+* [`fume plugins:install PLUGIN...`](#fume-pluginsinstall-plugin-1)
+* [`fume plugins:link PLUGIN`](#fume-pluginslink-plugin)
+* [`fume plugins:uninstall PLUGIN...`](#fume-pluginsuninstall-plugin)
+* [`fume plugins:uninstall PLUGIN...`](#fume-pluginsuninstall-plugin-1)
+* [`fume plugins:uninstall PLUGIN...`](#fume-pluginsuninstall-plugin-2)
+* [`fume plugins:update`](#fume-pluginsupdate)
+* [`fume status`](#fume-status)
 
 ## `fume auth:login`
 
@@ -44,11 +56,14 @@ Login to fume
 USAGE
   $ fume auth:login
 
+DESCRIPTION
+  Login to fume
+
 ALIASES
   $ fume login
 ```
 
-_See code: [src/commands/auth/login.ts](https://github.com/fumeapp/fume-cli/blob/v0.2.8/src/commands/auth/login.ts)_
+_See code: [dist/commands/auth/login.ts](https://github.com/fumeapp/fume-cli/blob/v0.2.8/dist/commands/auth/login.ts)_
 
 ## `fume auth:logout`
 
@@ -58,11 +73,14 @@ Invalidate token and remove credentials
 USAGE
   $ fume auth:logout
 
+DESCRIPTION
+  Invalidate token and remove credentials
+
 ALIASES
   $ fume logout
 ```
 
-_See code: [src/commands/auth/logout.ts](https://github.com/fumeapp/fume-cli/blob/v0.2.8/src/commands/auth/logout.ts)_
+_See code: [dist/commands/auth/logout.ts](https://github.com/fumeapp/fume-cli/blob/v0.2.8/dist/commands/auth/logout.ts)_
 
 ## `fume auth:status`
 
@@ -72,11 +90,14 @@ View authentication status
 USAGE
   $ fume auth:status
 
+DESCRIPTION
+  View authentication status
+
 ALIASES
   $ fume status
 ```
 
-_See code: [src/commands/auth/status.ts](https://github.com/fumeapp/fume-cli/blob/v0.2.8/src/commands/auth/status.ts)_
+_See code: [dist/commands/auth/status.ts](https://github.com/fumeapp/fume-cli/blob/v0.2.8/dist/commands/auth/status.ts)_
 
 ## `fume config`
 
@@ -84,13 +105,16 @@ Generate a fume.yml config
 
 ```
 USAGE
-  $ fume config
+  $ fume config [-h]
 
-OPTIONS
-  -h, --help  show CLI help
+FLAGS
+  -h, --help  Show CLI help.
+
+DESCRIPTION
+  Generate a fume.yml config
 ```
 
-_See code: [src/commands/config.ts](https://github.com/fumeapp/fume-cli/blob/v0.2.8/src/commands/config.ts)_
+_See code: [dist/commands/config.ts](https://github.com/fumeapp/fume-cli/blob/v0.2.8/dist/commands/config.ts)_
 
 ## `fume deploy [ENVIRONMENT]`
 
@@ -98,34 +122,325 @@ Deploy an Environment
 
 ```
 USAGE
-  $ fume deploy [ENVIRONMENT]
+  $ fume deploy [ENVIRONMENT] [-h]
 
 ARGUMENTS
   ENVIRONMENT  environment to deploy to (ex: staging)
 
-OPTIONS
-  -h, --help  show CLI help
+FLAGS
+  -h, --help  Show CLI help.
 
-EXAMPLE
+DESCRIPTION
+  Deploy an Environment
+
+EXAMPLES
   $ fume deploy staging
 ```
 
-_See code: [src/commands/deploy.ts](https://github.com/fumeapp/fume-cli/blob/v0.2.8/src/commands/deploy.ts)_
+_See code: [dist/commands/deploy.ts](https://github.com/fumeapp/fume-cli/blob/v0.2.8/dist/commands/deploy.ts)_
 
 ## `fume help [COMMAND]`
 
-display help for fume
+Display help for fume.
 
 ```
 USAGE
-  $ fume help [COMMAND]
+  $ fume help [COMMAND] [-n]
 
 ARGUMENTS
-  COMMAND  command to show help for
+  COMMAND  Command to show help for.
 
-OPTIONS
-  --all  see all commands in CLI
+FLAGS
+  -n, --nested-commands  Include all nested commands in the output.
+
+DESCRIPTION
+  Display help for fume.
 ```
 
-_See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v3.3.1/src/commands/help.ts)_
+_See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v5.1.12/src/commands/help.ts)_
+
+## `fume login`
+
+Login to fume
+
+```
+USAGE
+  $ fume login
+
+DESCRIPTION
+  Login to fume
+
+ALIASES
+  $ fume login
+```
+
+## `fume logout`
+
+Invalidate token and remove credentials
+
+```
+USAGE
+  $ fume logout
+
+DESCRIPTION
+  Invalidate token and remove credentials
+
+ALIASES
+  $ fume logout
+```
+
+## `fume plugins`
+
+List installed plugins.
+
+```
+USAGE
+  $ fume plugins [--core]
+
+FLAGS
+  --core  Show core plugins.
+
+DESCRIPTION
+  List installed plugins.
+
+EXAMPLES
+  $ fume plugins
+```
+
+_See code: [@oclif/plugin-plugins](https://github.com/oclif/plugin-plugins/blob/v2.1.0/src/commands/plugins/index.ts)_
+
+## `fume plugins:install PLUGIN...`
+
+Installs a plugin into the CLI.
+
+```
+USAGE
+  $ fume plugins:install PLUGIN...
+
+ARGUMENTS
+  PLUGIN  Plugin to install.
+
+FLAGS
+  -f, --force    Run yarn install with force flag.
+  -h, --help     Show CLI help.
+  -v, --verbose
+
+DESCRIPTION
+  Installs a plugin into the CLI.
+
+  Can be installed from npm or a git url.
+
+  Installation of a user-installed plugin will override a core plugin.
+
+  e.g. If you have a core plugin that has a 'hello' command, installing a user-installed plugin with a 'hello' command
+  will override the core plugin implementation. This is useful if a user needs to update core plugin functionality in
+  the CLI without the need to patch and update the whole CLI.
+
+ALIASES
+  $ fume plugins:add
+
+EXAMPLES
+  $ fume plugins:install myplugin 
+
+  $ fume plugins:install https://github.com/someuser/someplugin
+
+  $ fume plugins:install someuser/someplugin
+```
+
+## `fume plugins:inspect PLUGIN...`
+
+Displays installation properties of a plugin.
+
+```
+USAGE
+  $ fume plugins:inspect PLUGIN...
+
+ARGUMENTS
+  PLUGIN  [default: .] Plugin to inspect.
+
+FLAGS
+  -h, --help     Show CLI help.
+  -v, --verbose
+
+DESCRIPTION
+  Displays installation properties of a plugin.
+
+EXAMPLES
+  $ fume plugins:inspect myplugin
+```
+
+_See code: [@oclif/plugin-plugins](https://github.com/oclif/plugin-plugins/blob/v2.1.0/src/commands/plugins/inspect.ts)_
+
+## `fume plugins:install PLUGIN...`
+
+Installs a plugin into the CLI.
+
+```
+USAGE
+  $ fume plugins:install PLUGIN...
+
+ARGUMENTS
+  PLUGIN  Plugin to install.
+
+FLAGS
+  -f, --force    Run yarn install with force flag.
+  -h, --help     Show CLI help.
+  -v, --verbose
+
+DESCRIPTION
+  Installs a plugin into the CLI.
+
+  Can be installed from npm or a git url.
+
+  Installation of a user-installed plugin will override a core plugin.
+
+  e.g. If you have a core plugin that has a 'hello' command, installing a user-installed plugin with a 'hello' command
+  will override the core plugin implementation. This is useful if a user needs to update core plugin functionality in
+  the CLI without the need to patch and update the whole CLI.
+
+ALIASES
+  $ fume plugins:add
+
+EXAMPLES
+  $ fume plugins:install myplugin 
+
+  $ fume plugins:install https://github.com/someuser/someplugin
+
+  $ fume plugins:install someuser/someplugin
+```
+
+_See code: [@oclif/plugin-plugins](https://github.com/oclif/plugin-plugins/blob/v2.1.0/src/commands/plugins/install.ts)_
+
+## `fume plugins:link PLUGIN`
+
+Links a plugin into the CLI for development.
+
+```
+USAGE
+  $ fume plugins:link PLUGIN
+
+ARGUMENTS
+  PATH  [default: .] path to plugin
+
+FLAGS
+  -h, --help     Show CLI help.
+  -v, --verbose
+
+DESCRIPTION
+  Links a plugin into the CLI for development.
+
+  Installation of a linked plugin will override a user-installed or core plugin.
+
+  e.g. If you have a user-installed or core plugin that has a 'hello' command, installing a linked plugin with a 'hello'
+  command will override the user-installed or core plugin implementation. This is useful for development work.
+
+EXAMPLES
+  $ fume plugins:link myplugin
+```
+
+_See code: [@oclif/plugin-plugins](https://github.com/oclif/plugin-plugins/blob/v2.1.0/src/commands/plugins/link.ts)_
+
+## `fume plugins:uninstall PLUGIN...`
+
+Removes a plugin from the CLI.
+
+```
+USAGE
+  $ fume plugins:uninstall PLUGIN...
+
+ARGUMENTS
+  PLUGIN  plugin to uninstall
+
+FLAGS
+  -h, --help     Show CLI help.
+  -v, --verbose
+
+DESCRIPTION
+  Removes a plugin from the CLI.
+
+ALIASES
+  $ fume plugins:unlink
+  $ fume plugins:remove
+```
+
+## `fume plugins:uninstall PLUGIN...`
+
+Removes a plugin from the CLI.
+
+```
+USAGE
+  $ fume plugins:uninstall PLUGIN...
+
+ARGUMENTS
+  PLUGIN  plugin to uninstall
+
+FLAGS
+  -h, --help     Show CLI help.
+  -v, --verbose
+
+DESCRIPTION
+  Removes a plugin from the CLI.
+
+ALIASES
+  $ fume plugins:unlink
+  $ fume plugins:remove
+```
+
+_See code: [@oclif/plugin-plugins](https://github.com/oclif/plugin-plugins/blob/v2.1.0/src/commands/plugins/uninstall.ts)_
+
+## `fume plugins:uninstall PLUGIN...`
+
+Removes a plugin from the CLI.
+
+```
+USAGE
+  $ fume plugins:uninstall PLUGIN...
+
+ARGUMENTS
+  PLUGIN  plugin to uninstall
+
+FLAGS
+  -h, --help     Show CLI help.
+  -v, --verbose
+
+DESCRIPTION
+  Removes a plugin from the CLI.
+
+ALIASES
+  $ fume plugins:unlink
+  $ fume plugins:remove
+```
+
+## `fume plugins:update`
+
+Update installed plugins.
+
+```
+USAGE
+  $ fume plugins:update [-h] [-v]
+
+FLAGS
+  -h, --help     Show CLI help.
+  -v, --verbose
+
+DESCRIPTION
+  Update installed plugins.
+```
+
+_See code: [@oclif/plugin-plugins](https://github.com/oclif/plugin-plugins/blob/v2.1.0/src/commands/plugins/update.ts)_
+
+## `fume status`
+
+View authentication status
+
+```
+USAGE
+  $ fume status
+
+DESCRIPTION
+  View authentication status
+
+ALIASES
+  $ fume status
+```
 <!-- commandsstop -->
