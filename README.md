@@ -33,6 +33,7 @@ USAGE
 * [`fume auth:logout`](#fume-authlogout)
 * [`fume auth:status`](#fume-authstatus)
 * [`fume config`](#fume-config)
+* [`fume deploy [ENVIRONMENT]`](#fume-deploy-environment)
 * [`fume help [COMMAND]`](#fume-help-command)
 * [`fume login`](#fume-login)
 * [`fume logout`](#fume-logout)
@@ -114,6 +115,29 @@ DESCRIPTION
 ```
 
 _See code: [dist/commands/config.ts](https://github.com/fumeapp/fume-cli/blob/v0.2.11/dist/commands/config.ts)_
+
+## `fume deploy [ENVIRONMENT]`
+
+Deploy an Environment
+
+```
+USAGE
+  $ fume deploy [ENVIRONMENT] [-h]
+
+ARGUMENTS
+  ENVIRONMENT  environment to deploy to (ex: staging)
+
+FLAGS
+  -h, --help  Show CLI help.
+
+DESCRIPTION
+  Deploy an Environment
+
+EXAMPLES
+  $ fume deploy staging
+```
+
+_See code: [dist/commands/deploy.ts](https://github.com/fumeapp/fume-cli/blob/v0.2.11/dist/commands/deploy.ts)_
 
 ## `fume help [COMMAND]`
 

@@ -9,7 +9,8 @@ import numeral from 'numeral'
 import {cli} from 'cli-ux'
 import fse = require('fs-extra')
 import yml = require('js-yaml')
-import getFolderSize from 'get-folder-size'
+
+const fastFolderSizeSync = require('fast-folder-size/sync')
 const {stringify}  = require('envfile')
 
 // const {transformSync} = require('@babel/core')
@@ -76,8 +77,8 @@ export default class DeployTasks {
       this.mode = Mode.image
 
       this.size = {
-        pub: await getFolderSize.loose('.output/public'),
-        server: await getFolderSize.loose('.output/server'),
+        pub: await fastFolderSizeSync('.output/public'),
+        server: await fastFolderSizeSync('.output/server'),
         deps: 0,
         code: 0,
         static: 0,
@@ -91,15 +92,15 @@ export default class DeployTasks {
     }
 
     this.size = this.deployment.entry.project.framework === 'NestJS' ? {
-      deps: await getFolderSize.loose('node_modules'),
-      code: await getFolderSize.loose('dist'),
+      deps: await fastFolderSizeSync('node_modules'),
+      code: await fastFolderSizeSync('dist'),
       static: 0,
       pub: 0,
       server: 0,
     } : {
-      deps: await getFolderSize.loose('node_modules'),
-      code: await getFolderSize.loose('.nuxt'),
-      static: await getFolderSize.loose(this.staticDir),
+      deps: await fastFolderSizeSync('node_modules'),
+      code: await fastFolderSizeSync('.nuxt'),
+      static: await fastFolderSizeSync(this.staticDir),
       pub: 0,
       server: 0,
     }
