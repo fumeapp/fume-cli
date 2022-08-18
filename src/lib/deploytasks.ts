@@ -71,14 +71,13 @@ export default class DeployTasks {
 
   async modeSelect(task: any) {
     const util = require('util')
-    const getFolderSize = util.promisify(require('get-folder-size'))
     const format = '0.0b'
     if (this.nitro) {
       this.mode = Mode.image
 
       this.size = {
-        pub: await getFolderSize('.output/public'),
-        server: await getFolderSize('.output/server'),
+        pub: await getFolderSize.loose('.output/public'),
+        server: await getFolderSize.loose('.output/server'),
         deps: 0,
         code: 0,
         static: 0,
@@ -92,15 +91,15 @@ export default class DeployTasks {
     }
 
     this.size = this.deployment.entry.project.framework === 'NestJS' ? {
-      deps: await getFolderSize('node_modules'),
-      code: await getFolderSize('dist'),
+      deps: await getFolderSize.loose('node_modules'),
+      code: await getFolderSize.loose('dist'),
       static: 0,
       pub: 0,
       server: 0,
     } : {
-      deps: await getFolderSize('node_modules'),
-      code: await getFolderSize('.nuxt'),
-      static: await getFolderSize(this.staticDir),
+      deps: await getFolderSize.loose('node_modules'),
+      code: await getFolderSize.loose('.nuxt'),
+      static: await getFolderSize.loose(this.staticDir),
       pub: 0,
       server: 0,
     }
