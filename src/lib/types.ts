@@ -58,11 +58,11 @@ export enum Mode {
 }
 
 export interface Size {
-  pub?: number;
-  server?: number;
-  deps?: number;
+  pub: number;
+  server: number;
+  deps: number;
   code: number;
-  static?: number;
+  static: number;
 }
 
 export interface Project {

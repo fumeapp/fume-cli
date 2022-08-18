@@ -1,4 +1,4 @@
-import Command from '@oclif/command'
+import {Command} from '@oclif/core'
 import {FumeEnvironment} from './lib/types'
 const {oclif} = require('../package.json')
 

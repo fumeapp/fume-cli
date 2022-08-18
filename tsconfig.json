@@ -3,13 +3,13 @@
     "declaration": true,
     "importHelpers": true,
     "module": "commonjs",
-    "outDir": "lib",
+    "outDir": "dist",
     "rootDir": "src",
     "strict": true,
-    "target": "es2017",
-    "skipLibCheck": true,
     "esModuleInterop": true,
-    "resolveJsonModule": true
+    "target": "es2019"
   },
-  "include": ["src/**/*" ]
+  "include": [
+    "src/**/*"
+  ]
 }

@@ -9,7 +9,6 @@ import numeral from 'numeral'
 import {cli} from 'cli-ux'
 import fse = require('fs-extra')
 import yml = require('js-yaml')
-import { urlToHttpOptions } from 'http'
 import getFolderSize from 'get-folder-size'
 const {stringify}  = require('envfile')
 
@@ -272,7 +271,11 @@ export default class DeployTasks {
     await this.deployment.update('GO_ARCHIVE')
     task.title = 'Archiving go binary'
     this.size = {
+      pub: 0,
+      server: 0,
+      deps: 0,
       code: fs.statSync('main').size,
+      static: 0,
     }
     await execa('zip', [this.deployment.s3.code, 'main'])
   }

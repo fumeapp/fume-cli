@@ -1,4 +1,4 @@
-import {Hook} from '@oclif/config'
+import {Hook} from '@oclif/core'
 import chalk from 'chalk'
 
 const hook: Hook<'init'> = async function () {
