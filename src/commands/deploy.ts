@@ -1,18 +1,19 @@
 import Command from '../base'
 import AuthStatus from './auth/status'
-import {flags} from '@oclif/command'
+import {Flags} from '@oclif/core'
 import {Listr} from 'listr2'
 import {Mode, PackageType} from '../lib/types'
 import ConfigTasks from '../lib/configtasks'
 import {Auth} from '../lib/auth'
-import onDeath from 'death'
+import onDeath = require('death')
 import DeployTasks from '../lib/deploytasks'
+import { toUnicode } from 'punycode'
 
 export default class Deploy extends Command {
   static description = 'Deploy an Environment'
 
   static flags:  {help: any} = {
-    help: flags.help({char: 'h'}),
+    help: Flags.help({char: 'h'}),
   }
 
   static examples = [
@@ -30,7 +31,7 @@ export default class Deploy extends Command {
   private auth!: Auth
 
   async run() {
-    const {args: {environment}} = this.parse(Deploy)
+    const {args: {environment}} = await this.parse(Deploy)
     if (process.platform === 'win32')
       this.error('Windows is not supported yet')
 
@@ -133,6 +134,29 @@ export default class Deploy extends Command {
       },
     ], {concurrent: false})
 
+    const go = new Listr([
+      {
+        title: 'Compile go package',
+        task: (ctx, task) => dp.goCompile(task),
+      },
+      {
+        title: 'Archive binary',
+        task: (ctx, task) => dp.goArchive(task),
+      },
+      {
+        title: 'Upload binary archive',
+        task: (ctx, task) => dp.goUpload(task),
+      },
+      {
+        title: 'Deploy to function',
+        task: (ctx, task) => dp.deploy('DEPLOY_FUNCTION', task),
+      },
+      {
+        title: 'Cleanup deployment',
+        task: () => dp.cleanup(),
+      },
+    ], {concurrent: false})
+
     const image = new Listr([
       {
         title: 'Send dependencies',
@@ -202,8 +226,10 @@ export default class Deploy extends Command {
       },
     ], {concurrent: false})
 
-    await initial.run().catch(error => this.error(error))
-    if (dp.framework === 'NestJS')  {
+   await initial.run().catch(error => this.error(error))
+    if (dp.framework === 'Go')  {
+      await go.run().catch(error => this.error(error))
+    } else if (dp.framework === 'NestJS')  {
       await nest.run().catch(error => this.error(error))
       await image.run().catch(error => this.error(error))
     } else {

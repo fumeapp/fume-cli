@@ -1,4 +1,4 @@
-import {Hook} from '@oclif/config'
+import {Hook} from '@oclif/core'
 import chalk from 'chalk'
 import axios from 'axios'
 
