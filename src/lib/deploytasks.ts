@@ -1,17 +1,17 @@
 import Deployment from './deployment'
 import chalk from 'chalk'
-import {FumeEnvironment, Mode, PackageType, Size, Variable, YamlConfig} from './types'
-import {Listr, ListrTaskWrapper} from 'listr2'
+import { FumeEnvironment, Mode, PackageType, Size, Variable, YamlConfig } from './types'
+import { Listr, ListrTaskWrapper } from 'listr2'
 import S3 from 'aws-sdk/clients/s3'
 import * as fs from 'fs'
 import execa from 'execa'
 import numeral from 'numeral'
-import {cli} from 'cli-ux'
+import { cli } from 'cli-ux'
 import fse = require('fs-extra')
 import yml = require('js-yaml')
 
 const fastFolderSizeSync = require('fast-folder-size/sync')
-const {stringify}  = require('envfile')
+const { stringify } = require('envfile')
 
 // const {transformSync} = require('@babel/core')
 
@@ -74,7 +74,14 @@ export default class DeployTasks {
     const util = require('util')
     const format = '0.0b'
     if (this.nitro) {
-      this.mode = Mode.image
+      this.mode = Mode.native
+
+      fs.writeFileSync('.output/server/fume.js', `
+exports.handler = async (event, context) => {
+  const { handler } = await import('/var/task/.output/server/index.mjs');
+  return handler(event, context);
+}`)
+
 
       this.size = {
         pub: await fastFolderSizeSync('.output/public'),
@@ -204,7 +211,7 @@ export default class DeployTasks {
     if (this.framework !== 'Go' && this.structure === 'ssr') {
       if (await this.checkNitro()) {
         this.nitro = true
-        task.title  += ` - ${chalk.yellowBright('⚡')}nitro detected`
+        task.title += ` - ${chalk.yellowBright('⚡')}nitro d3tected`
       }
 
       this.hash = this.lock()
@@ -239,7 +246,7 @@ export default class DeployTasks {
     if (type === 'production') {
       task.title = `Install production dependencies with ${chalk.bold(this.packager)}`
       await this.deployment.update('YARN_PROD')
-    }  else {
+    } else {
       task.title = `Install all dependencies with ${chalk.bold(this.packager)}`
       await this.deployment.update('YARN_ALL')
     }
@@ -263,7 +270,7 @@ export default class DeployTasks {
   async goCompile(task: ListrTaskWrapper<any, any>) {
     task.title = 'Compiling go binary'
     await this.deployment.update('GO_COMPILE')
-    await execa('go', ['build', '-o', 'main', 'main.go'], {env: {GOOS: 'linux', GOARCH: 'amd64'}})
+    await execa('go', ['build', '-o', 'main', 'main.go'], { env: { GOOS: 'linux', GOARCH: 'amd64' } })
   }
 
   async goArchive(task: ListrTaskWrapper<any, any>) {
@@ -279,6 +286,44 @@ export default class DeployTasks {
     }
     await execa('zip', [this.deployment.s3.code, 'main'])
   }
+
+  async outputArchive(task: ListrTaskWrapper<any, any>) {
+    this.mode = Mode.native
+    await this.deployment.update('MAKE_CODE_ZIP')
+    task.title = 'Archiving .output binary'
+    await execa('zip', ['-r', this.deployment.s3.code, '.output'])
+  }
+
+
+  async outputUpload(task: ListrTaskWrapper<any, any>) {
+    await this.deployment.update('UPLOAD_CODE_ZIP')
+    task.title = 'Uploading .output archvie'
+    const sts = await this.deployment.sts()
+    return new Promise((resolve, reject) => {
+      new S3.ManagedUpload({
+        service: new S3(sts),
+        params: {
+          Bucket: this.deployment.s3.bucket,
+          Key: this.deployment.s3.code,
+          Body: fs.createReadStream(this.deployment.s3.code),
+        },
+      }).on('httpUploadProgress', event => {
+        task.title = `Uploading .output archive: ${numeral((event.loaded / event.total)).format('0%')}`
+      }).send(async (error: any) => {
+        if (error) {
+          await this.deployment.fail({
+            message: error.message,
+            detail: error,
+          })
+          reject(error)
+        } else {
+          resolve(true)
+        }
+      })
+    })
+  }
+
+
 
   async goUpload(task: ListrTaskWrapper<any, any>) {
     await this.deployment.update('UPLOAD_BINARY')
@@ -309,11 +354,11 @@ export default class DeployTasks {
   }
 
   async build() {
-    await this.deployment.update('NUXT_BUILD', {nitro: this.nitro})
+    await this.deployment.update('NUXT_BUILD', { nitro: this.nitro })
     let args: Array<string> = []
     try {
       args = this.packager === 'npm' ? ['run', 'build'] : ['build']
-      await (this.nitro ? execa(this.packager, args, {env: {NITRO_PRESET: 'aws-lambda'}}) : execa(this.packager, args))
+      await (this.nitro ? execa(this.packager, args, { env: { NITRO_PRESET: 'aws-lambda' } }) : execa(this.packager, args))
     } catch (error: any) {
       await this.deployment.fail({
         message: 'Error bundling server and client',
@@ -389,7 +434,7 @@ export default class DeployTasks {
   }
 
   async archive(type: PackageType) {
-    if (type ===  PackageType.layer) await this.deployment.update('SYNC_DEPS')
+    if (type === PackageType.layer) await this.deployment.update('SYNC_DEPS')
     if (type === PackageType.code) await this.deployment.update('MAKE_CODE_ZIP')
 
     if (type === PackageType.layer)
@@ -443,10 +488,10 @@ export default class DeployTasks {
     })
   }
 
-  async sync(task: ListrTaskWrapper<any, any>|null, folder: string, bucket: string, status: string, prefix = '', deleteRemoved = true) {
+  async sync(task: ListrTaskWrapper<any, any> | null, folder: string, bucket: string, status: string, prefix = '', deleteRemoved = true) {
     await this.deployment.update(status)
     const sts = await this.deployment.sts()
-    const client = require('@auth0/s3').createClient({s3Client: new S3(sts)})
+    const client = require('@auth0/s3').createClient({ s3Client: new S3(sts) })
     return new Promise((resolve, reject) => {
       const uploader = client.uploadDir({
         localDir: folder,
@@ -469,7 +514,7 @@ export default class DeployTasks {
   }
 
   async image(task: ListrTaskWrapper<any, any>) {
-    await this.deployment.update('IMAGE_BUILD', {nitro: this.nitro})
+    await this.deployment.update('IMAGE_BUILD', { nitro: this.nitro })
     let attempts = 80
     const delay = 5
     while (attempts !== 0) {
@@ -496,29 +541,30 @@ export default class DeployTasks {
     const payload = {
       size: this.size,
     }
-    return this.deployment.update(status, {hash: this.hash, mode: this.mode, payload})
-    .then(response =>  {
-      task.title = 'Deployment Successful: ' + chalk.bold(response.data.data.data)
-    })
-    .catch(async error => {
-      if (error.response.data.errors) {
-        error(error.response.data.errors[0].message)
-      }
+    return this.deployment.update(status, { hash: this.hash, mode: this.mode, payload })
+      .then(response => {
+        task.title = 'Deployment Successful: ' + chalk.bold(response.data.data.data)
+      })
+      .catch(async error => {
+        if (error.response.data.errors) {
+          error(error.response.data.errors[0].message)
+        }
 
-      if (error.message) {
-        await this.deployment.fail({
-          message: error.message,
-          detail: error,
-        })
-        error(error.message)
-      } else if (error.response.data) throw new Error(JSON.stringify(error.response.data))
-      else throw error
-    })
+        if (error.message) {
+          await this.deployment.fail({
+            message: error.message,
+            detail: error,
+          })
+          error(error.message)
+        } else if (error.response.data) throw new Error(JSON.stringify(error.response.data))
+        else throw error
+      })
   }
 
   cleanup() {
-    if (fs.existsSync('.nuxt.config.fume')) fse.moveSync('.nuxt.config.fume', 'nuxt.config.js', {overwrite: true})
+    if (fs.existsSync('.nuxt.config.fume')) fse.moveSync('.nuxt.config.fume', 'nuxt.config.js', { overwrite: true })
     if (fs.existsSync('./.fume')) fse.removeSync('./.fume')
+    if (fs.existsSync('./fume.js')) fse.removeSync('./fume.js')
     if (fs.existsSync('.env.fume')) {
       fs.copyFileSync('.env.fume', '.env')
       fs.unlinkSync('.env.fume')

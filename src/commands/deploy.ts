@@ -1,10 +1,10 @@
 import Command from '../base'
 import AuthStatus from './auth/status'
-import {Flags} from '@oclif/core'
-import {Listr} from 'listr2'
-import {Mode, PackageType} from '../lib/types'
+import { Flags } from '@oclif/core'
+import { Listr } from 'listr2'
+import { Mode, PackageType } from '../lib/types'
 import ConfigTasks from '../lib/configtasks'
-import {Auth} from '../lib/auth'
+import { Auth } from '../lib/auth'
 import onDeath = require('death')
 import DeployTasks from '../lib/deploytasks'
 import { toUnicode } from 'punycode'
@@ -12,8 +12,8 @@ import { toUnicode } from 'punycode'
 export default class Deploy extends Command {
   static description = 'Deploy an Environment'
 
-  static flags:  {help: any} = {
-    help: Flags.help({char: 'h'}),
+  static flags: { help: any } = {
+    help: Flags.help({ char: 'h' }),
   }
 
   static examples = [
@@ -31,7 +31,7 @@ export default class Deploy extends Command {
   private auth!: Auth
 
   async run() {
-    const {args: {environment}} = await this.parse(Deploy)
+    const { args: { environment } } = await this.parse(Deploy)
     if (process.platform === 'win32')
       this.error('Windows is not supported yet')
 
@@ -50,7 +50,7 @@ export default class Deploy extends Command {
       {
         title: 'Create fume configuration',
         task: (ctx, task): Listr =>
-          task.newListr((new ConfigTasks(this.env, this.auth)).tasks(), {concurrent: false}),
+          task.newListr((new ConfigTasks(this.env, this.auth)).tasks(), { concurrent: false }),
         enabled: () => dp.noConfig,
       },
       {
@@ -92,7 +92,7 @@ export default class Deploy extends Command {
         title: 'Analyze project structure',
         task: (ctx, task) => dp.modeSelect(task),
       },
-    ], {concurrent: false})
+    ], { concurrent: false })
 
     const nitro = new Listr([
       {
@@ -109,9 +109,37 @@ export default class Deploy extends Command {
         task: () => dp.build(),
       },
       {
-        title: 'Analyze output structure',
-        task: (ctx, task) => dp.modeSelect(task),
+        title: 'Analyze .output structure',
+        task: (_ctx, task) => dp.modeSelect(task),
       },
+      {
+        title: 'Sending build output',
+        task: () => dp.package(PackageType.output),
+        enabled: () => dp.nitro,
+      },
+      {
+        title: 'Archive .output directory',
+        task: (_ctx, task) => dp.outputArchive(task),
+      },
+      {
+        title: 'Upload archive directory',
+        task: (ctx, task) => dp.outputUpload(task),
+      },
+      {
+        title: 'Restore environment variables',
+        task: () => dp.envRestore(),
+        enabled: () => dp.variables.length > 0,
+      },
+      {
+        title: 'Deploy to function',
+        task: (ctx, task) => dp.deploy('DEPLOY_FUNCTION', task),
+      },
+      {
+        title: 'Cleanup deployment',
+        task: () => dp.cleanup(),
+      },
+
+
     ])
 
     const nest = new Listr([
@@ -132,7 +160,7 @@ export default class Deploy extends Command {
         title: 'Analyze project structure',
         task: (ctx, task) => dp.modeSelect(task),
       },
-    ], {concurrent: false})
+    ], { concurrent: false })
 
     const go = new Listr([
       {
@@ -155,7 +183,7 @@ export default class Deploy extends Command {
         title: 'Cleanup deployment',
         task: () => dp.cleanup(),
       },
-    ], {concurrent: false})
+    ], { concurrent: false })
 
     const image = new Listr([
       {
@@ -224,16 +252,16 @@ export default class Deploy extends Command {
         title: 'Deploy package',
         task: (ctx, task) => dp.deploy('DEPLOY_S3', task),
       },
-    ], {concurrent: false})
+    ], { concurrent: false })
 
-   await initial.run().catch(error => this.error(error))
-    if (dp.framework === 'Go')  {
+    await initial.run().catch(error => this.error(error))
+    if (dp.framework === 'Go') {
       await go.run().catch(error => this.error(error))
-    } else if (dp.framework === 'NestJS')  {
+    } else if (dp.framework === 'NestJS') {
       await nest.run().catch(error => this.error(error))
       await image.run().catch(error => this.error(error))
     } else {
-      if (dp.structure === 'ssr')  {
+      if (dp.structure === 'ssr') {
         if (dp.nitro) await nitro.run().catch(error => this.error(error))
         else await ssr.run().catch(error => this.error(error))
       }
