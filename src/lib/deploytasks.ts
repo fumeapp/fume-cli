@@ -211,7 +211,7 @@ exports.handler = async (event, context) => {
     if (this.framework !== 'Go' && this.structure === 'ssr') {
       if (await this.checkNitro()) {
         this.nitro = true
-        task.title += ` - ${chalk.yellowBright('⚡')}nitro d3tected`
+        task.title += ` - ${chalk.yellowBright('⚡')}nitro detected`
       }
 
       this.hash = this.lock()
@@ -398,6 +398,7 @@ exports.handler = async (event, context) => {
   async package(type: PackageType) {
     if (type === PackageType.output) {
       return new Listr([
+        /*
         {
           title: 'Syncing build output to S3',
           task: (_, task) => this.sync(
@@ -407,6 +408,7 @@ exports.handler = async (event, context) => {
             'SYNC_OUTPUT',
           ),
         },
+        */
         {
           title: 'Syncing _nuxt folder to S3',
           task: (_, task) => this.sync(
