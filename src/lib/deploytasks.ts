@@ -414,7 +414,7 @@ exports.handler = async (event, context) => {
             '.output/public/_nuxt',
             this.deployment.s3.bucket,
             'SYNC_OUTPUT',
-            'public/',
+            'public/' + this.deployment.entry.env.id + '/',
             false,
           ),
         },
