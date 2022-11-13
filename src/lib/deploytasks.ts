@@ -410,7 +410,7 @@ exports.handler = async (event, context) => {
         },
         */
         {
-          title: 'Syncing _nuxt folder to S3',
+          title: 'Syncing public output to S3',
           task: (_, task) => this.sync(
             task,
             '.output/public/',
