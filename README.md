@@ -20,7 +20,7 @@ $ npm install -g fume-cli
 $ fume COMMAND
 running command...
 $ fume (--version)
-fume-cli/1.0.3 darwin-arm64 node-v16.13.0
+fume-cli/1.0.4 darwin-arm64 node-v16.13.0
 $ fume --help [COMMAND]
 USAGE
   $ fume COMMAND
