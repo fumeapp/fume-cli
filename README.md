@@ -29,7 +29,14 @@ USAGE
 <!-- usagestop -->
 # Commands
 <!-- commands -->
+* [`fume auth:login`](#fume-authlogin)
+* [`fume auth:logout`](#fume-authlogout)
+* [`fume auth:status`](#fume-authstatus)
+* [`fume config`](#fume-config)
+* [`fume deploy [ENVIRONMENT]`](#fume-deploy-environment)
 * [`fume help [COMMAND]`](#fume-help-command)
+* [`fume login`](#fume-login)
+* [`fume logout`](#fume-logout)
 * [`fume plugins`](#fume-plugins)
 * [`fume plugins:install PLUGIN...`](#fume-pluginsinstall-plugin)
 * [`fume plugins:inspect PLUGIN...`](#fume-pluginsinspect-plugin)
@@ -39,6 +46,98 @@ USAGE
 * [`fume plugins:uninstall PLUGIN...`](#fume-pluginsuninstall-plugin-1)
 * [`fume plugins:uninstall PLUGIN...`](#fume-pluginsuninstall-plugin-2)
 * [`fume plugins:update`](#fume-pluginsupdate)
+* [`fume status`](#fume-status)
+
+## `fume auth:login`
+
+Login to fume
+
+```
+USAGE
+  $ fume auth:login
+
+DESCRIPTION
+  Login to fume
+
+ALIASES
+  $ fume login
+```
+
+_See code: [dist/commands/auth/login.ts](https://github.com/fumeapp/fume-cli/blob/v1.0.4/dist/commands/auth/login.ts)_
+
+## `fume auth:logout`
+
+Invalidate token and remove credentials
+
+```
+USAGE
+  $ fume auth:logout
+
+DESCRIPTION
+  Invalidate token and remove credentials
+
+ALIASES
+  $ fume logout
+```
+
+_See code: [dist/commands/auth/logout.ts](https://github.com/fumeapp/fume-cli/blob/v1.0.4/dist/commands/auth/logout.ts)_
+
+## `fume auth:status`
+
+View authentication status
+
+```
+USAGE
+  $ fume auth:status
+
+DESCRIPTION
+  View authentication status
+
+ALIASES
+  $ fume status
+```
+
+_See code: [dist/commands/auth/status.ts](https://github.com/fumeapp/fume-cli/blob/v1.0.4/dist/commands/auth/status.ts)_
+
+## `fume config`
+
+Generate a fume.yml config
+
+```
+USAGE
+  $ fume config [-h]
+
+FLAGS
+  -h, --help  Show CLI help.
+
+DESCRIPTION
+  Generate a fume.yml config
+```
+
+_See code: [dist/commands/config.ts](https://github.com/fumeapp/fume-cli/blob/v1.0.4/dist/commands/config.ts)_
+
+## `fume deploy [ENVIRONMENT]`
+
+Deploy an Environment
+
+```
+USAGE
+  $ fume deploy [ENVIRONMENT] [-h]
+
+ARGUMENTS
+  ENVIRONMENT  environment to deploy to (ex: staging)
+
+FLAGS
+  -h, --help  Show CLI help.
+
+DESCRIPTION
+  Deploy an Environment
+
+EXAMPLES
+  $ fume deploy staging
+```
+
+_See code: [dist/commands/deploy.ts](https://github.com/fumeapp/fume-cli/blob/v1.0.4/dist/commands/deploy.ts)_
 
 ## `fume help [COMMAND]`
 
@@ -59,6 +158,36 @@ DESCRIPTION
 ```
 
 _See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v5.1.12/src/commands/help.ts)_
+
+## `fume login`
+
+Login to fume
+
+```
+USAGE
+  $ fume login
+
+DESCRIPTION
+  Login to fume
+
+ALIASES
+  $ fume login
+```
+
+## `fume logout`
+
+Invalidate token and remove credentials
+
+```
+USAGE
+  $ fume logout
+
+DESCRIPTION
+  Invalidate token and remove credentials
+
+ALIASES
+  $ fume logout
+```
 
 ## `fume plugins`
 
@@ -299,4 +428,19 @@ DESCRIPTION
 ```
 
 _See code: [@oclif/plugin-plugins](https://github.com/oclif/plugin-plugins/blob/v2.1.0/src/commands/plugins/update.ts)_
+
+## `fume status`
+
+View authentication status
+
+```
+USAGE
+  $ fume status
+
+DESCRIPTION
+  View authentication status
+
+ALIASES
+  $ fume status
+```
 <!-- commandsstop -->
