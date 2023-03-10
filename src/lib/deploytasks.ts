@@ -270,7 +270,7 @@ exports.handler = async (event, context) => {
   async goCompile(task: ListrTaskWrapper<any, any>) {
     task.title = 'Compiling go binary'
     await this.deployment.update('GO_COMPILE')
-    await execa('go', ['build', '-o', 'main', 'main.go', '-tags=purego'], {
+    await execa('go', ['build', '-tags=purego', '-o', 'main', 'main.go'], {
       extendEnv: true,
       env: {
         GOOS: 'linux',
