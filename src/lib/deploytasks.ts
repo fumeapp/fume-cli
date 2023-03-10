@@ -270,7 +270,12 @@ exports.handler = async (event, context) => {
   async goCompile(task: ListrTaskWrapper<any, any>) {
     task.title = 'Compiling go binary'
     await this.deployment.update('GO_COMPILE')
-    await execa('go', ['build', '-o', 'main', 'main.go', '-tags=purego'], { env: { GOOS: 'linux', GOARCH: 'amd64', 'CGO_ENABLED': 0 } })
+    await execa('CGO_ENABLED=0 go', ['build', '-o', 'main', 'main.go', '-tags=purego'], {
+      env: {
+        GOOS: 'linux',
+        GOARCH: 'amd64',
+      }
+    })
   }
 
   async goArchive(task: ListrTaskWrapper<any, any>) {
