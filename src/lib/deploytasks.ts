@@ -229,6 +229,11 @@ exports.handler = async (event, context) => {
   }
 
   lock() {
+    if (fs.existsSync('pnpm-lock.yaml')) {
+      this.packager = 'pnpm'
+      return md5file.sync('pnpm-lock.yaml')
+    }
+
     if (fs.existsSync('yarn.lock')) {
       this.packager = 'yarn'
       return md5file.sync('yarn.lock')
@@ -261,6 +266,8 @@ exports.handler = async (event, context) => {
       args = type === 'production' ? ['install', '--only=prod'] : ['install']
     } else if (this.packager === 'yarn') {
       args = type === 'production' ? ['--prod'] : ['install']
+    } else if (this.packager === 'pnpm') {
+      args = ['install']
     }
 
     task.title = `Running ${chalk.bold(this.packager)} ${args.join(' ')}`
