@@ -1,10 +1,10 @@
-import axios, {AxiosInstance} from 'axios'
+import axios, { AxiosInstance } from 'axios'
 import yml = require('js-yaml')
 import fs = require('fs')
-import execa from 'execa'
+import { execa } from 'execa'
 import os = require('os')
 import fse = require('fs-extra')
-import {FumeEnvironment, FumeAuth, Inquiry} from './types'
+import { FumeEnvironment, FumeAuth, Inquiry } from './types'
 
 export class Auth {
   auth: FumeAuth

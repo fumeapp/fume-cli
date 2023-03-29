@@ -4,7 +4,7 @@ import { FumeEnvironment, Mode, PackageType, Size, Variable, YamlConfig } from '
 import { Listr, ListrTaskWrapper } from 'listr2'
 import S3 from 'aws-sdk/clients/s3'
 import * as fs from 'fs'
-import execa from 'execa'
+import { execa } from 'execa'
 import numeral from 'numeral'
 import { cli } from 'cli-ux'
 import fse = require('fs-extra')

@@ -1,4 +1,5 @@
 import Command from '../base'
+import { Args } from '@oclif/core'
 import AuthStatus from './auth/status'
 import { Flags } from '@oclif/core'
 import { Listr } from 'listr2'
@@ -20,22 +21,22 @@ export default class Deploy extends Command {
     '$ fume deploy staging',
   ]
 
-  static args = [
-    {
+  static args = {
+    environment: Args.string({
       name: 'environment',
       required: false,
       description: 'environment to deploy to (ex: staging)',
-    },
-  ]
+    }),
+  }
 
   private auth!: Auth
 
   async run() {
-    const { args: { environment } } = await this.parse(Deploy)
+    const { args } = await this.parse(Deploy)
     if (process.platform === 'win32')
       this.error('Windows is not supported yet')
 
-    const dp = new DeployTasks(this.env, environment)
+    const dp = new DeployTasks(this.env, args.environment as string)
 
     const initial = new Listr([
       {

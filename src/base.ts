@@ -1,6 +1,7 @@
-import {Command} from '@oclif/core'
-import {FumeEnvironment} from './lib/types'
-const {oclif} = require('../package.json')
+import { Command, Args } from '@oclif/core'
+import { ArgParser } from '@oclif/core/lib/interfaces/parser'
+import { FumeEnvironment } from './lib/types'
+const { oclif } = require('../package.json')
 
 export default abstract class extends Command {
   envs: Array<FumeEnvironment> = [
