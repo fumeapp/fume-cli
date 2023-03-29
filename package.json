@@ -92,7 +92,7 @@
       }
     },
     "hooks": {
-      "init": "./src/hooks/init/init"
+      "init": "./lib/hooks/init/init"
     }
   },
   "repository": "fumeapp/fume-cli",
