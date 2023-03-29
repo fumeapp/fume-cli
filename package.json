@@ -1,7 +1,7 @@
 {
   "name": "fume-cli",
   "description": "fume command line interface",
-  "version": "1.0.8",
+  "version": "2.0.0",
   "author": "acidjazz @acidjazz",
   "bin": {
     "fume": "bin/run"
@@ -47,17 +47,17 @@
     "@types/mocha": "^10.0.1",
     "@types/node": "^18.7.6",
     "chai": "^4",
-    "eslint": "^8.22",
+    "eslint": "^7.23",
     "eslint-config-oclif": "^4.0.0",
-    "eslint-config-oclif-typescript": "^1.0.2",
+    "eslint-config-oclif-typescript": "^1.0.3",
     "globby": "^13.1.3",
     "mocha": "^10",
     "nyc": "^15",
     "oclif": "^3",
     "shx": "^0.3.3",
-    "ts-node": "^10.2.1",
-    "tslib": "^2.3.1",
-    "typescript": "^5.0.2"
+    "ts-node": "^10.9.1",
+    "tslib": "^2.5.0",
+    "typescript": "^4.9.5"
   },
   "engines": {
     "node": ">=12.0.0"
