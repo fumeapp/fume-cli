@@ -1,10 +1,10 @@
-import axios, { AxiosInstance } from 'axios'
-import * as yml from 'js-yaml'
-import * as fs from 'fs'
-import { execa } from 'execa'
-import * as os from 'os'
-import * as fse from 'fs-extra'
-import { FumeEnvironment, FumeAuth, Inquiry } from './types'
+import axios, {AxiosInstance} from 'axios'
+import yml = require('js-yaml')
+import fs = require('fs')
+import execa from 'execa'
+import os = require('os')
+import fse = require('fs-extra')
+import {FumeEnvironment, FumeAuth, Inquiry} from './types'
 
 export class Auth {
   auth: FumeAuth
@@ -27,6 +27,7 @@ export class Auth {
       if (!fs.existsSync(`${os.homedir()}/.config/fume/auth.yml`)) {
         throw new Error('no-auth')
       }
+
       this.auth = yml.load(fs.readFileSync(`${os.homedir()}/.config/fume/auth.yml`).toString()) as FumeAuth
     }
 
@@ -70,9 +71,11 @@ export class Auth {
       if (result.data && result.data.data && result.data.data.is_approved) {
         return result.data.data.token
       }
+
       // eslint-disable-next-line no-await-in-loop
       await this.sleep(1000)
     }
+
     throw new Error('Token request timed out')
   }
 
@@ -91,7 +94,7 @@ export class Auth {
           },
         },
       )).data.data
-    } catch (error) {
+    } catch {
       return false
     }
   }

@@ -1,21 +1,21 @@
 import Deployment from './deployment'
 import chalk from 'chalk'
-import { FumeEnvironment, Mode, PackageType, Size, Variable, YamlConfig } from './types'
-import { Listr, ListrTaskWrapper } from 'listr2'
-import S3 from 'aws-sdk/clients/s3'
-import * as fs from 'fs'
-import { execa } from 'execa'
+import {FumeEnvironment, Mode, PackageType, Size, Variable, YamlConfig} from './types'
+import {Listr, ListrTaskWrapper} from 'listr2'
+import S3 = require('aws-sdk/clients/s3')
+import * as fs from 'node:fs'
+import execa from 'execa'
 import numeral from 'numeral'
-import { cli } from 'cli-ux'
+import {cli} from 'cli-ux'
 import * as fse from 'fs-extra'
 import * as yml from 'js-yaml'
 
-const fastFolderSizeSync = require('fast-folder-size/sync')
-const { stringify } = require('envfile')
+import fastFolderSizeSync from 'fast-folder-size/sync'
+import {stringify} from 'envfile'
 
 // const {transformSync} = require('@babel/core')
 
-const md5file = require('md5-file')
+import md5file from 'md5-file'
 
 export default class DeployTasks {
   constructor(env: FumeEnvironment, environment: string) {
@@ -82,10 +82,9 @@ exports.handler = async (event, context) => {
   return handler(event, context);
 }`)
 
-
       this.size = {
-        pub: await fastFolderSizeSync('.output/public'),
-        server: await fastFolderSizeSync('.output/server'),
+        pub: fastFolderSizeSync('.output/public') as number,
+        server: fastFolderSizeSync('.output/server') as number,
         deps: 0,
         code: 0,
         static: 0,
@@ -99,18 +98,18 @@ exports.handler = async (event, context) => {
     }
 
     this.size = this.deployment.entry.project.framework === 'NestJS' ? {
-      deps: await fastFolderSizeSync('node_modules'),
-      code: await fastFolderSizeSync('dist'),
+      deps: fastFolderSizeSync('node_modules'),
+      code: fastFolderSizeSync('dist'),
       static: 0,
       pub: 0,
       server: 0,
-    } : {
-      deps: await fastFolderSizeSync('node_modules'),
-      code: await fastFolderSizeSync('.nuxt'),
-      static: await fastFolderSizeSync(this.staticDir),
+    } as Size : {
+      deps: fastFolderSizeSync('node_modules'),
+      code: fastFolderSizeSync('.nuxt'),
+      static: fastFolderSizeSync(this.staticDir),
       pub: 0,
       server: 0,
-    }
+    } as Size
     this.mode = Mode.image
     const allowed = 262_144_000
     if (this.refresh_deps && this.size.deps > allowed)
@@ -262,12 +261,25 @@ exports.handler = async (event, context) => {
     }
 
     let args: Array<string> = []
-    if (this.packager === 'npm') {
+    switch (this.packager) {
+    case 'npm': {
       args = type === 'production' ? ['install', '--only=prod'] : ['install']
-    } else if (this.packager === 'yarn') {
+
+      break
+    }
+
+    case 'yarn': {
       args = type === 'production' ? ['--prod'] : ['install']
-    } else if (this.packager === 'pnpm') {
+
+      break
+    }
+
+    case 'pnpm': {
       args = ['install']
+
+      break
+    }
+      // No default
     }
 
     task.title = `Running ${chalk.bold(this.packager)} ${args.join(' ')}`
@@ -282,7 +294,7 @@ exports.handler = async (event, context) => {
       env: {
         GOOS: 'linux',
         GOARCH: 'amd64',
-      }
+      },
     })
   }
 
@@ -307,7 +319,6 @@ exports.handler = async (event, context) => {
     await execa('zip', ['-r', this.deployment.s3.code, '.output'])
   }
 
-
   async outputUpload(task: ListrTaskWrapper<any, any>) {
     await this.deployment.update('UPLOAD_CODE_ZIP')
     task.title = 'Uploading .output archvie'
@@ -320,7 +331,7 @@ exports.handler = async (event, context) => {
           Key: this.deployment.s3.code,
           Body: fs.createReadStream(this.deployment.s3.code),
         },
-      }).on('httpUploadProgress', event => {
+      }).on('httpUploadProgress', (event: { loaded: number; total: number }) => {
         task.title = `Uploading .output archive: ${numeral((event.loaded / event.total)).format('0%')}`
       }).send(async (error: any) => {
         if (error) {
@@ -336,8 +347,6 @@ exports.handler = async (event, context) => {
     })
   }
 
-
-
   async goUpload(task: ListrTaskWrapper<any, any>) {
     await this.deployment.update('UPLOAD_BINARY')
     task.title = 'Uploading binary archive'
@@ -350,7 +359,7 @@ exports.handler = async (event, context) => {
           Key: this.deployment.s3.code,
           Body: fs.createReadStream(this.deployment.s3.code),
         },
-      }).on('httpUploadProgress', event => {
+      }).on('httpUploadProgress', (event: { loaded: number; total: number }) => {
         task.title = `Uploading binary archive: ${numeral((event.loaded / event.total)).format('0%')}`
       }).send(async (error: any) => {
         if (error) {
@@ -367,11 +376,11 @@ exports.handler = async (event, context) => {
   }
 
   async build() {
-    await this.deployment.update('NUXT_BUILD', { nitro: this.nitro })
+    await this.deployment.update('NUXT_BUILD', {nitro: this.nitro})
     let args: Array<string> = []
     try {
       args = this.packager === 'npm' ? ['run', 'build'] : ['build']
-      await (this.nitro ? execa(this.packager, args, { env: { NITRO_PRESET: 'aws-lambda' } }) : execa(this.packager, args))
+      await (this.nitro ? execa(this.packager, args, {env: {NITRO_PRESET: 'aws-lambda'}}) : execa(this.packager, args))
     } catch (error: any) {
       await this.deployment.fail({
         message: 'Error bundling server and client',
@@ -487,7 +496,7 @@ exports.handler = async (event, context) => {
           // @ts-ignore
           Body: fs.createReadStream(this.deployment.s3.paths[type]),
         },
-      }).on('httpUploadProgress', event => {
+      }).on('httpUploadProgress', (event: { loaded: number; total: number }) => {
         task.title = `Uploading ${type} package: ${numeral((event.loaded / event.total)).format('0%')}`
       }).send(async (error: any) => {
         if (error) {
@@ -506,7 +515,7 @@ exports.handler = async (event, context) => {
   async sync(task: ListrTaskWrapper<any, any> | null, folder: string, bucket: string, status: string, prefix = '', deleteRemoved = true) {
     await this.deployment.update(status)
     const sts = await this.deployment.sts()
-    const client = require('@auth0/s3').createClient({ s3Client: new S3(sts) })
+    const client = require('@auth0/s3').createClient({s3Client: new S3(sts)})
     return new Promise((resolve, reject) => {
       const uploader = client.uploadDir({
         localDir: folder,
@@ -529,7 +538,7 @@ exports.handler = async (event, context) => {
   }
 
   async image(task: ListrTaskWrapper<any, any>) {
-    await this.deployment.update('IMAGE_BUILD', { nitro: this.nitro })
+    await this.deployment.update('IMAGE_BUILD', {nitro: this.nitro})
     let attempts = 80
     const delay = 5
     while (attempts !== 0) {
@@ -556,28 +565,28 @@ exports.handler = async (event, context) => {
     const payload = {
       size: this.size,
     }
-    return this.deployment.update(status, { hash: this.hash, mode: this.mode, payload })
-      .then(response => {
-        task.title = 'Deployment Successful: ' + chalk.bold(response.data.data.data)
-      })
-      .catch(async error => {
-        if (error.response.data.errors) {
-          error(error.response.data.errors[0].message)
-        }
+    return this.deployment.update(status, {hash: this.hash, mode: this.mode, payload})
+    .then(response => {
+      task.title = 'Deployment Successful: ' + chalk.bold(response.data.data.data)
+    })
+    .catch(async error => {
+      if (error.response.data.errors) {
+        error(error.response.data.errors[0].message)
+      }
 
-        if (error.message) {
-          await this.deployment.fail({
-            message: error.message,
-            detail: error,
-          })
-          error(error.message)
-        } else if (error.response.data) throw new Error(JSON.stringify(error.response.data))
-        else throw error
-      })
+      if (error.message) {
+        await this.deployment.fail({
+          message: error.message,
+          detail: error,
+        })
+        error(error.message)
+      } else if (error.response.data) throw new Error(JSON.stringify(error.response.data))
+      else throw error
+    })
   }
 
   cleanup() {
-    if (fs.existsSync('.nuxt.config.fume')) fse.moveSync('.nuxt.config.fume', 'nuxt.config.js', { overwrite: true })
+    if (fs.existsSync('.nuxt.config.fume')) fse.moveSync('.nuxt.config.fume', 'nuxt.config.js', {overwrite: true})
     if (fs.existsSync('./.fume')) fse.removeSync('./.fume')
     if (fs.existsSync('./fume.js')) fse.removeSync('./fume.js')
     if (fs.existsSync('.env.fume')) {

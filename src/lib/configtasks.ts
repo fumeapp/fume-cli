@@ -1,6 +1,6 @@
 import { ListrTaskWrapper } from 'listr2'
 import { Auth } from './auth'
-import chalk from 'chalk'
+import chalk = require('chalk')
 import cli from 'cli-ux'
 import { YamlConfig, FumeEnvironment } from './types'
 import * as fs from 'fs'

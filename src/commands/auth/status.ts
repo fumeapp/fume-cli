@@ -1,7 +1,7 @@
 import Command from '../../base'
-import {Listr} from 'listr2'
-import {Auth} from '../../lib/auth'
-import chalk from 'chalk'
+import { Listr } from 'listr2'
+import { Auth } from '../../lib/auth'
+import chalk = require('chalk')
 import LoginTasks from '../../lib/logintasks'
 
 export default class AuthStatus extends Command {
@@ -27,7 +27,7 @@ export default class AuthStatus extends Command {
       {
         title: 'Authenticate with fume',
         task: (ctx, task): Listr =>
-          task.newListr((new LoginTasks(this.env)).tasks(), {concurrent: false}),
+          task.newListr((new LoginTasks(this.env)).tasks(), { concurrent: false }),
         enabled: () => this.authed === false,
       },
       {

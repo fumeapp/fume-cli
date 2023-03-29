@@ -1,6 +1,6 @@
 import { Auth } from './auth'
 import { YamlConfig, Entry, AwsClientConfig, FumeEnvironment, S3Config } from './types'
-import { execa } from 'execa'
+import execa from 'execa'
 import * as os from 'os'
 
 export default class Deployment {

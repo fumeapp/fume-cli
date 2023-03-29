@@ -14,6 +14,7 @@ export default class LoginTasks {
 
   inquiry!: Inquiry
 
+  // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
   tasks() {
     return [
       {
@@ -57,10 +58,8 @@ export default class LoginTasks {
     try {
       this.token = await Auth.probe(this.env, this.inquiry)
     } catch (error: any) {
-      if (error.response.data && error.response.data.errors && error.response.data.errors[0].message === 'inquiry.timeout')
-        throw new Error('Token inquiry timed out')
-      else
-        throw new Error(error)
+      const error_ = error.response.data && error.response.data.errors && error.response.data.errors[0].message === 'inquiry.timeout' ? new Error('Token inquiry timed out') : new Error(error)
+      throw error_
     }
   }
 
@@ -69,7 +68,7 @@ export default class LoginTasks {
     try {
       const me = (await Auth.test(this.env, this.token))
       task.title = 'Authenticated as ' + chalk.bold(me.name) + ' (' + chalk.bold(me.email) + ')'
-    } catch (error: any) {
+    } catch {
       throw new Error('Invalid token')
     }
   }

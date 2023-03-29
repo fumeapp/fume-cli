@@ -20,7 +20,7 @@ $ npm install -g fume-cli
 $ fume COMMAND
 running command...
 $ fume (--version)
-fume-cli/1.0.8 darwin-arm64 node-v16.13.0
+fume-cli/1.0.8 darwin-arm64 node-v18.15.0
 $ fume --help [COMMAND]
 USAGE
   $ fume COMMAND
@@ -29,9 +29,9 @@ USAGE
 <!-- usagestop -->
 # Commands
 <!-- commands -->
-* [`fume auth:login`](#fume-authlogin)
-* [`fume auth:logout`](#fume-authlogout)
-* [`fume auth:status`](#fume-authstatus)
+* [`fume auth login`](#fume-auth-login)
+* [`fume auth logout`](#fume-auth-logout)
+* [`fume auth status`](#fume-auth-status)
 * [`fume config`](#fume-config)
 * [`fume deploy [ENVIRONMENT]`](#fume-deploy-environment)
 * [`fume help [COMMAND]`](#fume-help-command)
@@ -45,16 +45,16 @@ USAGE
 * [`fume plugins:uninstall PLUGIN...`](#fume-pluginsuninstall-plugin)
 * [`fume plugins:uninstall PLUGIN...`](#fume-pluginsuninstall-plugin-1)
 * [`fume plugins:uninstall PLUGIN...`](#fume-pluginsuninstall-plugin-2)
-* [`fume plugins:update`](#fume-pluginsupdate)
+* [`fume plugins update`](#fume-plugins-update)
 * [`fume status`](#fume-status)
 
-## `fume auth:login`
+## `fume auth login`
 
 Login to fume
 
 ```
 USAGE
-  $ fume auth:login
+  $ fume auth login
 
 DESCRIPTION
   Login to fume
@@ -63,15 +63,13 @@ ALIASES
   $ fume login
 ```
 
-_See code: [dist/commands/auth/login.ts](https://github.com/fumeapp/fume-cli/blob/v1.0.8/dist/commands/auth/login.ts)_
-
-## `fume auth:logout`
+## `fume auth logout`
 
 Invalidate token and remove credentials
 
 ```
 USAGE
-  $ fume auth:logout
+  $ fume auth logout
 
 DESCRIPTION
   Invalidate token and remove credentials
@@ -80,15 +78,13 @@ ALIASES
   $ fume logout
 ```
 
-_See code: [dist/commands/auth/logout.ts](https://github.com/fumeapp/fume-cli/blob/v1.0.8/dist/commands/auth/logout.ts)_
-
-## `fume auth:status`
+## `fume auth status`
 
 View authentication status
 
 ```
 USAGE
-  $ fume auth:status
+  $ fume auth status
 
 DESCRIPTION
   View authentication status
@@ -96,8 +92,6 @@ DESCRIPTION
 ALIASES
   $ fume status
 ```
-
-_See code: [dist/commands/auth/status.ts](https://github.com/fumeapp/fume-cli/blob/v1.0.8/dist/commands/auth/status.ts)_
 
 ## `fume config`
 
@@ -207,7 +201,7 @@ EXAMPLES
   $ fume plugins
 ```
 
-_See code: [@oclif/plugin-plugins](https://github.com/oclif/plugin-plugins/blob/v2.1.0/src/commands/plugins/index.ts)_
+_See code: [@oclif/plugin-plugins](https://github.com/oclif/plugin-plugins/blob/v2.4.3/src/commands/plugins/index.ts)_
 
 ## `fume plugins:install PLUGIN...`
 
@@ -227,7 +221,6 @@ FLAGS
 
 DESCRIPTION
   Installs a plugin into the CLI.
-
   Can be installed from npm or a git url.
 
   Installation of a user-installed plugin will override a core plugin.
@@ -236,8 +229,9 @@ DESCRIPTION
   will override the core plugin implementation. This is useful if a user needs to update core plugin functionality in
   the CLI without the need to patch and update the whole CLI.
 
+
 ALIASES
-  $ fume plugins:add
+  $ fume plugins add
 
 EXAMPLES
   $ fume plugins:install myplugin 
@@ -262,14 +256,15 @@ FLAGS
   -h, --help     Show CLI help.
   -v, --verbose
 
+GLOBAL FLAGS
+  --json  Format output as json.
+
 DESCRIPTION
   Displays installation properties of a plugin.
 
 EXAMPLES
   $ fume plugins:inspect myplugin
 ```
-
-_See code: [@oclif/plugin-plugins](https://github.com/oclif/plugin-plugins/blob/v2.1.0/src/commands/plugins/inspect.ts)_
 
 ## `fume plugins:install PLUGIN...`
 
@@ -289,7 +284,6 @@ FLAGS
 
 DESCRIPTION
   Installs a plugin into the CLI.
-
   Can be installed from npm or a git url.
 
   Installation of a user-installed plugin will override a core plugin.
@@ -298,8 +292,9 @@ DESCRIPTION
   will override the core plugin implementation. This is useful if a user needs to update core plugin functionality in
   the CLI without the need to patch and update the whole CLI.
 
+
 ALIASES
-  $ fume plugins:add
+  $ fume plugins add
 
 EXAMPLES
   $ fume plugins:install myplugin 
@@ -308,8 +303,6 @@ EXAMPLES
 
   $ fume plugins:install someuser/someplugin
 ```
-
-_See code: [@oclif/plugin-plugins](https://github.com/oclif/plugin-plugins/blob/v2.1.0/src/commands/plugins/install.ts)_
 
 ## `fume plugins:link PLUGIN`
 
@@ -328,17 +321,38 @@ FLAGS
 
 DESCRIPTION
   Links a plugin into the CLI for development.
-
   Installation of a linked plugin will override a user-installed or core plugin.
 
   e.g. If you have a user-installed or core plugin that has a 'hello' command, installing a linked plugin with a 'hello'
   command will override the user-installed or core plugin implementation. This is useful for development work.
 
+
 EXAMPLES
   $ fume plugins:link myplugin
 ```
 
-_See code: [@oclif/plugin-plugins](https://github.com/oclif/plugin-plugins/blob/v2.1.0/src/commands/plugins/link.ts)_
+## `fume plugins:uninstall PLUGIN...`
+
+Removes a plugin from the CLI.
+
+```
+USAGE
+  $ fume plugins:uninstall PLUGIN...
+
+ARGUMENTS
+  PLUGIN  plugin to uninstall
+
+FLAGS
+  -h, --help     Show CLI help.
+  -v, --verbose
+
+DESCRIPTION
+  Removes a plugin from the CLI.
+
+ALIASES
+  $ fume plugins unlink
+  $ fume plugins remove
+```
 
 ## `fume plugins:uninstall PLUGIN...`
 
@@ -359,8 +373,8 @@ DESCRIPTION
   Removes a plugin from the CLI.
 
 ALIASES
-  $ fume plugins:unlink
-  $ fume plugins:remove
+  $ fume plugins unlink
+  $ fume plugins remove
 ```
 
 ## `fume plugins:uninstall PLUGIN...`
@@ -382,42 +396,17 @@ DESCRIPTION
   Removes a plugin from the CLI.
 
 ALIASES
-  $ fume plugins:unlink
-  $ fume plugins:remove
+  $ fume plugins unlink
+  $ fume plugins remove
 ```
 
-_See code: [@oclif/plugin-plugins](https://github.com/oclif/plugin-plugins/blob/v2.1.0/src/commands/plugins/uninstall.ts)_
-
-## `fume plugins:uninstall PLUGIN...`
-
-Removes a plugin from the CLI.
-
-```
-USAGE
-  $ fume plugins:uninstall PLUGIN...
-
-ARGUMENTS
-  PLUGIN  plugin to uninstall
-
-FLAGS
-  -h, --help     Show CLI help.
-  -v, --verbose
-
-DESCRIPTION
-  Removes a plugin from the CLI.
-
-ALIASES
-  $ fume plugins:unlink
-  $ fume plugins:remove
-```
-
-## `fume plugins:update`
+## `fume plugins update`
 
 Update installed plugins.
 
 ```
 USAGE
-  $ fume plugins:update [-h] [-v]
+  $ fume plugins update [-h] [-v]
 
 FLAGS
   -h, --help     Show CLI help.
@@ -426,8 +415,6 @@ FLAGS
 DESCRIPTION
   Update installed plugins.
 ```
-
-_See code: [@oclif/plugin-plugins](https://github.com/oclif/plugin-plugins/blob/v2.1.0/src/commands/plugins/update.ts)_
 
 ## `fume status`
 
