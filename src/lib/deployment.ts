@@ -1,6 +1,6 @@
-import {Auth} from './auth'
-import {YamlConfig, Entry, AwsClientConfig, FumeEnvironment, S3Config} from './types'
-import execa from 'execa'
+import { Auth } from './auth'
+import { YamlConfig, Entry, AwsClientConfig, FumeEnvironment, S3Config } from './types'
+import { execa } from 'execa'
 import * as os from 'os'
 
 export default class Deployment {
@@ -24,7 +24,7 @@ export default class Deployment {
   async initialize(environment: string) {
     let commit: string
     try {
-      commit = (await execa('git', ['log',  '--decorate=short',  '-n 1'])).stdout
+      commit = (await execa('git', ['log', '--decorate=short', '-n 1'])).stdout
     } catch (error: any) {
       throw new Error('This project has no commits, please add one before deploying')
     }
@@ -47,11 +47,11 @@ export default class Deployment {
     return this.auth.axios.get(`/project/${this.config.id}/dep/${this.entry.id}`)
   }
 
-  async update(status: string, optionalParams?: object|null) {
+  async update(status: string, optionalParams?: object | null) {
     let params = {
       status: status,
     }
-    if (optionalParams) params = {...optionalParams, ...params}
+    if (optionalParams) params = { ...optionalParams, ...params }
 
     let result
     try {
