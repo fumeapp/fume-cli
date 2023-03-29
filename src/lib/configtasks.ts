@@ -1,10 +1,10 @@
-import {ListrTaskWrapper} from 'listr2'
-import {Auth} from './auth'
+import { ListrTaskWrapper } from 'listr2'
+import { Auth } from './auth'
 import chalk from 'chalk'
 import cli from 'cli-ux'
-import {YamlConfig, FumeEnvironment} from './types'
+import { YamlConfig, FumeEnvironment } from './types'
 import * as fs from 'fs'
-import yml = require('js-yaml')
+import * as yml from 'js-yaml'
 
 export default class ConfigTasks {
   constructor(env: FumeEnvironment, auth: Auth) {
@@ -16,9 +16,9 @@ export default class ConfigTasks {
 
   private auth!: Auth
 
-  private projects!: Record<any, any>;
+  private projects!: Record<any, any>
 
-  private project!: Record<any, any>;
+  private project!: Record<any, any>
 
   tasks() {
     return [
@@ -67,7 +67,7 @@ export default class ConfigTasks {
         await cli.open(url)
         throw new Error('Run ' + chalk.bold('fume config') + ' again after a project has been created')
       } else {
-        throw new Error('Please visit ' + chalk.bold(url)  + ' and create a project, then run ' + chalk.bold('fume config') + ' again')
+        throw new Error('Please visit ' + chalk.bold(url) + ' and create a project, then run ' + chalk.bold('fume config') + ' again')
       }
     }
   }

@@ -7,8 +7,8 @@ import * as fs from 'fs'
 import { execa } from 'execa'
 import numeral from 'numeral'
 import { cli } from 'cli-ux'
-import fse = require('fs-extra')
-import yml = require('js-yaml')
+import * as fse from 'fs-extra'
+import * as yml from 'js-yaml'
 
 const fastFolderSizeSync = require('fast-folder-size/sync')
 const { stringify } = require('envfile')

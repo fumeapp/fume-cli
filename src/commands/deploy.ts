@@ -6,7 +6,7 @@ import { Listr } from 'listr2'
 import { Mode, PackageType } from '../lib/types'
 import ConfigTasks from '../lib/configtasks'
 import { Auth } from '../lib/auth'
-import onDeath = require('death')
+// import * as onDeath from 'death'
 import DeployTasks from '../lib/deploytasks'
 import { toUnicode } from 'punycode'
 
@@ -271,6 +271,6 @@ export default class Deploy extends Command {
     }
     if (dp.firstDeploy) this.warn('First deployments take time to propagate - the URL will work in several minutes')
 
-    onDeath(dp.cleanup)
+    // onDeath(dp.cleanup)
   }
 }

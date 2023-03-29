@@ -2,10 +2,11 @@
   "compilerOptions": {
     "declaration": true,
     "importHelpers": true,
-    "module": "commonjs",
     "outDir": "dist",
     "rootDir": "src",
     "strict": true,
+    "module": "ES2020",
+    "moduleResolution": "node",
     "esModuleInterop": true,
     "target": "es2019"
   },
