@@ -20,7 +20,7 @@ $ npm install -g fume-cli
 $ fume COMMAND
 running command...
 $ fume (--version)
-fume-cli/2.0.2 darwin-arm64 node-v18.15.0
+fume-cli/2.0.3 darwin-arm64 node-v18.15.0
 $ fume --help [COMMAND]
 USAGE
   $ fume COMMAND
@@ -108,7 +108,7 @@ DESCRIPTION
   Generate a fume.yml config
 ```
 
-_See code: [dist/commands/config.ts](https://github.com/fumeapp/fume-cli/blob/v2.0.2/dist/commands/config.ts)_
+_See code: [dist/commands/config.ts](https://github.com/fumeapp/fume-cli/blob/v2.0.3/dist/commands/config.ts)_
 
 ## `fume deploy [ENVIRONMENT]`
 
@@ -131,7 +131,7 @@ EXAMPLES
   $ fume deploy staging
 ```
 
-_See code: [dist/commands/deploy.ts](https://github.com/fumeapp/fume-cli/blob/v2.0.2/dist/commands/deploy.ts)_
+_See code: [dist/commands/deploy.ts](https://github.com/fumeapp/fume-cli/blob/v2.0.3/dist/commands/deploy.ts)_
 
 ## `fume help [COMMAND]`
 
