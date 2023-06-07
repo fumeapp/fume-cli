@@ -223,7 +223,13 @@ exports.handler = async (event, context) => {
   // check if our setup is using nuxt3 or nuxt-bridge - in that case compile with nitro
   async checkNitro(): Promise<boolean> {
     const pkg = JSON.parse(fs.readFileSync('package.json').toString()) as Record<string, any>
-    if (pkg.devDependencies && (pkg.devDependencies.nuxt3 || pkg?.devDependencies?.nuxt?.includes('^3'))) return true
+    if (
+      pkg.devDependencies &&
+      (pkg.devDependencies.nuxt3 ||
+        pkg?.devDependencies?.nuxt?.includes('^3') ||
+        pkg?.devDependencies?.nuxt?.includes('3')
+      )
+      ) return true
     return Boolean(pkg.devDependencies && pkg.devDependencies['@nuxt/bridge'])
   }
 
