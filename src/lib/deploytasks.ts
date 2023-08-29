@@ -253,6 +253,7 @@ exports.handler = async (event, context) => {
   }
 
   async yarn(type: string, task: ListrTaskWrapper<any, any>) {
+    this.lock()
     if (type === 'production') {
       task.title = `Install production dependencies with ${chalk.bold(this.packager)}`
       await this.deployment.update('YARN_PROD')
@@ -400,7 +401,7 @@ exports.handler = async (event, context) => {
 
   async generate() {
     await this.deployment.update('NUXT_GENERATE')
-    await execa('node_modules/.bin/nuxt', ['generate'])
+    await execa(this.packager, ['run', 'generate'])
   }
 
   async envPrepare() {
