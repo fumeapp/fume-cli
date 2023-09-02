@@ -303,7 +303,7 @@ export default class Deploy extends Command {
         else await ssr.run().catch(error => this.error(error))
       }
       if (dp.mode === Mode.image) image.run().catch(() => false)
-      if (dp.mode === Mode.native) await nuxt2.run().catch(error => this.error(error))
+      if (dp.framework === 'NuxtJS' && !dp.nitro && dp.mode === Mode.native) await nuxt2.run().catch(error => this.error(error))
       if (dp.structure === 'headless') await headless.run().catch(error => this.error(error))
     }
     if (dp.firstDeploy) this.warn('First deployments take time to propagate - the URL will work in several minutes')
