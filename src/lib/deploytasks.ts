@@ -70,13 +70,24 @@ export default class DeployTasks {
     }
   }
 
+  /*
+   * copy fume assets into project
+   */
+  async assets() {
+    if (fs.existsSync('./.fume')) fs.rmdirSync('./.fume', {recursive: true})
+    fs.mkdirSync('./.fume')
+    fse.copySync(`${__dirname}/../../src/assets/nuxt`, './.fume')
+  }
+
+
+
   async modeSelect(task: any) {
     const util = require('util')
     const format = '0.0b'
     if (this.nitro) {
       this.mode = Mode.native
 
-      fs.writeFileSync('.output/server/fume.js', `
+      fs.writeFileSync('.output/server/fume.cjs', `
 exports.handler = async (event, context) => {
   const { handler } = await import('/var/task/.output/server/index.mjs');
   return handler(event, context);
@@ -110,10 +121,7 @@ exports.handler = async (event, context) => {
       pub: 0,
       server: 0,
     } as Size
-    this.mode = Mode.image
-    const allowed = 262_144_000
-    if (this.refresh_deps && this.size.deps > allowed)
-      this.mode = Mode.image
+    this.mode = Mode.native
     /*
       const error = `Dependencies greater than an allowed size of ${allowed} bytes (${numeral(allowed).format(format)}) - ${this.size.deps} (${numeral(this.size.deps).format(format)})`
       this.deployment.fail({
@@ -485,8 +493,10 @@ exports.handler = async (event, context) => {
         '-r',
         this.staticDir,
         'nuxt.config.js',
+        'node_modules/',
         'fume.yml',
         '.nuxt/',
+        '.fume/',
       ]))
     }
   }

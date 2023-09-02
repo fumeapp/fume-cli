@@ -221,6 +221,42 @@ export default class Deploy extends Command {
       },
     ])
 
+
+    const nuxt2 = new Listr([
+      {
+        title: 'Copy fume assets',
+        task: () => dp.assets(),
+        enabled: () => !dp.nitro,
+      },
+      /*
+      {
+        title: 'Send dependencies',
+        task: () => dp.package(PackageType.layer),
+        enabled: () => dp.refresh_deps && !dp.nitro,
+      },
+      */
+      {
+        title: 'Send source code',
+        task: () => dp.package(PackageType.code),
+        enabled: () => !dp.nitro,
+      },
+      {
+        title: 'Restore environment variables',
+        task: () => dp.envRestore(),
+        enabled: () => dp.variables.length > 0,
+      },
+      {
+        title: 'Deploy to function',
+        task: (ctx, task) => dp.deploy('DEPLOY_FUNCTION', task),
+      },
+      {
+        title: 'Cleanup deployment',
+        task: () => dp.cleanup(),
+      },
+    ])
+
+
+
     const headless = new Listr([
       {
         title: 'Install modules',
@@ -267,6 +303,7 @@ export default class Deploy extends Command {
         else await ssr.run().catch(error => this.error(error))
       }
       if (dp.mode === Mode.image) image.run().catch(() => false)
+      if (dp.mode === Mode.native) await nuxt2.run().catch(error => this.error(error))
       if (dp.structure === 'headless') await headless.run().catch(error => this.error(error))
     }
     if (dp.firstDeploy) this.warn('First deployments take time to propagate - the URL will work in several minutes')
