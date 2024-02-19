@@ -2,7 +2,6 @@ import Deployment from './deployment'
 import chalk from 'chalk'
 import {FumeEnvironment, Mode, PackageType, Size, Variable, YamlConfig} from './types'
 import {Listr, ListrTaskWrapper} from 'listr2'
-import S3 = require('aws-sdk/clients/s3')
 import * as fs from 'node:fs'
 import execa from 'execa'
 import numeral from 'numeral'
@@ -16,6 +15,9 @@ import {stringify} from 'envfile'
 // const {transformSync} = require('@babel/core')
 
 import md5file from 'md5-file'
+
+import { S3Client } from '@aws-sdk/client-s3'
+import { Upload } from '@aws-sdk/lib-storage'
 
 export default class DeployTasks {
   constructor(env: FumeEnvironment, environment: string) {
@@ -238,6 +240,14 @@ exports.handler = async (event, context) => {
         pkg?.devDependencies?.nuxt?.includes('3')
       )
       ) return true
+    if (
+      pkg.dependencies &&
+      (pkg.dependencies.nuxt3 ||
+        pkg?.dependencies?.nuxt?.includes('^3') ||
+        pkg?.dependencies?.nuxt?.includes('3')
+      )
+      ) return true
+
     return Boolean(pkg.devDependencies && pkg.devDependencies['@nuxt/bridge'])
   }
 
@@ -339,15 +349,16 @@ exports.handler = async (event, context) => {
     task.title = 'Uploading .output archvie'
     const sts = await this.deployment.sts()
     return new Promise((resolve, reject) => {
-      new S3.ManagedUpload({
-        service: new S3(sts),
+      new Upload({
+        client: new S3Client(sts),
         params: {
           Bucket: this.deployment.s3.bucket,
           Key: this.deployment.s3.code,
           Body: fs.createReadStream(this.deployment.s3.code),
         },
-      }).on('httpUploadProgress', (event: { loaded: number; total: number }) => {
-        task.title = `Uploading .output archive: ${numeral((event.loaded / event.total)).format('0%')}`
+      }).on('httpUploadProgress', (progress) => {
+        if (progress.loaded && progress.total)
+          task.title = `Uploading .output archive: ${numeral((progress.loaded / progress.total)).format('0%')}`
       }).send(async (error: any) => {
         if (error) {
           await this.deployment.fail({
@@ -367,7 +378,7 @@ exports.handler = async (event, context) => {
     task.title = 'Uploading binary archive'
     const sts = await this.deployment.sts()
     return new Promise((resolve, reject) => {
-      new S3.ManagedUpload({
+      new AWS.S3.ManagedUpload({
         service: new S3(sts),
         params: {
           Bucket: this.deployment.s3.bucket,
@@ -539,7 +550,7 @@ exports.handler = async (event, context) => {
         deleteRemoved: deleteRemoved,
         s3Params: {
           Bucket: bucket,
-          ACL: 'public-read',
+          // ACL: 'public-read',
           Prefix: prefix,
         },
       })

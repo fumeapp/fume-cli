@@ -9,6 +9,8 @@
   "bugs": "https://github.com/fumeapp/fume-cli/issues",
   "dependencies": {
     "@auth0/s3": "^1.0.0",
+    "@aws-sdk/client-s3": "^3.408.0",
+    "@aws-sdk/lib-storage": "^3.408.0",
     "@oclif/core": "^2",
     "@oclif/plugin-help": "^5",
     "@oclif/plugin-plugins": "^2.4.3",
