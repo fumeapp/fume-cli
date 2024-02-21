@@ -238,6 +238,14 @@ exports.handler = async (event, context) => {
         pkg?.devDependencies?.nuxt?.includes('3')
       )
       ) return true
+
+    if (
+      pkg.dependencies &&
+      (pkg.dependencies.nuxt3 ||
+        pkg?.dependencies?.nuxt?.includes('^3') ||
+        pkg?.dependencies?.nuxt?.includes('3')
+      )
+      ) return true
     return Boolean(pkg.devDependencies && pkg.devDependencies['@nuxt/bridge'])
   }
 
@@ -539,7 +547,7 @@ exports.handler = async (event, context) => {
         deleteRemoved: deleteRemoved,
         s3Params: {
           Bucket: bucket,
-          ACL: 'public-read',
+          ACL: 'private',
           Prefix: prefix,
         },
       })
