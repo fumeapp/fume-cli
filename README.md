@@ -20,7 +20,7 @@ $ npm install -g fume-cli
 $ fume COMMAND
 running command...
 $ fume (--version)
-fume-cli/2.1.0 darwin-arm64 node-v18.15.0
+fume-cli/2.1.1 darwin-arm64 node-v18.15.0
 $ fume --help [COMMAND]
 USAGE
   $ fume COMMAND
@@ -63,7 +63,7 @@ ALIASES
   $ fume login
 ```
 
-_See code: [src/commands/auth/login.ts](https://github.com/fumeapp/fume-cli/blob/v2.1.0/src/commands/auth/login.ts)_
+_See code: [src/commands/auth/login.ts](https://github.com/fumeapp/fume-cli/blob/v2.1.1/src/commands/auth/login.ts)_
 
 ## `fume auth logout`
 
@@ -80,7 +80,7 @@ ALIASES
   $ fume logout
 ```
 
-_See code: [src/commands/auth/logout.ts](https://github.com/fumeapp/fume-cli/blob/v2.1.0/src/commands/auth/logout.ts)_
+_See code: [src/commands/auth/logout.ts](https://github.com/fumeapp/fume-cli/blob/v2.1.1/src/commands/auth/logout.ts)_
 
 ## `fume auth status`
 
@@ -97,7 +97,7 @@ ALIASES
   $ fume status
 ```
 
-_See code: [src/commands/auth/status.ts](https://github.com/fumeapp/fume-cli/blob/v2.1.0/src/commands/auth/status.ts)_
+_See code: [src/commands/auth/status.ts](https://github.com/fumeapp/fume-cli/blob/v2.1.1/src/commands/auth/status.ts)_
 
 ## `fume config`
 
@@ -114,7 +114,7 @@ DESCRIPTION
   Generate a fume.yml config
 ```
 
-_See code: [src/commands/config.ts](https://github.com/fumeapp/fume-cli/blob/v2.1.0/src/commands/config.ts)_
+_See code: [src/commands/config.ts](https://github.com/fumeapp/fume-cli/blob/v2.1.1/src/commands/config.ts)_
 
 ## `fume deploy [ENVIRONMENT]`
 
@@ -137,7 +137,7 @@ EXAMPLES
   $ fume deploy staging
 ```
 
-_See code: [src/commands/deploy.ts](https://github.com/fumeapp/fume-cli/blob/v2.1.0/src/commands/deploy.ts)_
+_See code: [src/commands/deploy.ts](https://github.com/fumeapp/fume-cli/blob/v2.1.1/src/commands/deploy.ts)_
 
 ## `fume help [COMMAND]`
 
