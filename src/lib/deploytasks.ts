@@ -537,7 +537,7 @@ exports.handler = async (event, context) => {
     })
   }
 
-  async sync(task: ListrTaskWrapper<any, any> | null, folder: string, bucket: string, status: string, prefix = '', deleteRemoved = true) {
+  async sync(task: ListrTaskWrapper<any, any> | null, folder: string, bucket: string, status: string, prefix = '', deleteRemoved = true, IsHeadless = false) {
     await this.deployment.update(status)
     const sts = await this.deployment.sts()
     const client = require('@auth0/s3').createClient({s3Client: new S3(sts)})
@@ -547,7 +547,7 @@ exports.handler = async (event, context) => {
         deleteRemoved: deleteRemoved,
         s3Params: {
           Bucket: bucket,
-          ACL: 'private',
+          ACL: IsHeadless ? 'publc-read' : 'private',
           Prefix: prefix,
         },
       })

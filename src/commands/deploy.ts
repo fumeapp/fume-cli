@@ -283,6 +283,9 @@ export default class Deploy extends Command {
           'dist',
           dp.deployment.s3.headless,
           'SYNC_FILES',
+          '',
+          true,
+          true,
         ),
       },
       {
