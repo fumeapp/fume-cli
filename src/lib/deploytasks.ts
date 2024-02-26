@@ -547,7 +547,7 @@ exports.handler = async (event, context) => {
         deleteRemoved: deleteRemoved,
         s3Params: {
           Bucket: bucket,
-          ACL: IsHeadless ? 'publc-read' : 'private',
+          ACL: IsHeadless ? 'public-read' : 'private',
           Prefix: prefix,
         },
       })
