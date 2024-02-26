@@ -20,7 +20,7 @@ $ npm install -g fume-cli
 $ fume COMMAND
 running command...
 $ fume (--version)
-fume-cli/2.1.1 darwin-arm64 node-v18.15.0
+fume-cli/2.1.2 darwin-arm64 node-v18.15.0
 $ fume --help [COMMAND]
 USAGE
   $ fume COMMAND
@@ -63,8 +63,6 @@ ALIASES
   $ fume login
 ```
 
-_See code: [src/commands/auth/login.ts](https://github.com/fumeapp/fume-cli/blob/v2.1.1/src/commands/auth/login.ts)_
-
 ## `fume auth logout`
 
 Invalidate token and remove credentials
@@ -79,8 +77,6 @@ DESCRIPTION
 ALIASES
   $ fume logout
 ```
-
-_See code: [src/commands/auth/logout.ts](https://github.com/fumeapp/fume-cli/blob/v2.1.1/src/commands/auth/logout.ts)_
 
 ## `fume auth status`
 
@@ -97,8 +93,6 @@ ALIASES
   $ fume status
 ```
 
-_See code: [src/commands/auth/status.ts](https://github.com/fumeapp/fume-cli/blob/v2.1.1/src/commands/auth/status.ts)_
-
 ## `fume config`
 
 Generate a fume.yml config
@@ -114,7 +108,7 @@ DESCRIPTION
   Generate a fume.yml config
 ```
 
-_See code: [src/commands/config.ts](https://github.com/fumeapp/fume-cli/blob/v2.1.1/src/commands/config.ts)_
+_See code: [dist/commands/config.ts](https://github.com/fumeapp/fume-cli/blob/v2.1.2/dist/commands/config.ts)_
 
 ## `fume deploy [ENVIRONMENT]`
 
@@ -137,7 +131,7 @@ EXAMPLES
   $ fume deploy staging
 ```
 
-_See code: [src/commands/deploy.ts](https://github.com/fumeapp/fume-cli/blob/v2.1.1/src/commands/deploy.ts)_
+_See code: [dist/commands/deploy.ts](https://github.com/fumeapp/fume-cli/blob/v2.1.2/dist/commands/deploy.ts)_
 
 ## `fume help [COMMAND]`
 
@@ -215,7 +209,7 @@ Installs a plugin into the CLI.
 
 ```
 USAGE
-  $ fume plugins add plugins:install PLUGIN...
+  $ fume plugins:install PLUGIN...
 
 ARGUMENTS
   PLUGIN  Plugin to install.
@@ -253,7 +247,7 @@ Displays installation properties of a plugin.
 
 ```
 USAGE
-  $ fume plugins inspect PLUGIN...
+  $ fume plugins:inspect PLUGIN...
 
 ARGUMENTS
   PLUGIN  [default: .] Plugin to inspect.
@@ -272,15 +266,13 @@ EXAMPLES
   $ fume plugins:inspect myplugin
 ```
 
-_See code: [@oclif/plugin-plugins](https://github.com/oclif/plugin-plugins/blob/v2.4.3/src/commands/plugins/inspect.ts)_
-
 ## `fume plugins:install PLUGIN...`
 
 Installs a plugin into the CLI.
 
 ```
 USAGE
-  $ fume plugins install PLUGIN...
+  $ fume plugins:install PLUGIN...
 
 ARGUMENTS
   PLUGIN  Plugin to install.
@@ -312,15 +304,13 @@ EXAMPLES
   $ fume plugins:install someuser/someplugin
 ```
 
-_See code: [@oclif/plugin-plugins](https://github.com/oclif/plugin-plugins/blob/v2.4.3/src/commands/plugins/install.ts)_
-
 ## `fume plugins:link PLUGIN`
 
 Links a plugin into the CLI for development.
 
 ```
 USAGE
-  $ fume plugins link PLUGIN
+  $ fume plugins:link PLUGIN
 
 ARGUMENTS
   PATH  [default: .] path to plugin
@@ -341,15 +331,13 @@ EXAMPLES
   $ fume plugins:link myplugin
 ```
 
-_See code: [@oclif/plugin-plugins](https://github.com/oclif/plugin-plugins/blob/v2.4.3/src/commands/plugins/link.ts)_
-
 ## `fume plugins:uninstall PLUGIN...`
 
 Removes a plugin from the CLI.
 
 ```
 USAGE
-  $ fume plugins remove plugins:uninstall PLUGIN...
+  $ fume plugins:uninstall PLUGIN...
 
 ARGUMENTS
   PLUGIN  plugin to uninstall
@@ -372,7 +360,7 @@ Removes a plugin from the CLI.
 
 ```
 USAGE
-  $ fume plugins uninstall PLUGIN...
+  $ fume plugins:uninstall PLUGIN...
 
 ARGUMENTS
   PLUGIN  plugin to uninstall
@@ -389,15 +377,13 @@ ALIASES
   $ fume plugins remove
 ```
 
-_See code: [@oclif/plugin-plugins](https://github.com/oclif/plugin-plugins/blob/v2.4.3/src/commands/plugins/uninstall.ts)_
-
 ## `fume plugins:uninstall PLUGIN...`
 
 Removes a plugin from the CLI.
 
 ```
 USAGE
-  $ fume plugins unlink plugins:uninstall PLUGIN...
+  $ fume plugins:uninstall PLUGIN...
 
 ARGUMENTS
   PLUGIN  plugin to uninstall
@@ -429,8 +415,6 @@ FLAGS
 DESCRIPTION
   Update installed plugins.
 ```
-
-_See code: [@oclif/plugin-plugins](https://github.com/oclif/plugin-plugins/blob/v2.4.3/src/commands/plugins/update.ts)_
 
 ## `fume status`
 
