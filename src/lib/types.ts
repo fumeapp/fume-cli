@@ -73,6 +73,11 @@ export interface Project {
   region: string
   framework: string
   structure: string
+  detail?: ProjectDetail
+}
+
+export interface ProjectDetail {
+  architecture?: string
 }
 
 export interface Env {
