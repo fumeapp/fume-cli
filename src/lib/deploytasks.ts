@@ -57,6 +57,8 @@ export default class DeployTasks {
 
   public packager = 'yarn'
 
+  public goBinary  = 'main'
+
   async checkConfig() {
     try {
       this.fumeConfig = yml.load(fs.readFileSync('fume.yml').toString()) as YamlConfig
@@ -78,8 +80,6 @@ export default class DeployTasks {
     fs.mkdirSync('./.fume')
     fse.copySync(`${__dirname}/../../src/assets/nuxt`, './.fume')
   }
-
-
 
   async modeSelect(task: any) {
     const util = require('util')
@@ -312,11 +312,16 @@ exports.handler = async (event, context) => {
   async goCompile(task: ListrTaskWrapper<any, any>) {
     task.title = 'Compiling go binary'
     await this.deployment.update('GO_COMPILE')
-    await execa('go', ['build', '-o', 'main', 'main.go'], {
+    let arch = 'amd64'
+    if (this.deployment.entry.project.detail && this.deployment.entry.project.detail.architecture) {
+      arch = this.deployment.entry.project.detail.architecture
+      this.goBinary = 'bootstrap'
+    }
+    await execa('go', ['build', '-o', this.goBinary, 'main.go'], {
       extendEnv: true,
       env: {
         GOOS: 'linux',
-        GOARCH: 'amd64',
+        GOARCH: arch,
       },
     })
   }
@@ -329,10 +334,10 @@ exports.handler = async (event, context) => {
       pub: 0,
       server: 0,
       deps: 0,
-      code: fs.statSync('main').size,
+      code: fs.statSync(this.goBinary).size,
       static: 0,
     }
-    await execa('zip', [this.deployment.s3.code, 'main'])
+    await execa('zip', [this.deployment.s3.code, this.goBinary])
   }
 
   async outputArchive(task: ListrTaskWrapper<any, any>) {
@@ -619,7 +624,7 @@ exports.handler = async (event, context) => {
       fs.unlinkSync('.env.fume')
     }
 
-    if (fs.existsSync('main')) fse.removeSync('main')
+    if (fs.existsSync(this.goBinary)) fse.removeSync(this.goBinary)
     if (fs.existsSync(this.deployment.s3.paths.code)) fse.removeSync(this.deployment.s3.paths.code)
 
     if (this && this.deployment.s3.code && fs.existsSync(this.deployment.s3.code))
