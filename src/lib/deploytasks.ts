@@ -235,7 +235,9 @@ exports.handler = async (event, context) => {
       pkg.devDependencies &&
       (pkg.devDependencies.nuxt3 ||
         pkg?.devDependencies?.nuxt?.includes('^3') ||
-        pkg?.devDependencies?.nuxt?.includes('3')
+        pkg?.devDependencies?.nuxt?.includes('3') ||
+        pkg?.devDependencies?.nuxt?.includes('^4') ||
+        pkg?.devDependencies?.nuxt?.includes('4')
       )
       ) return true
 
@@ -243,7 +245,9 @@ exports.handler = async (event, context) => {
       pkg.dependencies &&
       (pkg.dependencies.nuxt3 ||
         pkg?.dependencies?.nuxt?.includes('^3') ||
-        pkg?.dependencies?.nuxt?.includes('3')
+        pkg?.dependencies?.nuxt?.includes('3') ||
+        pkg?.dependencies?.nuxt?.includes('^4') ||
+        pkg?.dependencies?.nuxt?.includes('4')
       )
       ) return true
     return Boolean(pkg.devDependencies && pkg.devDependencies['@nuxt/bridge'])
